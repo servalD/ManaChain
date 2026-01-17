@@ -19,6 +19,12 @@ export interface UpdateUserRequest {
   last_name?: string;
   avatar_url?: string;
   age_range?: string;
+  blockchain_address?: string;
+}
+
+export interface UpdateBlockchainAddressRequest {
+  userId: string;
+  blockchain_address: string;
 }
 
 export interface UpdateUserInterestsRequest {

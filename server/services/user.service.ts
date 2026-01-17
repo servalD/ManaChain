@@ -191,6 +191,70 @@ export const updateUser = async (
 };
 
 /**
+ * Update user blockchain address
+ * Validates that the address is not already used by another user
+ */
+export const updateBlockchainAddress = async (
+  userId: string,
+  blockchainAddress: string
+): Promise<ServiceResponse<User>> => {
+  try {
+    // Check if address is already used by another user
+    const { data: existingUser } = await supabase
+      .from('user')
+      .select('id, username')
+      .eq('blockchain_address', blockchainAddress)
+      .single();
+
+    if (existingUser && existingUser.id !== userId) {
+      return failure('This wallet address is already connected to another account');
+    }
+
+    // Update user's blockchain address
+    const { data, error } = await supabase
+      .from('user')
+      .update({ blockchain_address: blockchainAddress })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Update blockchain address error:', error);
+      return failure('Error updating blockchain address');
+    }
+
+    return success(data);
+  } catch (error) {
+    console.error('updateBlockchainAddress error:', error);
+    return failure('Server error updating blockchain address');
+  }
+};
+
+/**
+ * Get user by blockchain address
+ */
+export const getUserByBlockchainAddress = async (
+  blockchainAddress: string
+): Promise<ServiceResponse<User>> => {
+  try {
+    const { data, error } = await supabase
+      .from('user')
+      .select('*')
+      .eq('blockchain_address', blockchainAddress)
+      .single();
+
+    if (error || !data) {
+      return failure('User not found');
+    }
+
+    return success(data);
+  } catch (error) {
+    console.error('getUserByBlockchainAddress error:', error);
+    return failure('Server error');
+  }
+};
+
+/**
  * Get user interests
  */
 export const getUserInterests = async (userId: string): Promise<ServiceResponse<Interest[]>> => {

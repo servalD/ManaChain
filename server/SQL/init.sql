@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   password_hash TEXT NOT NULL,
   avatar_url TEXT,
   age_range TEXT NOT NULL,
+  blockchain_address TEXT UNIQUE,
   verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expires TIMESTAMP WITH TIME ZONE,
@@ -25,6 +26,7 @@ CREATE INDEX idx_user_email ON "user"(email);
 CREATE INDEX idx_user_username ON "user"(username);
 CREATE INDEX idx_user_email_verification_token ON "user"(email_verification_token);
 CREATE INDEX idx_user_is_brand ON "user"(is_brand);
+CREATE INDEX idx_user_blockchain_address ON "user"(blockchain_address);
 
 -- Table: brand (brand information)
 CREATE TABLE IF NOT EXISTS brand (

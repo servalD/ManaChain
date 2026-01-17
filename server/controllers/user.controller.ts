@@ -60,6 +60,38 @@ export const updateUserController = async (req: Request, res: Response): Promise
 };
 
 /**
+ * PUT /users/me/blockchain-address - Update blockchain address
+ */
+export const updateBlockchainAddressController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const userId = (req as any).userId;
+  const { blockchain_address } = req.body;
+
+  if (!blockchain_address) {
+    res.status(400).json({ error: 'Blockchain address is required' });
+    return;
+  }
+
+  // Validate Ethereum address format (0x followed by 40 hex characters)
+  const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+  if (!addressRegex.test(blockchain_address)) {
+    res.status(400).json({ error: 'Invalid blockchain address format' });
+    return;
+  }
+
+  const result = await userService.updateBlockchainAddress(userId, blockchain_address);
+
+  if (!result.success) {
+    res.status(400).json({ error: result.error });
+    return;
+  }
+
+  res.json({ user: result.data });
+};
+
+/**
  * GET /users/me/interests - Get user interests
  */
 export const getUserInterestsController = async (req: Request, res: Response): Promise<void> => {
