@@ -1,4 +1,6 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // JWT configuration
 const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
