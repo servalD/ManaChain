@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { SignUpPage, Interest } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
