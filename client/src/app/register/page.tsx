@@ -1,70 +1,106 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { SignUpPage, Interest } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
-
-const availableInterests: Interest[] = [
-  { id: "fashion", label: "Fashion", icon: "👗" },
-  { id: "tech", label: "Technology", icon: "💻" },
-  { id: "food", label: "Food & Drinks", icon: "🍕" },
-  { id: "sports", label: "Sports", icon: "⚽" },
-  { id: "music", label: "Music", icon: "🎵" },
-  { id: "art", label: "Art & Design", icon: "🎨" },
-  { id: "travel", label: "Travel", icon: "✈️" },
-  { id: "gaming", label: "Gaming", icon: "🎮" },
-  { id: "fitness", label: "Fitness", icon: "💪" },
-  { id: "beauty", label: "Beauty", icon: "💄" },
-  { id: "books", label: "Books", icon: "📚" },
-  { id: "movies", label: "Movies & TV", icon: "🎬" },
-  { id: "crypto", label: "Crypto", icon: "₿" },
-  { id: "eco", label: "Eco-Friendly", icon: "🌱" },
-];
+import AuthService from "@/services/auth.service";
+import InterestsService from "@/services/interests.service";
+import { toast } from "@/lib/toast";
+import { isValidEmail, isValidPassword } from "@/utils/validation";
 
 export default function RegisterPage() {
   const router = useRouter();
   const toasterRef = useRef<ToasterRef>(null);
+  const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, data: any) => {
+  // Load interests from API
+  useEffect(() => {
+    const loadInterests = async () => {
+      try {
+        const interests = await InterestsService.getAllInterests();
+        const formattedInterests: Interest[] = interests.map(interest => ({
+          id: interest.id,
+          label: interest.label || interest.id,
+          icon: interest.icon || "📌",
+        }));
+        setAvailableInterests(formattedInterests);
+      } catch (error) {
+        console.error("Error loading interests:", error);
+        toast({
+          title: "Error loading interests",
+          description: "Using default interests",
+          variant: "warning",
+        });
+        // Fallback to default interests
+        setAvailableInterests([
+          { id: "fashion", label: "Fashion", icon: "👗" },
+          { id: "tech", label: "Technology", icon: "💻" },
+          { id: "food", label: "Food & Drinks", icon: "🍕" },
+          { id: "sports", label: "Sports", icon: "⚽" },
+          { id: "music", label: "Music", icon: "🎵" },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInterests();
+  }, []);
+
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: any) => {
     event.preventDefault();
     
-    // Validation des centres d'intérêt
-    if (data.interests.length < 3) {
-      toasterRef.current?.show({
-        title: 'More interests needed',
-        message: 'Please select at least 3 interests to continue.',
-        variant: 'warning',
-        duration: 3000,
+    // Validate interests (min 3, max 5)
+    if (!formData.interests || formData.interests.length < 3) {
+      toast({
+        title: "More interests needed",
+        description: "Please select at least 3 interests to continue.",
+        variant: "warning",
       });
       return;
     }
 
-    console.log("Registration data:", data);
+    if (formData.interests.length > 5) {
+      toast({
+        title: "Too many interests",
+        description: "Please select a maximum of 5 interests.",
+        variant: "warning",
+      });
+      return;
+    }
 
-    // Show loading toast
-    toasterRef.current?.show({
-      title: 'Creating account...',
-      message: 'Please wait while we set up your profile.',
-      variant: 'default',
-      duration: 2000,
-    });
+    // Validate age range
+    if (!formData.ageRange) {
+      toast({
+        title: "Age range required",
+        description: "Please select your age range.",
+        variant: "warning",
+      });
+      return;
+    }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      const result = await AuthService.register({
+        email: formData.email,
+        username: formData.username,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        password: formData.password,
+        age_range: formData.ageRange,
+        interests: formData.interests,
+      });
 
-    // Show success toast
-    toasterRef.current?.show({
-      title: 'Welcome to Mana Chain!',
-      message: `Your account has been created successfully, ${data.firstName}!`,
-      variant: 'success',
-      duration: 3000,
-    });
-
-    // Redirect after a short delay
-    setTimeout(() => {
-      router.push("/login");
-    }, 1500);
+      if (result) {
+        // Redirect to home page after successful registration
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+    }
   };
 
   const handleGoogleSignUp = () => {
@@ -81,17 +117,25 @@ export default function RegisterPage() {
     router.push("/login");
   };
 
+  if (isLoading) {
+    return (
+      <div className="dark bg-linear-to-br from-black via-gray-950 to-black min-h-screen flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="dark bg-gradient-to-br from-black via-gray-950 to-black">
+    <div className="dark bg-linear-to-br from-black via-gray-950 to-black">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
       <SignUpPage
         title={
           <span className="font-light text-white tracking-tighter">
-            Welcome to <span className="font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
+            Welcome to <span className="font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
           </span>
         }
         description="Create your account and discover community tokens from your favorite brands"
-        heroImageSrc="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=2160&q=80"
+        heroImageSrc="/event.png"
         interests={availableInterests}
         onSignUp={handleSignUp}
         onGoogleSignUp={handleGoogleSignUp}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Check, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Check, ArrowLeft, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
+import { getPasswordCriteria } from '@/utils/validation';
 
 // --- HELPER COMPONENTS (ICONS) ---
 
@@ -47,25 +48,33 @@ const InterestButton = ({
   interest: Interest; 
   selected: boolean; 
   onClick: () => void;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`
-      relative flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300
-      ${selected 
-        ? 'border-violet-500 bg-violet-500/20 text-white' 
-        : 'border-white/10 bg-white/5 text-gray-400 hover:border-violet-400/50 hover:bg-white/10'
-      }
-    `}
-  >
-    <span className="text-xl">{interest.icon}</span>
-    <span className="text-sm font-medium">{interest.label}</span>
-    {selected && (
-      <Check className="h-4 w-4 ml-auto text-violet-400" />
-    )}
-  </button>
-);
+}) => {
+  const label = interest.label || interest.id;
+  
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        relative flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 w-full min-h-[48px]
+        ${selected 
+          ? 'border-violet-500 bg-violet-500/20' 
+          : 'border-white/10 bg-white/5 hover:border-violet-400/50 hover:bg-white/10'
+        }
+      `}
+    >
+      <span className="text-xl shrink-0 flex items-center justify-center w-6">{interest.icon}</span>
+      <span 
+        className={`text-sm font-medium flex-1 text-left min-w-0 ${selected ? 'text-white' : 'text-gray-300'}`}
+      >
+        {label}
+      </span>
+      {selected && (
+        <Check className="h-4 w-4 shrink-0 text-violet-400 ml-2" />
+      )}
+    </button>
+  );
+};
 
 // --- MAIN COMPONENT ---
 
@@ -80,13 +89,24 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [password, setPassword] = useState('');
+  
+  // Password validation criteria
+  const passwordCriteria = getPasswordCriteria(password);
 
   const toggleInterest = (interestId: string) => {
-    setSelectedInterests(prev => 
-      prev.includes(interestId)
-        ? prev.filter(id => id !== interestId)
-        : [...prev, interestId]
-    );
+    setSelectedInterests(prev => {
+      if (prev.includes(interestId)) {
+        // Remove interest
+        return prev.filter(id => id !== interestId);
+      } else {
+        // Add interest only if we haven't reached the maximum
+        if (prev.length >= 5) {
+          return prev;
+        }
+        return [...prev, interestId];
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -100,7 +120,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw] bg-gradient-to-br from-black via-gray-950 to-black">
+    <div className="h-dvh flex flex-col md:flex-row font-geist w-dvw bg-linear-to-br from-black via-gray-950 to-black">
       {/* Left column: sign-up form */}
       <section className="flex-1 flex items-start justify-center p-8 bg-transparent overflow-y-auto relative">
         {/* Back Button */}
@@ -146,6 +166,29 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
               </div>
 
+              {/* Age Range */}
+              <div className="animate-element animate-delay-475">
+                <label className="text-sm font-medium text-gray-400">Age Range</label>
+                <div className="relative">
+                  <GlassInputWrapper>
+                    <select 
+                      name="ageRange" 
+                      required
+                      className="w-full bg-transparent text-sm p-4 pr-10 rounded-2xl focus:outline-none text-white appearance-none cursor-pointer [&>option]:bg-gray-900 [&>option]:text-white"
+                    >
+                      <option value="" className="bg-gray-900 text-gray-400">Select your age range</option>
+                      <option value="18-24">18-24</option>
+                      <option value="25-34">25-34</option>
+                      <option value="35-44">35-44</option>
+                      <option value="45-54">45-54</option>
+                      <option value="55-64">55-64</option>
+                      <option value="65+">65+</option>
+                    </select>
+                  </GlassInputWrapper>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none transition-transform group-hover:rotate-180" />
+                </div>
+              </div>
+
               {/* Username */}
               <div className="animate-element animate-delay-350">
                 <label className="text-sm font-medium text-gray-400">Username</label>
@@ -184,6 +227,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                       type={showPassword ? 'text' : 'password'} 
                       required
                       placeholder="Create a password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-white placeholder:text-gray-500" 
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center">
@@ -191,12 +236,40 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                     </button>
                   </div>
                 </GlassInputWrapper>
+                {password && (
+                  <div className="mt-2 space-y-1.5">
+                    <div className={`flex items-center gap-2 text-xs transition-colors ${passwordCriteria.length ? 'text-green-400' : 'text-gray-400'}`}>
+                      {passwordCriteria.length ? (
+                        <Check className="h-3.5 w-3.5 shrink-0" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                      <span>At least 8 characters</span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs transition-colors ${passwordCriteria.digit ? 'text-green-400' : 'text-gray-400'}`}>
+                      {passwordCriteria.digit ? (
+                        <Check className="h-3.5 w-3.5 shrink-0" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                      <span>At least one digit</span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-xs transition-colors ${passwordCriteria.special ? 'text-green-400' : 'text-gray-400'}`}>
+                      {passwordCriteria.special ? (
+                        <Check className="h-3.5 w-3.5 shrink-0" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                      <span>At least one special character</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Interests Selection */}
               <div className="animate-element animate-delay-500">
                 <label className="text-sm font-medium text-gray-400 mb-2 block">
-                  Interests <span className="text-violet-400">(Select at least 3)</span>
+                  Interests <span className="text-violet-400">(Select 3 to 5)</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {interests.map((interest) => (
@@ -213,15 +286,20 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                     Please select {3 - selectedInterests.length} more interest{3 - selectedInterests.length > 1 ? 's' : ''}
                   </p>
                 )}
+                {selectedInterests.length >= 5 && (
+                  <p className="text-xs text-amber-400 mt-2">
+                    Maximum 5 interests selected
+                  </p>
+                )}
               </div>
 
               <button 
                 type="submit" 
-                disabled={selectedInterests.length < 3}
+                disabled={selectedInterests.length < 3 || selectedInterests.length > 5}
                 className="animate-element animate-delay-600 w-full rounded-2xl py-4 font-medium text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] disabled:hover:scale-100" 
                 style={{
-                  background: selectedInterests.length >= 3 ? 'linear-gradient(to right, #7c3aed, #a855f7)' : 'rgba(255, 255, 255, 0.1)',
-                  boxShadow: selectedInterests.length >= 3 ? '0 4px 14px 0 rgba(124, 58, 237, 0.39)' : 'none'
+                  background: (selectedInterests.length >= 3 && selectedInterests.length <= 5) ? 'linear-gradient(to right, #7c3aed, #a855f7)' : 'rgba(255, 255, 255, 0.1)',
+                  boxShadow: (selectedInterests.length >= 3 && selectedInterests.length <= 5) ? '0 4px 14px 0 rgba(124, 58, 237, 0.39)' : 'none'
                 }}
               >
                 Create Account

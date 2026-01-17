@@ -24,7 +24,18 @@ export const getUserProfileController = async (req: Request, res: Response): Pro
  */
 export const updateUserController = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).userId;
-  const { username, first_name, last_name, avatar_url } = req.body;
+  const { username, first_name, last_name, avatar_url, age_range } = req.body;
+
+  if (age_range) {
+    const validAgeRanges = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+    if (!validAgeRanges.includes(age_range)) {
+      res.status(400).json({
+        error: 'Invalid age_range',
+        valid_values: validAgeRanges,
+      });
+      return;
+    }
+  }
 
   const request: UpdateUserRequest = {
     userId,
@@ -32,6 +43,7 @@ export const updateUserController = async (req: Request, res: Response): Promise
     first_name,
     last_name,
     avatar_url,
+    age_range,
   };
 
   const result = await userService.updateUser(request);

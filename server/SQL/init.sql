@@ -10,14 +10,14 @@ CREATE TABLE IF NOT EXISTS "user" (
   last_name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   avatar_url TEXT,
-  age_range TEXT,
+  age_range TEXT NOT NULL,
   verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expires TIMESTAMP WITH TIME ZONE,
   is_brand BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  CONSTRAINT chk_age_range CHECK (age_range IS NULL OR age_range IN ('18-24', '25-34', '35-44', '45-54', '55-64', '65+'))
+  CONSTRAINT chk_age_range CHECK (age_range IN ('18-24', '25-34', '35-44', '45-54', '55-64', '65+'))
 );
 
 -- Indexes for searches
@@ -204,7 +204,7 @@ COMMENT ON TABLE brand_token IS 'Tokens issued by brands (represents a fractiona
 COMMENT ON TABLE token_holder IS 'Token holders and their balances';
 COMMENT ON TABLE token_transaction IS 'History of all token transactions';
 
-COMMENT ON COLUMN "user".age_range IS 'Age range of the user (18-24, 25-34, 35-44, 45-54, 55-64, 65+)';
+COMMENT ON COLUMN "user".age_range IS 'Age range of the user (required, values: 18-24, 25-34, 35-44, 45-54, 55-64, 65+)';
 COMMENT ON COLUMN "user".verified IS 'Indicates if the user email has been verified';
 COMMENT ON COLUMN "user".email_verification_token IS 'Token for email verification';
 COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verification token';

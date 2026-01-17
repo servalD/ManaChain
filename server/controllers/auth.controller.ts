@@ -8,17 +8,45 @@ import {
   ResendVerificationRequest,
   ChangePasswordRequest,
 } from '../interfaces/auth.interface';
+import { isValidEmail, isValidPassword } from '../utils/validation';
 
 /**
  * POST /auth/register - Register a new user
  */
 export const registerController = async (req: Request, res: Response): Promise<void> => {
-  const { email, username, first_name, last_name, password, interests } = req.body;
+  const { email, username, first_name, last_name, password, age_range, interests } = req.body;
 
-  if (!email || !username || !first_name || !last_name || !password) {
+  if (!email || !username || !first_name || !last_name || !password || !age_range) {
     res.status(400).json({
       error: 'Missing required fields',
-      required: ['email', 'username', 'first_name', 'last_name', 'password'],
+      required: ['email', 'username', 'first_name', 'last_name', 'password', 'age_range'],
+    });
+    return;
+  }
+
+  // Validate email format
+  if (!isValidEmail(email)) {
+    res.status(400).json({
+      error: 'Invalid email format',
+    });
+    return;
+  }
+
+  // Validate password strength
+  const passwordValidation = isValidPassword(password);
+  if (!passwordValidation.valid) {
+    res.status(400).json({
+      error: passwordValidation.error || 'Invalid password',
+    });
+    return;
+  }
+
+  // Validate age_range
+  const validAgeRanges = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+  if (!validAgeRanges.includes(age_range)) {
+    res.status(400).json({
+      error: 'Invalid age_range',
+      valid_values: validAgeRanges,
     });
     return;
   }
@@ -29,6 +57,7 @@ export const registerController = async (req: Request, res: Response): Promise<v
     firstName: first_name,
     lastName: last_name,
     password,
+    age_range,
     interests,
   };
 
@@ -131,6 +160,15 @@ export const changePasswordController = async (req: Request, res: Response): Pro
   if (!old_password || !new_password) {
     res.status(400).json({
       error: 'Old and new password required',
+    });
+    return;
+  }
+
+  // Validate new password strength
+  const passwordValidation = isValidPassword(new_password);
+  if (!passwordValidation.valid) {
+    res.status(400).json({
+      error: passwordValidation.error || 'Invalid password',
     });
     return;
   }

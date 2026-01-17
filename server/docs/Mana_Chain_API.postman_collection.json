@@ -1,0 +1,689 @@
+{
+  "info": {
+    "name": "Mana Chain API",
+    "description": "Complete API collection for Mana Chain platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "brand_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "token_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"username\": \"johndoe\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"password\": \"SecurePassword123!\",\n  \"age_range\": \"25-34\",\n  \"interests\": [\"tech\", \"fashion\", \"sport\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "    pm.collectionVariables.set(\"user_id\", jsonData.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "    pm.collectionVariables.set(\"user_id\", jsonData.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"verification_token_from_email\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-email",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verify-email"]
+            }
+          }
+        },
+        {
+          "name": "Resend Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/resend-verification",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "resend-verification"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"OldPassword123!\",\n  \"new_password\": \"NewSecurePassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newusername\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\",\n  \"avatar_url\": \"https://example.com/avatar.jpg\",\n  \"age_range\": \"35-44\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get My Interests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/interests",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "interests"]
+            }
+          }
+        },
+        {
+          "name": "Update My Interests",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interests\": [\"tech\", \"fashion\", \"sport\", \"music\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/interests",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "interests"]
+            }
+          }
+        },
+        {
+          "name": "Get All Interests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/interests",
+              "host": ["{{base_url}}"],
+              "path": ["interests"]
+            }
+          }
+        },
+        {
+          "name": "Get User From Token",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users/from-token/{{token}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "from-token", "{{token}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brands",
+      "item": [
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechStart Inc\",\n  \"industry_type\": \"technology\",\n  \"description\": \"A cutting-edge technology startup\",\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"website_url\": \"https://techstart.com\",\n  \"business_registration_number\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Innovation Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A, Floor 5\",\n  \"interests\": [\"tech\", \"finance\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands",
+              "host": ["{{base_url}}"],
+              "path": ["brands"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"brand_id\", jsonData.brand.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["brands"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/me",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "me"]
+            }
+          }
+        },
+        {
+          "name": "Get Brand By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechStart Corp\",\n  \"description\": \"Updated description\",\n  \"logo_url\": \"https://example.com/new-logo.png\",\n  \"interests\": [\"tech\", \"finance\", \"education\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Brand Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tokens",
+      "item": [
+        {
+          "name": "Create Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"TST\",\n  \"total_supply\": \"1000000.00000000\",\n  \"current_price\": \"0.50000000\",\n  \"nft_token_id\": \"12345\",\n  \"nft_name\": \"TechStart NFT\",\n  \"nft_symbol\": \"TSTNFT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tokens",
+              "host": ["{{base_url}}"],
+              "path": ["tokens"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token_id\", jsonData.token.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Token By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Token By Brand ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/brand/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "brand", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Token Price",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_price\": \"0.75000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/price",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "price"]
+            }
+          }
+        },
+        {
+          "name": "Get Token Holders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/holders",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "holders"]
+            }
+          }
+        },
+        {
+          "name": "Get My Token Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Transfer Tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to_user_id\": \"880e8400-e29b-41d4-a716-446655440000\",\n  \"amount\": \"100.00000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/transfer",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "transfer"]
+            }
+          }
+        },
+        {
+          "name": "Purchase Tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"1000.00000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/purchase",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "purchase"]
+            }
+          }
+        },
+        {
+          "name": "Get Token Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/{{token_id}}/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "{{token_id}}", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get My Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/my/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "my", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get My Portfolio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tokens/my/portfolio",
+              "host": ["{{base_url}}"],
+              "path": ["tokens", "my", "portfolio"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

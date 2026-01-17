@@ -4,6 +4,7 @@ export interface CreateUserRequest {
   first_name: string;
   last_name: string;
   password_hash: string;
+  age_range: string;
   email_verification_token?: string;
   email_verification_expires?: string;
   verified?: boolean;
@@ -17,6 +18,7 @@ export interface UpdateUserRequest {
   first_name?: string;
   last_name?: string;
   avatar_url?: string;
+  age_range?: string;
 }
 
 export interface UpdateUserInterestsRequest {

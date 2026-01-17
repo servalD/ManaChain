@@ -4,6 +4,7 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   password: string;
+  age_range: string;
   interests?: string[];
 }
 

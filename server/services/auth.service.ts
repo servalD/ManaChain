@@ -6,6 +6,7 @@ import { generateToken } from './jwt.service';
 import { sendVerificationEmail, sendWelcomeEmail } from './email.service';
 import { getUserByEmail, createUser } from './user.service';
 import crypto from 'crypto';
+import { isValidEmail, isValidPassword } from '../utils/validation';
 import {
   RegisterRequest,
   LoginRequest,
@@ -23,6 +24,17 @@ export const register = async (
   request: RegisterRequest
 ): Promise<ServiceResponse<AuthResponse>> => {
   try {
+    // Validate email format
+    if (!isValidEmail(request.email)) {
+      return failure('Invalid email format');
+    }
+
+    // Validate password strength
+    const passwordValidation = isValidPassword(request.password);
+    if (!passwordValidation.valid) {
+      return failure(passwordValidation.error || 'Invalid password');
+    }
+
     // Hash the password
     const passwordHash = await SecurityUtils.hashPassword(request.password);
 
@@ -37,6 +49,7 @@ export const register = async (
       first_name: request.firstName,
       last_name: request.lastName,
       password_hash: passwordHash,
+      age_range: request.age_range,
       email_verification_token: verificationToken,
       email_verification_expires: verificationExpires.toISOString(),
       verified: false,
@@ -89,6 +102,11 @@ export const loginUser = async (
     }
 
     const user = userResult.data;
+
+    // Check if account is verified
+    if (!user.verified) {
+      return failure('Please verify your email address before logging in. Check your inbox for the verification link.');
+    }
 
     // Verify password
     const isPasswordValid = await SecurityUtils.comparePassword(

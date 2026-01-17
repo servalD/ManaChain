@@ -4,6 +4,8 @@ import { useRef } from "react";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
+import AuthService from "@/services/auth.service";
+import { isValidEmail } from "@/utils/validation";
 
 const sampleTestimonials: Testimonial[] = [
   {
@@ -34,30 +36,43 @@ export default function LoginPage() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const data = Object.fromEntries(formData.entries());
-    console.log("Sign In submitted:", data);
     
-    // Show loading toast
-    toasterRef.current?.show({
-      title: 'Signing in...',
-      message: 'Please wait while we verify your credentials.',
-      variant: 'default',
-      duration: 2000,
-    });
+    const email = data.email as string;
+    const password = data.password as string;
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Show success toast and redirect
-    toasterRef.current?.show({
-      title: 'Welcome back!',
-      message: 'You have successfully signed in to Mana Chain.',
-      variant: 'success',
-      duration: 3000,
-    });
+    if (!email || !password) {
+      toasterRef.current?.show({
+        title: 'Missing fields',
+        message: 'Please enter your email and password.',
+        variant: 'warning',
+        duration: 3000,
+      });
+      return;
+    }
 
-    setTimeout(() => {
-      router.push("/");
-    }, 1000);
+    // Validate email format
+    if (!isValidEmail(email)) {
+      toasterRef.current?.show({
+        title: 'Invalid email',
+        message: 'Please enter a valid email address.',
+        variant: 'error',
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const result = await AuthService.login(email, password);
+
+      if (result) {
+        // Redirect to home page after successful login
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   const handleGoogleSignIn = () => {
@@ -84,16 +99,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="dark bg-gradient-to-br from-black via-gray-950 to-black">
+    <div className="dark bg-linear-to-br from-black via-gray-950 to-black">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
       <SignInPage
         title={
           <span className="font-light text-white tracking-tighter">
-            Welcome to <span className="font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
+            Welcome to <span className="font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
           </span>
         }
         description="Sign in to access your community tokens and engage with your favorite brands"
-        heroImageSrc="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=2160&q=80"
+        heroImageSrc="/event.png"
         testimonials={sampleTestimonials}
         onSignIn={handleSignIn}
         onGoogleSignIn={handleGoogleSignIn}
