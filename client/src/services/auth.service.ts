@@ -465,4 +465,44 @@ export default class AuthService {
       return false;
     }
   }
+
+  /**
+   * Update blockchain address
+   */
+  static async updateBlockchainAddress(blockchainAddress: string): Promise<boolean> {
+    try {
+      const token = localStorage.getItem("Token");
+      if (!token) return false;
+
+      const response = await axios.put(
+        `${ApiService.baseURL}/users/me/blockchain-address`,
+        { blockchain_address: blockchainAddress },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.user) {
+        // Update local user cache
+        const currentUser = this.getUser();
+        if (currentUser) {
+          const updatedUser = { ...currentUser, blockchain_address: blockchainAddress };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        return true;
+      }
+      return false;
+    } catch (error: any) {
+      if (error.response?.data?.error) {
+        toast({
+          title: 'Error',
+          description: error.response.data.error,
+          variant: 'error',
+        });
+      }
+      return false;
+    }
+  }
 }

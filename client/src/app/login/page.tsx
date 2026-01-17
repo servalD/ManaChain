@@ -65,9 +65,9 @@ export default function LoginPage() {
       const result = await AuthService.login(email, password);
 
       if (result) {
-        // Redirect to home page after successful login
+        // Redirect to discover page after successful login
         setTimeout(() => {
-          router.push("/");
+          router.push("/discover");
         }, 1000);
       }
     } catch (error) {

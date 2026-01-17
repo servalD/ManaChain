@@ -67,7 +67,7 @@ export default function RegisterPage() {
         title: "Too many interests",
         description: "Please select a maximum of 5 interests.",
         variant: "warning",
-      });
+    });
       return;
     }
 
@@ -90,12 +90,12 @@ export default function RegisterPage() {
         password: formData.password,
         age_range: formData.ageRange,
         interests: formData.interests,
-      });
+    });
 
       if (result) {
-        // Redirect to home page after successful registration
+        // Redirect to discover page after successful registration
         setTimeout(() => {
-          router.push("/");
+          router.push("/discover");
         }, 1500);
       }
     } catch (error) {

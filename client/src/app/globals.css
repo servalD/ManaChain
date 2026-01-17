@@ -293,4 +293,14 @@
   .custom-checkbox:hover {
     border-color: rgba(124, 58, 237, 0.5);
   }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -6,6 +6,7 @@ export interface IUser {
   last_name: string;
   avatar_url?: string;
   age_range: string;
+  blockchain_address?: string;
   verified: boolean;
   is_brand: boolean;
   created_at: string;
