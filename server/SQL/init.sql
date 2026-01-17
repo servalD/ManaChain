@@ -72,13 +72,19 @@ CREATE TABLE IF NOT EXISTS user_interest (
 CREATE INDEX idx_user_interest_user_id ON user_interest(user_id);
 CREATE INDEX idx_user_interest_interest_id ON user_interest(interest_id);
 
--- Table: brand_token (tokens issued by brands)
+-- Table: brand_token (tokens issued by brands - represents a fractionalized NFT)
 CREATE TABLE IF NOT EXISTS brand_token (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   brand_id UUID NOT NULL UNIQUE REFERENCES brand(id) ON DELETE CASCADE,
   symbol TEXT NOT NULL UNIQUE,
-  total_supply BIGINT NOT NULL DEFAULT 0,
+  total_supply DECIMAL(20, 8) NOT NULL DEFAULT 0,
   current_price DECIMAL(20, 8) NOT NULL DEFAULT 0,
+  
+  -- NFT Information (the NFT that was fractionalized into these tokens)
+  nft_token_id TEXT,
+  nft_name TEXT,
+  nft_symbol TEXT,
+  
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_total_supply_positive CHECK (total_supply >= 0),
@@ -88,13 +94,14 @@ CREATE TABLE IF NOT EXISTS brand_token (
 -- Indexes for searches
 CREATE INDEX idx_brand_token_brand_id ON brand_token(brand_id);
 CREATE INDEX idx_brand_token_symbol ON brand_token(symbol);
+CREATE INDEX idx_brand_token_nft_token_id ON brand_token(nft_token_id);
 
 -- Table: token_holder (token holders and their balances)
 CREATE TABLE IF NOT EXISTS token_holder (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
   token_id UUID NOT NULL REFERENCES brand_token(id) ON DELETE CASCADE,
-  balance BIGINT NOT NULL DEFAULT 0,
+  balance DECIMAL(20, 8) NOT NULL DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_balance_positive CHECK (balance >= 0),
@@ -112,8 +119,7 @@ CREATE TABLE IF NOT EXISTS token_transaction (
   token_id UUID NOT NULL REFERENCES brand_token(id) ON DELETE CASCADE,
   from_user_id UUID REFERENCES "user"(id) ON DELETE SET NULL,
   to_user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-  amount BIGINT NOT NULL,
-  price_per_token DECIMAL(20, 8),
+  amount DECIMAL(20, 8) NOT NULL,
   transaction_type TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_amount_positive CHECK (amount > 0),
@@ -179,7 +185,7 @@ COMMENT ON TABLE "user" IS 'Regular users and brand accounts';
 COMMENT ON TABLE brand IS 'Brand information';
 COMMENT ON TABLE interest IS 'Available interests';
 COMMENT ON TABLE user_interest IS 'Many-to-many relationship between users and interests';
-COMMENT ON TABLE brand_token IS 'Tokens issued by brands';
+COMMENT ON TABLE brand_token IS 'Tokens issued by brands (represents a fractionalized NFT)';
 COMMENT ON TABLE token_holder IS 'Token holders and their balances';
 COMMENT ON TABLE token_transaction IS 'History of all token transactions';
 
@@ -189,5 +195,11 @@ COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verif
 COMMENT ON COLUMN "user".is_brand IS 'Indicates if the account is associated with a brand';
 COMMENT ON COLUMN brand.siret IS 'SIRET number of the company (France)';
 COMMENT ON COLUMN brand.verified IS 'Indicates if the brand has been verified by the team';
+COMMENT ON COLUMN brand_token.total_supply IS 'Total supply of fractional tokens (supports decimals)';
+COMMENT ON COLUMN brand_token.nft_token_id IS 'Token ID of the original NFT that was fractionalized';
+COMMENT ON COLUMN brand_token.nft_name IS 'Name of the original NFT';
+COMMENT ON COLUMN brand_token.nft_symbol IS 'Symbol of the original NFT';
+COMMENT ON COLUMN token_holder.balance IS 'Fractional token balance (supports decimals with 8 decimal places)';
+COMMENT ON COLUMN token_transaction.amount IS 'Amount of tokens transferred (supports decimals with 8 decimal places)';
 COMMENT ON COLUMN token_transaction.from_user_id IS 'NULL for initial emissions';
 COMMENT ON COLUMN token_transaction.transaction_type IS 'Type: purchase, transfer, reward, or initial_emission';
