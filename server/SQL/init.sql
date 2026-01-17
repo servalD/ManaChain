@@ -29,11 +29,11 @@ CREATE TABLE IF NOT EXISTS brand (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,
   name TEXT NOT NULL UNIQUE,
-  category TEXT NOT NULL,
+  interest_id TEXT NOT NULL REFERENCES interest(id) ON DELETE RESTRICT,
   description TEXT,
   logo_url TEXT,
   website_url TEXT,
-  siret TEXT UNIQUE,
+  business_registration_number TEXT UNIQUE,
   country TEXT NOT NULL,
   headquarters_street TEXT NOT NULL,
   headquarters_city TEXT NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS brand (
 -- Indexes for searches
 CREATE INDEX idx_brand_name ON brand(name);
 CREATE INDEX idx_brand_user_id ON brand(user_id);
-CREATE INDEX idx_brand_category ON brand(category);
+CREATE INDEX idx_brand_interest_id ON brand(interest_id);
 CREATE INDEX idx_brand_verified ON brand(verified);
 
 -- Table: interest (available interests)
@@ -193,7 +193,8 @@ COMMENT ON COLUMN "user".verified IS 'Indicates if the user email has been verif
 COMMENT ON COLUMN "user".email_verification_token IS 'Token for email verification';
 COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verification token';
 COMMENT ON COLUMN "user".is_brand IS 'Indicates if the account is associated with a brand';
-COMMENT ON COLUMN brand.siret IS 'SIRET number of the company (France)';
+COMMENT ON COLUMN brand.interest_id IS 'Primary interest category of the brand (links to interest table)';
+COMMENT ON COLUMN brand.business_registration_number IS 'Business registration number (SIRET in France, EIN in USA, etc.)';
 COMMENT ON COLUMN brand.verified IS 'Indicates if the brand has been verified by the team';
 COMMENT ON COLUMN brand_token.total_supply IS 'Total supply of fractional tokens (supports decimals)';
 COMMENT ON COLUMN brand_token.nft_token_id IS 'Token ID of the original NFT that was fractionalized';
