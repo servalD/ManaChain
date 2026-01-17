@@ -1,0 +1,20 @@
+.scroll-float {
+  overflow: hidden;
+}
+
+.scroll-float-text {
+  display: inline-block;
+  line-height: 1.5;
+}
+
+.char {
+  display: inline-block;
+}
+
+/* Les caractères avec gradient héritent les styles */
+.char.bg-gradient-to-r {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
