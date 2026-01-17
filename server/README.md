@@ -2,12 +2,6 @@
 
 RESTful API for the Mana Chain platform, built with Express.js, TypeScript and Supabase.
 
-## 📋 Prerequisites
-
-- Node.js 18+ and pnpm
-- A configured Supabase project
-- Configured environment variables (see `.env.example`)
-
 ## 🚀 Installation
 
 ```bash
@@ -45,22 +39,6 @@ PORT=3001
 2. Execute the SQL script in Supabase:
 
 The `SQL/init.sql` file contains the complete database schema. Execute it in Supabase's SQL editor.
-
-## 🏗️ Project Structure
-
-```
-server/
-├── config/           # Configuration (Supabase)
-├── controllers/      # Route controllers
-├── interfaces/       # TypeScript interfaces for requests
-├── middleware/       # Middleware (auth, etc.)
-├── routes/           # Route definitions
-├── services/         # Business logic
-├── types/            # TypeScript types
-├── utils/            # Utilities
-├── SQL/              # SQL scripts
-└── index.ts          # Entry point
-```
 
 ## 📚 API Endpoints
 
@@ -112,38 +90,6 @@ The API uses JWT (JSON Web Tokens) for authentication. Include the token in the 
 ```
 Authorization: Bearer <your_jwt_token>
 ```
-
-### JWT Payload
-
-```typescript
-{
-  userId: string;
-  email: string;
-  isBrand: boolean;
-  verified: boolean;
-}
-```
-
-## 📦 Data Models
-
-### User
-- Standard user account
-- Email verification required for certain actions
-- Can become a brand by creating a brand profile
-
-### Brand
-- Associated with a user account
-- Can issue one token
-- Requires verification for token operations
-
-### Token
-- Fractional token issued by a brand
-- Tradeable between users
-- Price managed by brand
-
-### Transaction
-- Records all token movements
-- Types: purchase, transfer, reward, initial_emission
 
 ## 🔧 Development
 
@@ -228,21 +174,5 @@ Main tables:
 - `token_holder` - Token ownership
 - `token_transaction` - Transaction history
 
-## 🚀 Deployment
-
-1. Set up environment variables
-2. Execute database schema
-3. Build the project: `pnpm build`
-4. Start the server: `pnpm start`
-
 ## 📄 License
-
 See LICENSE file for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow the code style and ensure all tests pass.
-
-## 📧 Support
-
-For questions or issues, contact support@mana-chain.com

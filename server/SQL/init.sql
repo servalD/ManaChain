@@ -10,12 +10,14 @@ CREATE TABLE IF NOT EXISTS "user" (
   last_name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   avatar_url TEXT,
+  age_range TEXT,
   verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expires TIMESTAMP WITH TIME ZONE,
   is_brand BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_age_range CHECK (age_range IS NULL OR age_range IN ('18-24', '25-34', '35-44', '45-54', '55-64', '65+'))
 );
 
 -- Indexes for searches
@@ -29,7 +31,7 @@ CREATE TABLE IF NOT EXISTS brand (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,
   name TEXT NOT NULL UNIQUE,
-  interest_id TEXT NOT NULL REFERENCES interest(id) ON DELETE RESTRICT,
+  industry_type TEXT NOT NULL,
   description TEXT,
   logo_url TEXT,
   website_url TEXT,
@@ -47,7 +49,7 @@ CREATE TABLE IF NOT EXISTS brand (
 -- Indexes for searches
 CREATE INDEX idx_brand_name ON brand(name);
 CREATE INDEX idx_brand_user_id ON brand(user_id);
-CREATE INDEX idx_brand_interest_id ON brand(interest_id);
+CREATE INDEX idx_brand_industry_type ON brand(industry_type);
 CREATE INDEX idx_brand_verified ON brand(verified);
 
 -- Table: interest (available interests)
@@ -71,6 +73,18 @@ CREATE TABLE IF NOT EXISTS user_interest (
 -- Indexes for searches
 CREATE INDEX idx_user_interest_user_id ON user_interest(user_id);
 CREATE INDEX idx_user_interest_interest_id ON user_interest(interest_id);
+
+-- Table: brand_interest (many-to-many relationship between brands and interests)
+CREATE TABLE IF NOT EXISTS brand_interest (
+  brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
+  interest_id TEXT NOT NULL REFERENCES interest(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (brand_id, interest_id)
+);
+
+-- Indexes for searches
+CREATE INDEX idx_brand_interest_brand_id ON brand_interest(brand_id);
+CREATE INDEX idx_brand_interest_interest_id ON brand_interest(interest_id);
 
 -- Table: brand_token (tokens issued by brands - represents a fractionalized NFT)
 CREATE TABLE IF NOT EXISTS brand_token (
@@ -185,15 +199,17 @@ COMMENT ON TABLE "user" IS 'Regular users and brand accounts';
 COMMENT ON TABLE brand IS 'Brand information';
 COMMENT ON TABLE interest IS 'Available interests';
 COMMENT ON TABLE user_interest IS 'Many-to-many relationship between users and interests';
+COMMENT ON TABLE brand_interest IS 'Many-to-many relationship between brands and interests';
 COMMENT ON TABLE brand_token IS 'Tokens issued by brands (represents a fractionalized NFT)';
 COMMENT ON TABLE token_holder IS 'Token holders and their balances';
 COMMENT ON TABLE token_transaction IS 'History of all token transactions';
 
+COMMENT ON COLUMN "user".age_range IS 'Age range of the user (18-24, 25-34, 35-44, 45-54, 55-64, 65+)';
 COMMENT ON COLUMN "user".verified IS 'Indicates if the user email has been verified';
 COMMENT ON COLUMN "user".email_verification_token IS 'Token for email verification';
 COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verification token';
 COMMENT ON COLUMN "user".is_brand IS 'Indicates if the account is associated with a brand';
-COMMENT ON COLUMN brand.interest_id IS 'Primary interest category of the brand (links to interest table)';
+COMMENT ON COLUMN brand.industry_type IS 'Type of industry (restaurant, clothing, technology, etc.)';
 COMMENT ON COLUMN brand.business_registration_number IS 'Business registration number (SIRET in France, EIN in USA, etc.)';
 COMMENT ON COLUMN brand.verified IS 'Indicates if the brand has been verified by the team';
 COMMENT ON COLUMN brand_token.total_supply IS 'Total supply of fractional tokens (supports decimals)';
