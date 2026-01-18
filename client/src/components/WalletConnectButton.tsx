@@ -1,10 +1,9 @@
 "use client";
 
-import { ConnectButton, useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
-import { client } from "@/lib/thirdweb";
-import { Wallet, Check } from "lucide-react";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { Check } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 interface WalletConnectButtonProps {
   onConnected?: (address: string) => void;
@@ -13,22 +12,23 @@ interface WalletConnectButtonProps {
 }
 
 export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconnect }: WalletConnectButtonProps) {
-  const account = useActiveAccount();
-  const wallet = useActiveWallet();
-  const { disconnect } = useDisconnect();
+  const { primaryWallet, setShowAuthFlow, handleLogOut } = useDynamicContext();
+  const lastNotifiedAddress = useRef<string | null>(null);
 
-  // Handle forced disconnect
+  // Handle wallet connection - only notify once per address
   useEffect(() => {
-    if (shouldDisconnect && wallet) {
-      disconnect(wallet);
+    if (primaryWallet?.address && onConnected && lastNotifiedAddress.current !== primaryWallet.address) {
+      lastNotifiedAddress.current = primaryWallet.address;
+      onConnected(primaryWallet.address);
+    } else if (!primaryWallet?.address) {
+      lastNotifiedAddress.current = null;
     }
-  }, [shouldDisconnect, wallet, disconnect]);
+  }, [primaryWallet?.address, onConnected]);
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = useCallback(async () => {
     try {
-      if (wallet) {
-        await disconnect(wallet);
-      }
+      await handleLogOut();
+      lastNotifiedAddress.current = null;
       if (onDisconnected) {
         onDisconnected();
       }
@@ -45,11 +45,22 @@ export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconn
         variant: "error",
       });
     }
+  }, [handleLogOut, onDisconnected]);
+
+  // Handle forced disconnect
+  useEffect(() => {
+    if (shouldDisconnect && primaryWallet) {
+      handleDisconnect();
+    }
+  }, [shouldDisconnect, primaryWallet, handleDisconnect]);
+
+  const handleConnect = () => {
+    setShowAuthFlow(true);
   };
 
   // If wallet is connected, show the connected state
-  if (account) {
-    const address = account.address;
+  if (primaryWallet?.address) {
+    const address = primaryWallet.address;
     const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
     return (
@@ -73,30 +84,15 @@ export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconn
 
   // If not connected, show the connect button
   return (
-    <ConnectButton
-      client={client}
-      onConnect={async (wallet) => {
-        const address = wallet.getAccount()?.address;
-        if (address && onConnected) {
-          await onConnected(address);
-        }
+    <button
+      onClick={handleConnect}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105"
+      style={{
+        background: 'linear-gradient(to right, #7c3aed, #a855f7)',
+        boxShadow: '0 2px 8px 0 rgba(124, 58, 237, 0.3)',
       }}
-      connectButton={{
-        label: "Connect Wallet",
-        className: "!flex !items-center !gap-1.5 !px-3 !py-1.5 !rounded-lg !text-xs !font-medium !text-white !transition-all !hover:scale-105 !border-0",
-        style: {
-          background: 'linear-gradient(to right, #7c3aed, #a855f7)',
-          boxShadow: '0 2px 8px 0 rgba(124, 58, 237, 0.3)',
-        },
-      }}
-      connectModal={{
-        size: "compact",
-        title: "Connect Your Wallet",
-        welcomeScreen: {
-          title: "Welcome to Mana Chain",
-          subtitle: "Connect your wallet to start discovering and supporting brands",
-        },
-      }}
-    />
+    >
+      Connect Wallet
+    </button>
   );
 }

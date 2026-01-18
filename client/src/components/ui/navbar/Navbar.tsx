@@ -5,7 +5,7 @@ import Link from "next/link";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 
-interface NavbarProps {
+export interface NavbarProps {
   currentPage?: string;
   isLoggedIn?: boolean;
   userName?: string;

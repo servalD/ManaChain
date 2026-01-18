@@ -1,42 +1,61 @@
 import type { NextConfig } from "next";
+import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   
-  webpack: (config, { isServer, webpack }) => {
-    // Ignore test files and tap module
-    config.plugins = config.plugins || [];
-    config.plugins.push(
-      new webpack.IgnorePlugin({
-        resourceRegExp: /\.test\.(js|ts|tsx)$/,
-      }),
-      new webpack.IgnorePlugin({
-        checkResource(resource: string) {
-          // Ignore tap module in test files
-          if (resource.includes('tap') && resource.includes('test')) {
-            return true;
-          }
-          return false;
+  turbopack: {
+    rules: {
+      '*': {
+        condition: {
+          all: [
+            { path: /\/test\// },
+            { path: /node_modules/ },
+          ],
         },
-      })
-    );
-
-    // Ignore tap module in resolve
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      tap: false,
-    };
-
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        tap: false,
-      };
-    }
-
-    return config;
+        loaders: [
+          {
+            loader: 'raw-loader',
+          },
+        ],
+        as: '*.js',
+      },
+      '*.test.{js,ts,tsx,mjs}': {
+        condition: {
+          path: /node_modules/,
+        },
+        loaders: [
+          {
+            loader: 'raw-loader',
+          },
+        ],
+        as: '*.js',
+      },
+      'bench.js': {
+        condition: {
+          path: /node_modules/,
+        },
+        loaders: [
+          {
+            loader: 'raw-loader',
+          },
+        ],
+        as: '*.js',
+      },
+    },
+    resolveAlias: {
+      'pino': 'data:text/javascript,export const levels={values:{fatal:60,error:50,warn:40,info:30,debug:20,trace:10}};export default function pino(){return{info:()=>{},warn:()=>{},error:()=>{},debug:()=>{},fatal:()=>{},trace:()=>{},child:()=>pino(),bindings:()=>({})}}',
+      'thread-stream': 'data:text/javascript,export default class ThreadStream{}',
+      'pino-std-serializers': 'data:text/javascript,export default {}',
+      
+      'tap': 'data:text/javascript,export const test = () => {}; export default { test: () => {} }',
+      'tape': 'data:text/javascript,export default () => {}',
+      'desm': 'data:text/javascript,export const join = () => ""; export default {}',
+      'fastbench': 'data:text/javascript,export default () => {}',
+      'pino-elasticsearch': 'data:text/javascript,export default {}',
+      'why-is-node-running': 'data:text/javascript,export default () => {}',
+    },
   },
 };
 
