@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export interface NavbarProps {
   currentPage?: string;
@@ -34,8 +35,7 @@ export function Navbar({
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-100 border-b border-white/10" style={{
-      background: 'linear-gradient(to right, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1))',
+    <nav className="fixed top-0 left-0 right-0 z-100 border-b border-border backdrop-blur-xl bg-background/80 dark:bg-background/60" style={{
       backdropFilter: 'blur(20px)',
     }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -43,7 +43,7 @@ export function Navbar({
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 flex items-center justify-center transform transition-transform group-hover:scale-110">
-              <span className="text-white font-bold text-base sm:text-lg">M</span>
+              <span className="text-foreground font-bold text-base sm:text-lg">M</span>
             </div>
             <span className="text-lg sm:text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
@@ -61,8 +61,8 @@ export function Navbar({
                   href={item.href}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                     isActive
-                      ? "bg-white/10 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   }`}
                 >
                   {item.label}
@@ -73,6 +73,11 @@ export function Navbar({
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Theme Toggler */}
+            <AnimatedThemeToggler 
+              className="p-2 rounded-lg hover:bg-accent transition-colors text-foreground"
+            />
+            
             {isLoggedIn ? (
               <>
                 {/* Wallet Connect Button - Desktop Only */}
@@ -98,7 +103,7 @@ export function Navbar({
               <>
                 <Link
                   href="/login"
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
                   Login
                 </Link>
@@ -128,8 +133,8 @@ export function Navbar({
                 href={item.href}
                 className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-300 ${
                   isActive
-                    ? "bg-white/10 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? "bg-accent text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 }`}
               >
                 {item.label}

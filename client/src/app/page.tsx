@@ -11,6 +11,7 @@ import SpotlightCard from '@/components/ui/spotlight-card/SpotlightCard';
 import ElectricBorder from '@/components/ui/electric-border/ElectricBorder';
 import LiquidEther from "@/components/ui/liquid-ether/LiquidEther";
 import PillNav from "@/components/ui/pill-nav/PillNav";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { TrendingUp, Users, Calendar, Rocket, Heart, Zap, Shield, Globe2, Sparkles, Award, Target, ChevronDown } from "lucide-react";
 
 // Mock Data
@@ -209,7 +210,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-black text-white overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* LiquidEther Background */}
       {mounted && (
         <div className="fixed inset-0 z-0 pointer-events-none">
@@ -232,7 +233,8 @@ export default function Home() {
       <main className="relative z-10 pointer-events-auto">
         {/* Navigation */}
           {mounted && (
-            <div className="fixed top-0 w-full z-50 flex justify-center pt-6 px-6">
+            <div className="fixed top-0 w-full z-50 flex justify-between items-center pt-6 px-6">
+              <div className="flex-1" />
               <PillNav
                 logo={logoSvg}
                 logoAlt="Mana Chain"
@@ -249,6 +251,11 @@ export default function Home() {
                 pillTextColor="#D4AF37"
                 ease="power2.easeOut"
               />
+              <div className="flex-1 flex justify-end">
+                <AnimatedThemeToggler 
+                  className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
+                />
+              </div>
             </div>
           )}
 
@@ -270,38 +277,38 @@ export default function Home() {
             </div>
             
             <h2 className={`text-2xl md:text-5xl font-bold mb-6 leading-[1.15] transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <span className="bg-gradient-to-r from-gray-50 via-gray-200 to-gray-100 bg-clip-text text-transparent">
+              <span className="text-foreground">
                 Redefine the relationship between{' '}
               </span>
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
                 <RotatingText
                   texts={['brands', 'creators', 'artists', 'companies']}
                   rotationInterval={2500}
                   staggerDuration={0.02}
                   staggerFrom="first"
                   splitBy="characters"
-                  className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
+                  className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
                   elementLevelClassName="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
                 />
               </span>
               <br />
-              <span className="bg-gradient-to-r from-gray-50 via-gray-200 to-gray-100 bg-clip-text text-transparent">
+              <span className="text-foreground">
                 and their{' '}
               </span>
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
                 <RotatingText
                   texts={['communities', 'fans', 'supporters', 'early adopters']}
                   rotationInterval={2500}
                   staggerDuration={0.02}
                   staggerFrom="first"
                   splitBy="characters"
-                  className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
+                  className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
                   elementLevelClassName="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
                 />
               </span>
           </h2>
             
-            <p className={`text-base md:text-lg text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <p className={`text-base md:text-lg text-muted-foreground mb-8 max-w-4xl mx-auto leading-relaxed transition-all duration-1000 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               Allow any business to issue a <span style={{ color: '#FFD700' }} className="font-semibold">community token</span>, 
               raise funds in a <span className="text-violet-400 font-semibold">decentralized</span> way, 
               and offer a new form of authentic engagement.
@@ -344,12 +351,12 @@ export default function Home() {
                   className="h-full"
                   style={{ borderRadius: '1rem' }}
                 >
-                  <div className="bg-gradient-to-br from-black via-gray-950 to-black p-4 rounded-2xl h-full flex flex-col items-center justify-center text-center">
+                  <div className="bg-card p-4 rounded-2xl h-full flex flex-col items-center justify-center text-center">
                     <stat.icon className={`h-8 w-8 ${stat.color} mb-2`} />
-                    <div className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-1">
+                    <div className="text-3xl font-bold text-foreground mb-1">
                       {stat.value}
                     </div>
-                    <div className="text-xs text-gray-400">{stat.label}</div>
+                    <div className="text-xs text-muted-foreground">{stat.label}</div>
                   </div>
                 </ElectricBorder>
               ))}
@@ -372,7 +379,7 @@ export default function Home() {
               >
                 Featured Brands
               </ScrollFloat>
-              <p className="text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
                 Discover innovative projects and emerging brands shaping the future
               </p>
             </div>
@@ -387,36 +394,36 @@ export default function Home() {
                   thickness={2}
                   className="w-full"
                 >
-                  <div className="p-4 bg-gradient-to-br from-violet-950/50 to-fuchsia-950/50 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+                  <div className="p-4 bg-card/50 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-4xl">{brand.image}</div>
                       <Badge className="text-xs">{brand.category}</Badge>
                     </div>
                     
-                    <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    <h3 className="text-xl font-bold mb-2 text-foreground">
                       {brand.name}
                     </h3>
-                    <p className="text-xs text-gray-400 mb-3 line-clamp-2">{brand.description}</p>
+                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{brand.description}</p>
                     
                     <div className="space-y-1.5 mb-3">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-400">Token</span>
+                        <span className="text-muted-foreground">Token</span>
                         <span className="font-mono text-violet-400">${brand.tokenSymbol}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-400">Price</span>
-                        <span className="font-semibold text-gray-200">{brand.price}</span>
+                        <span className="text-muted-foreground">Price</span>
+                        <span className="font-semibold text-foreground">{brand.price}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-400">Holders</span>
+                        <span className="text-muted-foreground">Holders</span>
                         <span className="font-semibold">{brand.holders.toLocaleString('en-US')}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-400">Raised</span>
+                        <span className="text-muted-foreground">Raised</span>
                         <span className="font-semibold" style={{ color: '#FFD700' }}>{brand.raised}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-gray-400">Events</span>
+                        <span className="text-muted-foreground">Events</span>
                         <span className="font-semibold">{brand.events}</span>
                       </div>
                     </div>
@@ -447,7 +454,7 @@ export default function Home() {
               >
                 Upcoming Events
               </ScrollFloat>
-              <p className="text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
                 Participate in exclusive events organized by your favorite brands
               </p>
             </div>
@@ -464,10 +471,10 @@ export default function Home() {
                     thickness={2}
                     className="w-full"
                   >
-                    <div className="p-5 bg-gradient-to-br from-violet-950/40 to-fuchsia-950/40 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300 group">
+                    <div className="p-5 bg-card/50 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300 group">
                       <div className="flex items-start justify-between mb-4">
-                        <div className={`p-3 rounded-xl bg-gradient-to-br ${event.color} bg-opacity-10 backdrop-blur-sm`}>
-                          <EventIcon className={`h-6 w-6 bg-gradient-to-br ${event.color} bg-clip-text text-transparent`} style={{
+                        <div className={`p-3 rounded-xl bg-linear-to-br ${event.color} bg-opacity-10 backdrop-blur-sm`}>
+                          <EventIcon className={`h-6 w-6 bg-linear-to-br ${event.color} bg-clip-text text-transparent`} style={{
                             filter: 'drop-shadow(0 0 8px currentColor)'
                           }} />
                         </div>
@@ -484,13 +491,13 @@ export default function Home() {
                       <h3 className="text-lg font-bold mb-3 group-hover:text-violet-300 transition-colors">{event.title}</h3>
                       
                       <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-sm text-gray-300">
+                        <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="mr-2 h-4 w-4 text-violet-400" />
                           {event.date}
                         </div>
-                        <div className="flex items-center text-sm text-gray-300">
+                        <div className="flex items-center text-sm text-muted-foreground">
                           <Users className="mr-2 h-4 w-4 text-fuchsia-400" />
-                          <span className="font-semibold text-white">{event.attendees}</span>
+                          <span className="font-semibold text-foreground">{event.attendees}</span>
                           <span className="ml-1">registered</span>
                         </div>
                         <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-300">
@@ -525,7 +532,7 @@ export default function Home() {
               >
                 Our Mission
               </ScrollFloat>
-              <p className="text-base md:text-lg text-gray-300 max-w-4xl mx-auto mb-6">
+              <p className="text-base md:text-lg text-muted-foreground max-w-4xl mx-auto mb-6">
                 Bring communities together around a common interest, create real engagement, 
                 and spotlight emerging or established brands.
               </p>
@@ -571,7 +578,7 @@ export default function Home() {
                       <div className="flex flex-col items-center justify-center text-center h-full min-h-[300px]">
                         <Icon className={`h-16 w-16 ${item.iconColor} mb-6`} />
                         <h3 className={`text-2xl font-bold ${item.titleColor} mb-4`}>{item.title}</h3>
-                        <p className="text-base text-gray-300 leading-relaxed">
+                        <p className="text-base text-muted-foreground leading-relaxed">
                           {item.description}
                         </p>
                       </div>
@@ -630,11 +637,11 @@ export default function Home() {
                     spotlightColor={`${item.color}40`}
                   >
                     <div className="flex flex-col items-center justify-center text-center h-full min-h-[300px]">
-                      <div className="text-7xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent mb-6">
+                      <div className="text-7xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent mb-6">
                         {item.number}
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-4">{item.title}</h3>
-                      <p className="text-base text-gray-300 leading-relaxed">
+                      <h3 className="text-2xl font-bold text-foreground mb-4">{item.title}</h3>
+                      <p className="text-base text-muted-foreground leading-relaxed">
                         {item.description}
                       </p>
                     </div>
@@ -660,7 +667,7 @@ export default function Home() {
               >
                 They Trust Us
               </ScrollFloat>
-              <p className="text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
                 Discover what our founders and supporters say
               </p>
             </div>
@@ -675,12 +682,12 @@ export default function Home() {
                   thickness={2}
                   className="w-full"
                 >
-                  <div className="p-4 bg-gradient-to-br from-violet-950/50 to-fuchsia-950/50 backdrop-blur-sm h-full flex flex-col">
+                  <div className="p-4 bg-card/50 backdrop-blur-sm h-full flex flex-col">
                     <div className="text-3xl mb-3">{testimonial.avatar}</div>
-                    <p className="text-sm text-gray-300 italic mb-3 flex-1">"{testimonial.content}"</p>
+                    <p className="text-sm text-muted-foreground italic mb-3 flex-1">"{testimonial.content}"</p>
                     <div>
                       <div className="font-semibold text-sm">{testimonial.author}</div>
-                      <div className="text-xs text-gray-400">{testimonial.role}</div>
+                      <div className="text-xs text-muted-foreground">{testimonial.role}</div>
                       <Badge className="mt-2 text-xs">{testimonial.brand}</Badge>
                     </div>
                   </div>
@@ -731,11 +738,10 @@ export default function Home() {
                 }
               ].map((faq, index) => (
                 <StarBorder key={index} as="div" color={faq.color} speed="4s" thickness={2} className="w-full">
-                  <div className="bg-gradient-to-br from-violet-950/50 to-fuchsia-950/50 backdrop-blur-sm">
+                  <div className="bg-card/50 backdrop-blur-sm">
                     <button
                       onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-                      className="w-full p-4 text-left flex justify-between items-center hover:bg-white/5 transition-colors"
-                    >
+                      className="w-full p-4 text-left flex justify-between items-center hover:bg-accent/50 transition-colors">
                       <h3 className="text-base font-semibold">{faq.question}</h3>
                       <ChevronDown 
                         className={`h-5 w-5 text-violet-400 transition-transform duration-300 ${
@@ -748,7 +754,7 @@ export default function Home() {
                         openFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                       }`}
                     >
-                      <p className="px-4 pb-4 text-sm text-gray-300 leading-relaxed">
+                      <p className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
                         {faq.answer}
                       </p>
                     </div>
@@ -763,11 +769,11 @@ export default function Home() {
         <section className="py-20 px-6 relative">
           <div className="max-w-5xl mx-auto text-center">
             <StarBorder as="div" color="#7E22CE" speed="3s" thickness={3} className="w-full">
-              <div className="p-8 bg-gradient-to-br from-violet-950 via-fuchsia-950 to-indigo-950 backdrop-blur-sm">
-                <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+              <div className="p-8 bg-card/50 backdrop-blur-sm">
+                <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
                   Ready to Create Your Community?
                 </h2>
-                <p className="text-base md:text-lg text-gray-300 mb-6 max-w-3xl mx-auto">
+                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-3xl mx-auto">
                   Join the hundreds of brands that have already transformed their engagement with Mana Chain
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
@@ -798,50 +804,50 @@ export default function Home() {
                 }}>
                   Mana Chain
                 </h3>
-                <p className="text-gray-400 text-xs leading-relaxed">
+                <p className="text-muted-foreground text-xs leading-relaxed">
                   Redefining community engagement, one brand at a time.
                 </p>
               </div>
               
               <div>
                 <h4 className="font-semibold text-violet-400 mb-3 text-sm">Platform</h4>
-                <ul className="space-y-1.5 text-xs text-gray-400">
-                  <li><a href="#brands" className="hover:text-white transition-colors">Brands</a></li>
-                  <li><a href="#events" className="hover:text-white transition-colors">Events</a></li>
-                  <li><a href="#mission" className="hover:text-white transition-colors">Mission</a></li>
-                  <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
+                  <li><a href="#brands" className="hover:text-foreground transition-colors">Brands</a></li>
+                  <li><a href="#events" className="hover:text-foreground transition-colors">Events</a></li>
+                  <li><a href="#mission" className="hover:text-foreground transition-colors">Mission</a></li>
+                  <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
                 </ul>
               </div>
               
               <div>
                 <h4 className="font-semibold text-fuchsia-400 mb-3 text-sm">Resources</h4>
-                <ul className="space-y-1.5 text-xs text-gray-400">
-                  <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
+                  <li><a href="#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">Documentation</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">Support</a></li>
                 </ul>
               </div>
               
               <div>
                 <h4 className="font-semibold text-indigo-400 mb-3 text-sm">Follow Us</h4>
-                <ul className="space-y-1.5 text-xs text-gray-400">
-                  <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">LinkedIn</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Instagram</a></li>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
+                  <li><a href="#" className="hover:text-foreground transition-colors">Twitter</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">Discord</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">LinkedIn</a></li>
+                  <li><a href="#" className="hover:text-foreground transition-colors">Instagram</a></li>
                 </ul>
               </div>
             </div>
             
-            <div className="border-t border-white/10 pt-6 text-center">
-              <p className="text-gray-400 text-xs">
+            <div className="border-t border-border pt-6 text-center">
+              <p className="text-muted-foreground text-xs">
                 © 2026 Mana Chain. Redefining community engagement together.
               </p>
-              <div className="flex justify-center gap-4 mt-3 text-xs text-gray-500">
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <a href="#" className="hover:text-white transition-colors">Legal</a>
+              <div className="flex justify-center gap-4 mt-3 text-xs text-muted-foreground">
+                <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+                <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+                <a href="#" className="hover:text-foreground transition-colors">Legal</a>
               </div>
             </div>
           </div>

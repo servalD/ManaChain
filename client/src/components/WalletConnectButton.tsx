@@ -74,7 +74,7 @@ export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconn
         {/* Disconnect Button */}
         <button
           onClick={handleDisconnect}
-          className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium text-white border border-white/10 bg-white/5 hover:bg-red-500/20 hover:border-red-500/30 transition-all"
+          className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium text-foreground border border-border bg-accent/50 hover:bg-red-500/20 hover:border-red-500/30 transition-all"
         >
           Disconnect
         </button>

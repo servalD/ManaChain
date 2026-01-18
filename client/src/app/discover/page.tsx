@@ -222,7 +222,7 @@ export default function DiscoverPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-br from-black via-gray-950 to-black">
+      <div className="min-h-screen bg-background">
         {/* Navbar */}
         <Navbar 
           currentPage="discover" 
@@ -245,7 +245,7 @@ export default function DiscoverPage() {
                 Discover Brands
               </span>
             </h1>
-            <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
               Swipe right to support brands you love. Build your portfolio of community tokens.
             </p>
           </div>
@@ -261,19 +261,19 @@ export default function DiscoverPage() {
 
           {/* Instructions */}
           <div className="mt-8 sm:mt-12 text-center px-2">
-            <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-accent/30 backdrop-blur-sm border border-border">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
                   <span className="text-red-400 text-sm">←</span>
                 </div>
-                <span className="text-xs sm:text-sm text-gray-400">Swipe left to pass</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Swipe left to pass</span>
               </div>
-              <div className="hidden sm:block w-px h-8 bg-white/10" />
+              <div className="hidden sm:block w-px h-8 bg-border" />
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
                   <span className="text-green-400 text-sm">→</span>
                 </div>
-                <span className="text-xs sm:text-sm text-gray-400">Swipe right to like</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Swipe right to like</span>
               </div>
             </div>
           </div>
