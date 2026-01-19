@@ -124,7 +124,7 @@
   .delay-1000 {
     animation-delay: 1000ms;
   }
-  
+
   @keyframes float {
     0%, 100% {
       transform: translateY(0px);
@@ -133,11 +133,11 @@
       transform: translateY(-20px);
     }
   }
-  
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   @keyframes glow {
     0%, 100% {
       opacity: 0.5;
@@ -146,7 +146,7 @@
       opacity: 0.8;
     }
   }
-  
+
   .animate-glow {
     animation: glow 3s ease-in-out infinite;
   }
@@ -293,4 +293,46 @@
   .custom-checkbox:hover {
     border-color: rgba(124, 58, 237, 0.5);
   }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Marquee animations */
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-marquee {
+    animation: marquee var(--duration, 30s) linear infinite;
+  }
+  
+  .animate-marquee-reverse {
+    animation: marquee var(--duration, 30s) linear infinite reverse;
+  }
+}
+
+/* Ensure interactive elements work with pointer-events-none parent */
+.main-with-background button,
+.main-with-background a,
+.main-with-background input,
+.main-with-background textarea,
+.main-with-background select,
+.main-with-background label,
+.main-with-background [role="button"],
+.main-with-background [tabindex]:not([tabindex="-1"]) {
+  pointer-events: auto !important;
+}
+
+::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
 }

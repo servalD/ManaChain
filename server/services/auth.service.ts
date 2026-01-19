@@ -73,15 +73,8 @@ export const register = async (
       // Don't fail registration if email cannot be sent
     }
 
-    // Generate JWT
-    const jwtToken = generateToken({
-      userId: user.id,
-      email: user.email,
-      isBrand: user.is_brand,
-      verified: user.verified,
-    });
 
-    return success({ user, token: jwtToken });
+    return success({ user, token: null });
   } catch (error) {
     console.error('Register error:', error);
     return failure('Server error during registration');
@@ -141,14 +134,14 @@ export const verifyEmail = async (
   try {
     // Get user with this verification token
     const { data: user, error } = await supabase
-      .from('user')
-      .select('*')
+                .from('user')
+                .select('*')
       .eq('email_verification_token', request.token)
-      .single();
+                .single();
 
     if (error || !user) {
       return failure('Invalid verification token');
-    }
+            }
 
     // Check if token has expired
     const now = new Date();
@@ -180,13 +173,13 @@ export const verifyEmail = async (
       await sendWelcomeEmail(updatedUser.email, updatedUser.username);
     } catch (emailError) {
       console.error('Welcome email error:', emailError);
-    }
+            }
 
     return success(updatedUser);
-  } catch (error) {
+        } catch (error) {
     console.error('Email verification error:', error);
     return failure('Server error during email verification');
-  }
+        }
 };
 
 /**
@@ -249,7 +242,7 @@ export const changePassword = async (
       .from('user')
       .select('password_hash')
       .eq('id', request.userId)
-      .single();
+                .single();
 
     if (error || !user) {
       return failure('User not found');
@@ -315,7 +308,7 @@ export const isUsernameAvailable = async (username: string): Promise<ServiceResp
       .single();
 
     return success(!data);
-  } catch (error) {
+        } catch (error) {
     console.error('Username availability check error:', error);
     return failure('Server error checking username availability');
   }
@@ -328,16 +321,16 @@ export class AuthService {
     password: string
   ): Promise<{ sessionToken: string }> {
     const result = await loginUser({ email, password });
-    if (!result.success) {
+    if (!result.success || !result.data || !result.data.token) {
       throw new Error(result.error || 'Login failed');
     }
-    return { sessionToken: result.data!.token };
+    return { sessionToken: result.data.token };
   }
 
   static async getSession(token: string): Promise<ServiceResult<any>> {
     // This method is obsolete with JWT
-    return ServiceResult.failed();
-  }
+            return ServiceResult.failed();
+    }
 }
 
 export default new AuthService();

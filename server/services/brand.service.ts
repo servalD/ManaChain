@@ -1,12 +1,18 @@
 import supabase from '../config/supabase.config';
 import { ServiceResponse, success, failure } from './service.result';
-import { Brand } from '../types/database.types';
+import { Brand, BrandApplication } from '../types/database.types';
 import {
   CreateBrandRequest,
   UpdateBrandRequest,
   GetBrandsRequest,
   DeleteBrandRequest,
+  CreateBrandApplicationRequest,
+  GetBrandApplicationsRequest,
+  ApproveBrandApplicationRequest,
+  RejectBrandApplicationRequest,
 } from '../interfaces/brand.interface';
+import { SecurityUtils } from '../utils/crypto';
+import { sendBrandApplicationNotificationEmail, sendBrandApplicationApprovedEmail, sendBrandApplicationRejectedEmail } from './email.service';
 
 /**
  * Create a new brand for a user
@@ -124,9 +130,6 @@ export const getAllBrands = async (
     // Apply filters
     if (filters?.category) {
       query = query.eq('category', filters.category);
-    }
-    if (filters?.verified !== undefined) {
-      query = query.eq('verified', filters.verified);
     }
     if (filters?.search) {
       query = query.ilike('name', `%${filters.search}%`);
@@ -310,5 +313,353 @@ export const getBrandStats = async (
   } catch (error) {
     console.error('getBrandStats error:', error);
     return failure('Server error retrieving statistics');
+  }
+};
+
+/**
+ * Create a new brand application
+ */
+export const createBrandApplication = async (
+  request: CreateBrandApplicationRequest
+): Promise<ServiceResponse<BrandApplication>> => {
+  try {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(request.contact_email)) {
+      return failure('Invalid email format');
+    }
+
+    const { data: existingRegistration } = await supabase
+      .from('brand_application')
+      .select('id')
+      .eq('business_registration_number', request.business_registration_number)
+      .single();
+
+    if (existingRegistration) {
+      return failure('This business registration number is already registered');
+    }
+
+    const { data: existingBrandApp } = await supabase
+      .from('brand_application')
+      .select('id')
+      .eq('brand_name', request.brand_name)
+      .in('status', ['pending', 'approved', 'needs_review'])
+      .single();
+
+    if (existingBrandApp) {
+      return failure('This brand name is already in use or pending approval');
+    }
+
+    const { data: existingBrand } = await supabase
+      .from('brand')
+      .select('id')
+      .eq('name', request.brand_name)
+      .single();
+
+    if (existingBrand) {
+      return failure('This brand name is already in use');
+    }
+
+    const { data, error } = await supabase
+      .from('brand_application')
+      .insert({
+        ...request,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Brand application creation error:', error);
+      return failure('Error creating brand application');
+    }
+
+    // Send notification email to admin
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        await sendBrandApplicationNotificationEmail(adminEmail, data);
+      } else {
+        // Fallback: get all admin users and send to them
+        const { data: admins } = await supabase
+          .from('user')
+          .select('email')
+          .eq('role', 'ADMIN');
+        
+        if (admins && admins.length > 0) {
+          for (const admin of admins) {
+            await sendBrandApplicationNotificationEmail(admin.email, data);
+          }
+        }
+      }
+    } catch (emailError) {
+      console.error('Failed to send notification email:', emailError);
+      // Don't fail the application creation if email fails
+    }
+
+    return success(data);
+  } catch (error) {
+    console.error('createBrandApplication error:', error);
+    return failure('Server error creating brand application');
+  }
+};
+
+/**
+ * Get all brand applications with pagination and filters
+ */
+export const getAllBrandApplications = async (
+  request: GetBrandApplicationsRequest
+): Promise<ServiceResponse<{ applications: BrandApplication[]; total: number }>> => {
+  try {
+    const { limit, offset, filters } = request;
+    let query = supabase.from('brand_application').select('*', { count: 'exact' });
+
+    // Apply filters
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.search) {
+      query = query.or(`contact_email.ilike.%${filters.search}%,brand_name.ilike.%${filters.search}%`);
+    }
+
+    // Pagination and sorting
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('getAllBrandApplications error:', error);
+      return failure('Error retrieving brand applications');
+    }
+
+    return success({
+      applications: data || [],
+      total: count || 0,
+    });
+  } catch (error) {
+    console.error('getAllBrandApplications error:', error);
+    return failure('Server error retrieving brand applications');
+  }
+};
+
+/**
+ * Get brand application by ID
+ */
+export const getBrandApplicationById = async (
+  applicationId: string
+): Promise<ServiceResponse<BrandApplication>> => {
+  try {
+    const { data, error } = await supabase
+      .from('brand_application')
+      .select('*')
+      .eq('id', applicationId)
+      .single();
+
+    if (error || !data) {
+      return failure('Brand application not found');
+    }
+
+    return success(data);
+  } catch (error) {
+    console.error('getBrandApplicationById error:', error);
+    return failure('Server error retrieving brand application');
+  }
+};
+
+/**
+ * Approve a brand application
+ * This creates a user account and brand, then marks the application as approved
+ */
+export const approveBrandApplication = async (
+  request: ApproveBrandApplicationRequest
+): Promise<ServiceResponse<{ userId: string; brandId: string }>> => {
+  try {
+    // Get the application
+    const { data: application, error: appError } = await supabase
+      .from('brand_application')
+      .select('*')
+      .eq('id', request.applicationId)
+      .single();
+
+    if (appError || !application) {
+      return failure('Brand application not found');
+    }
+
+    // Check status
+    if (application.status !== 'pending' && application.status !== 'needs_review') {
+      return failure('Only pending or needs_review applications can be approved');
+    }
+
+    // Generate secure password and username
+    const generatedPassword = SecurityUtils.generateSecurePassword();
+    const passwordHash = await SecurityUtils.hashPassword(generatedPassword);
+    let username = SecurityUtils.generateUsernameFromBrandName(application.brand_name);
+
+    // Ensure username is unique
+    let usernameAttempt = username;
+    let counter = 1;
+    while (true) {
+      const { data: existingUser } = await supabase
+        .from('user')
+        .select('id')
+        .eq('username', usernameAttempt)
+        .single();
+
+      if (!existingUser) {
+        username = usernameAttempt;
+        break;
+      }
+
+      usernameAttempt = `${username}${counter}`;
+      counter++;
+    }
+
+    // Create user
+    const { data: newUser, error: userError } = await supabase
+      .from('user')
+      .insert({
+        email: application.contact_email,
+        username,
+        first_name: application.contact_first_name,
+        last_name: application.contact_last_name,
+        password_hash: passwordHash,
+        age_range: '0', // Default, can be updated by brand later
+        is_brand: true,
+        role: 'BRANDUSER',
+        verified: true, // Pre-verified
+      })
+      .select()
+      .single();
+
+    if (userError || !newUser) {
+      console.error('User creation error:', userError);
+      return failure('Error creating user account');
+    }
+
+    // Create brand
+    const { data: newBrand, error: brandError } = await supabase
+      .from('brand')
+      .insert({
+        user_id: newUser.id,
+        name: application.brand_name,
+        industry_type: application.industry_type,
+        description: application.description,
+        logo_url: application.logo_url,
+        website_url: application.website_url,
+        business_registration_number: application.business_registration_number,
+        country: application.country,
+        headquarters_street: application.headquarters_street,
+        headquarters_city: application.headquarters_city,
+        headquarters_zip_code: application.headquarters_zip_code,
+        headquarters_address_complement: application.headquarters_address_complement,
+        social_medias: application.social_media_links,
+      })
+      .select()
+      .single();
+
+    if (brandError || !newBrand) {
+      console.error('Brand creation error:', brandError);
+      // Rollback: delete the user
+      await supabase.from('user').delete().eq('id', newUser.id);
+      return failure('Error creating brand');
+    }
+
+    // Update application status
+    const { error: updateError } = await supabase
+      .from('brand_application')
+      .update({
+        status: 'approved',
+        reviewed_by: request.adminUserId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', request.applicationId);
+
+    if (updateError) {
+      console.error('Application update error:', updateError);
+      // Rollback: delete brand and user
+      await supabase.from('brand').delete().eq('id', newBrand.id);
+      await supabase.from('user').delete().eq('id', newUser.id);
+      return failure('Error updating application status');
+    }
+
+    // Send approval email with credentials
+    try {
+      await sendBrandApplicationApprovedEmail(
+        application.contact_email,
+        {
+          username,
+          password: generatedPassword,
+        },
+        application.brand_name
+      );
+    } catch (emailError) {
+      console.error('Failed to send approval email:', emailError);
+      // Don't rollback if email fails
+    }
+
+    return success({
+      userId: newUser.id,
+      brandId: newBrand.id,
+    });
+  } catch (error) {
+    console.error('approveBrandApplication error:', error);
+    return failure('Server error approving brand application');
+  }
+};
+
+/**
+ * Reject a brand application
+ */
+export const rejectBrandApplication = async (
+  request: RejectBrandApplicationRequest
+): Promise<ServiceResponse<void>> => {
+  try {
+    // Get the application
+    const { data: application, error: appError } = await supabase
+      .from('brand_application')
+      .select('*')
+      .eq('id', request.applicationId)
+      .single();
+
+    if (appError || !application) {
+      return failure('Brand application not found');
+    }
+
+    // Check status
+    if (application.status !== 'pending' && application.status !== 'needs_review') {
+      return failure('Only pending or needs_review applications can be rejected');
+    }
+
+    // Update application status
+    const { error: updateError } = await supabase
+      .from('brand_application')
+      .update({
+        status: 'rejected',
+        rejection_reason: request.rejection_reason,
+        reviewed_by: request.adminUserId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', request.applicationId);
+
+    if (updateError) {
+      console.error('Application update error:', updateError);
+      return failure('Error updating application status');
+    }
+
+    // Send rejection email
+    try {
+      await sendBrandApplicationRejectedEmail(
+        application.contact_email,
+        request.rejection_reason,
+        application.brand_name
+      );
+    } catch (emailError) {
+      console.error('Failed to send rejection email:', emailError);
+      // Don't fail if email fails
+    }
+
+    return success(undefined);
+  } catch (error) {
+    console.error('rejectBrandApplication error:', error);
+    return failure('Server error rejecting brand application');
   }
 };

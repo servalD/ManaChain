@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.middleware';
 import {
   getUserProfileController,
   updateUserController,
+  updateBlockchainAddressController,
   getUserInterestsController,
   updateUserInterestsController,
   getAllInterestsController,
@@ -16,6 +17,9 @@ router.get('/me', requireAuth, getUserProfileController);
 
 // PUT /users/me - Update current user profile
 router.put('/me', requireAuth, updateUserController);
+
+// PUT /users/me/blockchain-address - Update blockchain address
+router.put('/me/blockchain-address', requireAuth, updateBlockchainAddressController);
 
 // GET /users/me/interests - Get user interests
 router.get('/me/interests', requireAuth, getUserInterestsController);

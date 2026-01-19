@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import AuthService from "@/services/auth.service";
 import { isValidEmail } from "@/utils/validation";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const sampleTestimonials: Testimonial[] = [
   {
@@ -65,9 +66,9 @@ export default function LoginPage() {
       const result = await AuthService.login(email, password);
 
       if (result) {
-        // Redirect to home page after successful login
+        // Redirect to discover page after successful login
         setTimeout(() => {
-          router.push("/");
+          router.push("/discover");
         }, 1000);
       }
     } catch (error) {
@@ -99,11 +100,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="dark bg-linear-to-br from-black via-gray-950 to-black">
+    <div className="bg-background relative">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
+      {/* Theme Toggler */}
+      <div className="fixed top-6 right-6 z-50">
+        <AnimatedThemeToggler 
+          className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
+        />
+      </div>
       <SignInPage
         title={
-          <span className="font-light text-white tracking-tighter">
+          <span className="font-light text-foreground tracking-tighter">
             Welcome to <span className="font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
           </span>
         }

@@ -47,19 +47,19 @@ function VerifyEmailContent() {
   }, [token, router]);
 
   return (
-    <div className="dark bg-linear-to-br from-black via-gray-950 to-black min-h-screen flex items-center justify-center px-6">
+    <div className="bg-background min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <Link 
           href="/" 
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors group mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group mb-8"
         >
           <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           <span className="text-sm font-medium">Back to Home</span>
         </Link>
 
         {/* Card */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+        <div className="rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-8">
           <div className="flex flex-col items-center text-center space-y-6">
             {/* Icon */}
             <div className="relative">
@@ -84,13 +84,13 @@ function VerifyEmailContent() {
 
             {/* Title */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-3xl font-bold text-foreground">
                 {status === "loading" && "Verifying your email..."}
                 {status === "success" && "Email Verified!"}
                 {status === "error" && "Verification Failed"}
               </h1>
               
-              <p className="text-gray-400 text-sm max-w-sm">
+              <p className="text-muted-foreground text-sm max-w-sm">
                 {message}
               </p>
             </div>
@@ -114,14 +114,14 @@ function VerifyEmailContent() {
                 <>
                   <button
                     onClick={() => router.push("/login")}
-                    className="w-full rounded-2xl py-3 px-4 font-medium text-white border border-white/10 bg-white/5 hover:bg-white/10 transition-all"
+                    className="w-full rounded-2xl py-3 px-4 font-medium text-foreground border border-border bg-accent/50 hover:bg-accent transition-all"
                   >
                     Go to Login
                   </button>
                   
                   <Link
                     href="/"
-                    className="w-full rounded-2xl py-3 px-4 font-medium text-gray-400 hover:text-white border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-center"
+                    className="w-full rounded-2xl py-3 px-4 font-medium text-muted-foreground hover:text-foreground border border-border bg-accent/50 hover:bg-accent transition-all text-center"
                   >
                     Back to Home
                   </Link>
@@ -134,7 +134,7 @@ function VerifyEmailContent() {
         {/* Help Text */}
         {status === "error" && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Need help?{" "}
               <button
                 onClick={async () => {
@@ -158,7 +158,7 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="dark bg-linear-to-br from-black via-gray-950 to-black min-h-screen flex items-center justify-center">
+      <div className="bg-background min-h-screen flex items-center justify-center">
         <Loader2 className="h-10 w-10 text-violet-400 animate-spin" />
       </div>
     }>

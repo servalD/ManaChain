@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { Toaster as SonnerToaster } from "sonner";
+import { Web3Provider } from "@/components/Web3Provider";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -26,16 +27,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('theme');
+                if (theme === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else if (theme === 'light') {
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                  localStorage.setItem('theme', 'dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased font-sans`}
       >
-        {children}
-        <SonnerToaster 
-          position="top-right"
-          richColors
-          closeButton
-        />
+        <Web3Provider>
+          {children}
+          <SonnerToaster 
+            position="top-right"
+            richColors
+            closeButton
+          />
+        </Web3Provider>
       </body>
     </html>
   );

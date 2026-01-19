@@ -29,5 +29,5 @@ export interface ChangePasswordRequest {
 
 export interface AuthResponse {
   user: any;
-  token: string;
+  token: string | null;
 }

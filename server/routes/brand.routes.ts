@@ -1,9 +1,26 @@
 import { Router } from 'express';
-import { requireAuth, optionalAuth, requireVerified, requireBrand } from '../middleware/auth.middleware';
+import { requireAuth, optionalAuth, requireVerified, requireBrand, requireAdmin } from '../middleware/auth.middleware';
 import * as brandController from '../controllers/brand.controller';
 
 const router = Router();
 
+// Brand Application Routes
+// POST /brand-applications - Create a new brand application (public)
+router.post('/applications', brandController.createBrandApplicationController);
+
+// GET /brand-applications - Get all brand applications (admin only)
+router.get('/applications', requireAuth, requireAdmin, brandController.getAllBrandApplicationsController);
+
+// GET /brand-applications/:id - Get brand application by ID (admin only)
+router.get('/applications/:id', requireAuth, requireAdmin, brandController.getBrandApplicationByIdController);
+
+// PUT /brand-applications/:id/approve - Approve brand application (admin only)
+router.put('/applications/:id/approve', requireAuth, requireAdmin, brandController.approveBrandApplicationController);
+
+// PUT /brand-applications/:id/reject - Reject brand application (admin only)
+router.put('/applications/:id/reject', requireAuth, requireAdmin, brandController.rejectBrandApplicationController);
+
+// Brand Routes
 // POST /brands - Create a new brand
 router.post('/', requireAuth, requireVerified, brandController.createBrandController);
 
