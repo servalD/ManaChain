@@ -9,146 +9,13 @@ import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import StarBorder from "@/components/ui/star-border/StarBorder";
 import SpotlightCard from '@/components/ui/spotlight-card/SpotlightCard';
 import ElectricBorder from '@/components/ui/electric-border/ElectricBorder';
-import LiquidEther from "@/components/ui/liquid-ether/LiquidEther";
+import Squares from "@/components/ui/squares/Squares";
 import PillNav from "@/components/ui/pill-nav/PillNav";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { TrendingUp, Users, Calendar, Rocket, Heart, Zap, Shield, Globe2, Sparkles, Award, Target, ChevronDown } from "lucide-react";
+import { MarqueeDemo } from "@/components/ui/marquee/MarqueeDemo";
+import { TrendingUp, Users, Calendar, Rocket, Shield, Globe2, Sparkles, ChevronDown } from "lucide-react";
 
 // Mock Data
-const featuredBrands = [
-  {
-    id: 1,
-    name: "EcoWave",
-    category: "Sustainable Fashion",
-    description: "Eco-friendly clothing brand revolutionizing the textile industry",
-    image: "🌊",
-    tokenSymbol: "ECOW",
-    holders: 12450,
-    totalSupply: 1000000,
-    price: "$0.45",
-    raised: "$456,789",
-    events: 23,
-    color: "from-emerald-500 to-teal-600"
-  },
-  {
-    id: 2,
-    name: "TechNova",
-    category: "Tech Innovation",
-    description: "AI startup specializing in mental health solutions",
-    image: "🚀",
-    tokenSymbol: "NOVA",
-    holders: 8920,
-    totalSupply: 750000,
-    price: "$1.20",
-    raised: "$1,234,567",
-    events: 18,
-    color: "from-blue-500 to-indigo-600"
-  },
-  {
-    id: 3,
-    name: "CaféCulture",
-    category: "Gastronomy",
-    description: "Artisan coffee chain with fair trade practices",
-    image: "☕",
-    tokenSymbol: "CAFE",
-    holders: 15670,
-    totalSupply: 2000000,
-    price: "$0.32",
-    raised: "$687,432",
-    events: 45,
-    color: "from-amber-500 to-orange-600"
-  },
-  {
-    id: 4,
-    name: "ArtisanCraft",
-    category: "Handicraft",
-    description: "Marketplace for local artisans and independent creators",
-    image: "🎨",
-    tokenSymbol: "CRAFT",
-    holders: 6340,
-    totalSupply: 500000,
-    price: "$0.89",
-    raised: "$289,123",
-    events: 12,
-    color: "from-purple-500 to-pink-600"
-  },
-  {
-    id: 5,
-    name: "FitLife",
-    category: "Wellness",
-    description: "Personalized sports coaching app with community features",
-    image: "💪",
-    tokenSymbol: "FIT",
-    holders: 18920,
-    totalSupply: 1500000,
-    price: "$0.67",
-    raised: "$823,456",
-    events: 34,
-    color: "from-red-500 to-rose-600"
-  },
-  {
-    id: 6,
-    name: "GreenEnergy",
-    category: "Renewable Energy",
-    description: "Solar solutions for individuals and businesses",
-    image: "⚡",
-    tokenSymbol: "GREEN",
-    holders: 9870,
-    totalSupply: 800000,
-    price: "$1.45",
-    raised: "$1,456,890",
-    events: 21,
-    color: "from-lime-500 to-green-600"
-  }
-];
-
-const upcomingEvents = [
-  {
-    id: 1,
-    brand: "EcoWave",
-    title: "Summer 2026 Collection Launch",
-    date: "February 15, 2026",
-    attendees: 450,
-    type: "Product Launch",
-    tokenReward: "+50 ECOW",
-    icon: Sparkles,
-    color: "from-emerald-500 to-teal-500"
-  },
-  {
-    id: 2,
-    brand: "TechNova",
-    title: "Webinar: AI & Mental Health",
-    date: "February 20, 2026",
-    attendees: 780,
-    type: "Training",
-    tokenReward: "+25 NOVA",
-    icon: Zap,
-    color: "from-blue-500 to-indigo-500"
-  },
-  {
-    id: 3,
-    brand: "CaféCulture",
-    title: "Exclusive Tasting in Paris",
-    date: "February 28, 2026",
-    attendees: 120,
-    type: "Physical Event",
-    tokenReward: "+100 CAFE",
-    icon: Award,
-    color: "from-amber-500 to-orange-500"
-  },
-  {
-    id: 4,
-    brand: "FitLife",
-    title: "Virtual 10km Marathon",
-    date: "March 5, 2026",
-    attendees: 2340,
-    type: "Community Challenge",
-    tokenReward: "+75 FIT",
-    icon: Target,
-    color: "from-red-500 to-rose-500"
-  }
-];
-
 const testimonials = [
   {
     id: 1,
@@ -187,7 +54,6 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   
-  // Logo SVG en base64 - M stylisé avec gradient metallic gold
   const logoSvg = "data:image/svg+xml;base64," + btoa(`
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -211,26 +77,20 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      {/* LiquidEther Background */}
+      {/* Squares Background */}
       {mounted && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <LiquidEther
-            colors={['#7c3aed', '#a855f7', '#ec4899', '#3b82f6', '#06b6d4']}
-            mouseForce={80}
-            cursorSize={150}
-            autoDemo={true}
-            autoSpeed={0.3}
-            autoIntensity={1.2}
-            takeoverDuration={0.3}
-            autoResumeDelay={2000}
-            resolution={0.5}
-            className="w-full h-full pointer-events-auto"
-            style={{ opacity: 0.4 }}
+        <div className="fixed inset-0 z-0">
+          <Squares
+            direction="diagonal"
+            speed={0.5}
+            borderColor="rgba(139, 92, 246, 0.2)"
+            squareSize={40}
+            hoverFillColor="rgba(139, 92, 246, 0.3)"
           />
         </div>
       )}
 
-      <main className="relative z-10 pointer-events-auto">
+      <main className="relative z-10 pointer-events-none main-with-background">
         {/* Navigation */}
           {mounted && (
             <div className="fixed top-0 w-full z-50 flex justify-between items-center pt-6 px-6">
@@ -240,8 +100,8 @@ export default function Home() {
                 logoAlt="Mana Chain"
                 items={[
                   { label: 'Home', href: '#hero' },
-                  { label: 'Brands', href: '#brands' },
-                  { label: 'Events', href: '#events' },
+                  { label: 'Mission', href: '#mission' },
+                  { label: 'How It Works', href: '#features' },
                   { label: 'FAQ', href: '#faq' },
                   { label: 'Login', href: '/login' }
                 ]}
@@ -364,159 +224,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Brands Section */}
-        <section id="brands" className="py-20 px-6 relative">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <ScrollFloat
-                animationDuration={1}
-                ease="back.inOut(2)"
-                scrollStart="center bottom+=50%"
-                scrollEnd="bottom bottom-=40%"
-                stagger={0.03}
-                containerClassName="mb-4"
-                textClassName="text-3xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
-              >
-                Featured Brands
-              </ScrollFloat>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
-                Discover innovative projects and emerging brands shaping the future
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {featuredBrands.map((brand, index) => (
-                <StarBorder
-                  key={brand.id}
-                  as="div"
-                  color={brand.id % 2 === 0 ? "#7E22CE" : "#C026D3"}
-                  speed="4s"
-                  thickness={2}
-                  className="w-full"
-                >
-                  <div className="p-4 bg-card/50 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-4xl">{brand.image}</div>
-                      <Badge className="text-xs">{brand.category}</Badge>
-                    </div>
-                    
-                    <h3 className="text-xl font-bold mb-2 text-foreground">
-                      {brand.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{brand.description}</p>
-                    
-                    <div className="space-y-1.5 mb-3">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Token</span>
-                        <span className="font-mono text-violet-400">${brand.tokenSymbol}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Price</span>
-                        <span className="font-semibold text-foreground">{brand.price}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Holders</span>
-                        <span className="font-semibold">{brand.holders.toLocaleString('en-US')}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Raised</span>
-                        <span className="font-semibold" style={{ color: '#FFD700' }}>{brand.raised}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Events</span>
-                        <span className="font-semibold">{brand.events}</span>
-                      </div>
-                    </div>
-                    
-                    <Button variant="gradient" className="w-full rounded-full" size="sm">
-                      <Heart className="mr-2 h-3 w-3" />
-                      Join
-                    </Button>
-                  </div>
-                </StarBorder>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Events Section */}
-        <section id="events" className="py-20 px-6 relative">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <ScrollFloat
-                animationDuration={1}
-                ease="back.inOut(2)"
-                scrollStart="center bottom+=50%"
-                scrollEnd="bottom bottom-=40%"
-                stagger={0.03}
-                containerClassName="mb-4"
-                textClassName="text-3xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
-              >
-                Upcoming Events
-              </ScrollFloat>
-              <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
-                Participate in exclusive events organized by your favorite brands
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {upcomingEvents.map((event) => {
-                const EventIcon = event.icon;
-                return (
-                  <StarBorder
-                    key={event.id}
-                    as="div"
-                    color="#7E22CE"
-                    speed="5s"
-                    thickness={2}
-                    className="w-full"
-                  >
-                    <div className="p-5 bg-card/50 backdrop-blur-sm hover:scale-[1.02] transition-all duration-300 group">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`p-3 rounded-xl bg-linear-to-br ${event.color} bg-opacity-10 backdrop-blur-sm`}>
-                          <EventIcon className={`h-6 w-6 bg-linear-to-br ${event.color} bg-clip-text text-transparent`} style={{
-                            filter: 'drop-shadow(0 0 8px currentColor)'
-                          }} />
-                        </div>
-                        <Badge className="text-xs border font-semibold" style={{ 
-                          backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                          color: '#D4AF37',
-                          borderColor: 'rgba(212, 175, 55, 0.3)'
-                        }}>
-                          {event.tokenReward}
-                        </Badge>
-                      </div>
-                      
-                      <div className="text-xs font-semibold mb-2" style={{ color: '#D4AF37' }}>{event.brand}</div>
-                      <h3 className="text-lg font-bold mb-3 group-hover:text-violet-300 transition-colors">{event.title}</h3>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="mr-2 h-4 w-4 text-violet-400" />
-                          {event.date}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Users className="mr-2 h-4 w-4 text-fuchsia-400" />
-                          <span className="font-semibold text-foreground">{event.attendees}</span>
-                          <span className="ml-1">registered</span>
-                        </div>
-                        <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-300">
-                          {event.type}
-                        </Badge>
-                      </div>
-                      
-                      <Button variant="gradient" className="w-full rounded-full group-hover:shadow-lg group-hover:shadow-violet-500/20 transition-shadow" size="sm">
-                        <Rocket className="mr-2 h-3 w-3" />
-                        Register Now
-                      </Button>
-                    </div>
-                  </StarBorder>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
         {/* Mission Section */}
         <section id="mission" className="py-20 px-6 relative">
           <div className="max-w-7xl mx-auto">
@@ -541,7 +248,7 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-6">
               {[
                 {
-                  icon: Target,
+                  icon: Users,
                   title: "Authentic Engagement",
                   description: "Transform every supporter into an actor in your brand's success. Create a lasting and emotional bond with your community.",
                   color: "#7E22CE",
@@ -577,7 +284,7 @@ export default function Home() {
                     >
                       <div className="flex flex-col items-center justify-center text-center h-full min-h-[300px]">
                         <Icon className={`h-16 w-16 ${item.iconColor} mb-6`} />
-                        <h3 className={`text-2xl font-bold ${item.titleColor} mb-4`}>{item.title}</h3>
+                        <h3 className={`text-2xl font-bold text-foreground mb-4`}>{item.title}</h3>
                         <p className="text-base text-muted-foreground leading-relaxed">
                           {item.description}
                         </p>
@@ -686,7 +393,7 @@ export default function Home() {
                     <div className="text-3xl mb-3">{testimonial.avatar}</div>
                     <p className="text-sm text-muted-foreground italic mb-3 flex-1">"{testimonial.content}"</p>
                     <div>
-                      <div className="font-semibold text-sm">{testimonial.author}</div>
+                      <div className="font-semibold text-sm text-foreground">{testimonial.author}</div>
                       <div className="text-xs text-muted-foreground">{testimonial.role}</div>
                       <Badge className="mt-2 text-xs">{testimonial.brand}</Badge>
                     </div>
@@ -742,7 +449,7 @@ export default function Home() {
                     <button
                       onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                       className="w-full p-4 text-left flex justify-between items-center hover:bg-accent/50 transition-colors">
-                      <h3 className="text-base font-semibold">{faq.question}</h3>
+                      <h3 className="text-base font-semibold text-foreground">{faq.question}</h3>
                       <ChevronDown 
                         className={`h-5 w-5 text-violet-400 transition-transform duration-300 ${
                           openFaqIndex === index ? 'rotate-180' : ''
@@ -765,30 +472,14 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* Trusted by World-Class Brands */}
         <section className="py-20 px-6 relative">
-          <div className="max-w-5xl mx-auto text-center">
-            <StarBorder as="div" color="#7E22CE" speed="3s" thickness={3} className="w-full">
-              <div className="p-8 bg-card/50 backdrop-blur-sm">
-                <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                  Ready to Create Your Community?
-                </h2>
-                <p className="text-base md:text-lg text-muted-foreground mb-6 max-w-3xl mx-auto">
-                  Join the hundreds of brands that have already transformed their engagement with Mana Chain
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                  <Button variant="gradient" size="lg" className="rounded-full text-base px-6 py-5">
-                    <Rocket className="mr-2 h-4 w-4" />
-                    Start Now
-                  </Button>
-                  <Button variant="gradientOutline" size="lg" className="rounded-full text-base px-6 py-5">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Schedule a Demo
-                  </Button>
-                </div>
-              </div>
-            </StarBorder>
+          <div className="max-w-7xl mx-auto text-center mb-8">
+            <h3 className="text-2xl md:text-3xl font-semibold text-muted-foreground mb-2">
+              Trusted by World-Class Brands
+            </h3>
           </div>
+          <MarqueeDemo />
         </section>
 
         {/* Footer */}
@@ -812,10 +503,10 @@ export default function Home() {
               <div>
                 <h4 className="font-semibold text-violet-400 mb-3 text-sm">Platform</h4>
                 <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  <li><a href="#brands" className="hover:text-foreground transition-colors">Brands</a></li>
-                  <li><a href="#events" className="hover:text-foreground transition-colors">Events</a></li>
                   <li><a href="#mission" className="hover:text-foreground transition-colors">Mission</a></li>
-                  <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
+                  <li><a href="#features" className="hover:text-foreground transition-colors">How It Works</a></li>
+                  <li><a href="/discover" className="hover:text-foreground transition-colors">Discover</a></li>
+                  <li><a href="/login" className="hover:text-foreground transition-colors">Login</a></li>
                 </ul>
               </div>
               

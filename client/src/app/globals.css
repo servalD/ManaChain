@@ -303,6 +303,33 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Marquee animations */
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  
+  .animate-marquee {
+    animation: marquee var(--duration, 30s) linear infinite;
+  }
+  
+  .animate-marquee-reverse {
+    animation: marquee var(--duration, 30s) linear infinite reverse;
+  }
+}
+
+/* Ensure interactive elements work with pointer-events-none parent */
+.main-with-background button,
+.main-with-background a,
+.main-with-background input,
+.main-with-background textarea,
+.main-with-background select,
+.main-with-background label,
+.main-with-background [role="button"],
+.main-with-background [tabindex]:not([tabindex="-1"]) {
+  pointer-events: auto !important;
 }
 
 ::view-transition-old(root), ::view-transition-new(root) {

@@ -8,6 +8,7 @@ import AuthService from "@/services/auth.service";
 import InterestsService from "@/services/interests.service";
 import { toast } from "@/lib/toast";
 import { isValidEmail, isValidPassword } from "@/utils/validation";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -126,8 +127,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="bg-background">
+    <div className="bg-background relative">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
+      {/* Theme Toggler */}
+      <div className="fixed top-6 right-6 z-50">
+        <AnimatedThemeToggler 
+          className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
+        />
+      </div>
       <SignUpPage
         title={
           <span className="font-light text-foreground tracking-tighter">

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import AuthService from "@/services/auth.service";
 import { isValidEmail } from "@/utils/validation";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const sampleTestimonials: Testimonial[] = [
   {
@@ -99,8 +100,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-background">
+    <div className="bg-background relative">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
+      {/* Theme Toggler */}
+      <div className="fixed top-6 right-6 z-50">
+        <AnimatedThemeToggler 
+          className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
+        />
+      </div>
       <SignInPage
         title={
           <span className="font-light text-foreground tracking-tighter">

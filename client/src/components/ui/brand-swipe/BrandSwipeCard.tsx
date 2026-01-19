@@ -167,38 +167,38 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
                 </div>
 
                 {/* Brand Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 text-foreground z-10">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-10">
                   {/* Logo and Name */}
                   <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                     <img
                       src={brand.logo}
                       alt={brand.name}
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-border"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white/20"
                     />
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-bold">{brand.name}</h2>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{brand.industry}</p>
+                      <h2 className="text-xl sm:text-2xl font-bold text-white">{brand.name}</h2>
+                      <p className="text-xs sm:text-sm text-gray-300">{brand.industry}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs sm:text-sm text-foreground/90 mb-3 sm:mb-4 line-clamp-2">{brand.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-200 mb-3 sm:mb-4 line-clamp-2">{brand.description}</p>
 
                   {/* Token Info */}
-                  <div className="flex items-center justify-between gap-2 sm:gap-4 bg-background/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-border">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground">Token</p>
+                      <p className="text-[10px] sm:text-xs text-gray-400">Token</p>
                       <p className="text-sm sm:text-lg font-bold" style={{ color: "#D4AF37" }}>
                         {brand.tokenSymbol}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground">Price</p>
-                      <p className="text-sm sm:text-lg font-semibold">${brand.tokenPrice.toFixed(2)}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-400">Price</p>
+                      <p className="text-sm sm:text-lg font-semibold text-white">${brand.tokenPrice.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground">Holders</p>
-                      <p className="text-sm sm:text-lg font-semibold">{brand.holders.toLocaleString("en-US")}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-400">Holders</p>
+                      <p className="text-sm sm:text-lg font-semibold text-white">{brand.holders.toLocaleString("en-US")}</p>
                     </div>
                   </div>
                 </div>
