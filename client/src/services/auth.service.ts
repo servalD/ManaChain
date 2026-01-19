@@ -21,9 +21,7 @@ export default class AuthService {
       });
 
       if (res.status === 201) {
-        localStorage.setItem("Token", res.data.token);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
-        
+        // Don't store token - user must verify email first
         toast({
           title: "Registration successful",
           description: "Please check your email to confirm your account",

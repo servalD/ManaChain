@@ -94,9 +94,8 @@ export default function RegisterPage() {
     });
 
       if (result) {
-        // Redirect to discover page after successful registration
         setTimeout(() => {
-          router.push("/discover");
+          router.push("/login");
         }, 1500);
       }
     } catch (error) {

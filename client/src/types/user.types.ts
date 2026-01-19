@@ -30,6 +30,6 @@ export interface LoginData {
 
 export interface AuthResponse {
   user: IUser;
-  token: string;
+  token: string | null;
   message?: string;
 }
