@@ -73,15 +73,8 @@ export const register = async (
       // Don't fail registration if email cannot be sent
     }
 
-    // Generate JWT
-    const jwtToken = generateToken({
-      userId: user.id,
-      email: user.email,
-      isBrand: user.is_brand,
-      verified: user.verified,
-    });
 
-    return success({ user, token: jwtToken });
+    return success({ user, token: null });
   } catch (error) {
     console.error('Register error:', error);
     return failure('Server error during registration');
@@ -328,10 +321,10 @@ export class AuthService {
     password: string
   ): Promise<{ sessionToken: string }> {
     const result = await loginUser({ email, password });
-    if (!result.success) {
+    if (!result.success || !result.data || !result.data.token) {
       throw new Error(result.error || 'Login failed');
     }
-    return { sessionToken: result.data!.token };
+    return { sessionToken: result.data.token };
   }
 
   static async getSession(token: string): Promise<ServiceResult<any>> {

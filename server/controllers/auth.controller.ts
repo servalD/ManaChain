@@ -71,7 +71,6 @@ export const registerController = async (req: Request, res: Response): Promise<v
   res.status(201).json({
     message: 'Registration successful. Please verify your email.',
     user: result.data!.user,
-    token: result.data!.token,
   });
 };
 
