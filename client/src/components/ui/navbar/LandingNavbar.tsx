@@ -6,10 +6,10 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { User, Menu, X, Building2 } from "lucide-react";
 
 interface LandingNavbarProps {
-  logoSvg: string;
+  // No props needed - using static logo image
 }
 
-export function LandingNavbar({ logoSvg }: LandingNavbarProps) {
+export function LandingNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ export function LandingNavbar({ logoSvg }: LandingNavbarProps) {
         <div className="hidden lg:flex items-center justify-between">
           {/* Logo */}
           <Link href="#hero" className="flex items-center gap-2">
-            <img src={logoSvg} alt="Mana Chain" className="w-8 h-8" />
+            <img src="/logo.png" alt="Mana Chain" className="w-8 h-8 rounded-full object-cover" />
             <span className="text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
             </span>
@@ -126,7 +126,7 @@ export function LandingNavbar({ logoSvg }: LandingNavbarProps) {
         <div className="lg:hidden flex items-center justify-between">
           {/* Logo */}
           <Link href="#hero" className="flex items-center gap-2">
-            <img src={logoSvg} alt="Mana Chain" className="w-7 h-7" />
+            <img src="/logo.png" alt="Mana Chain" className="w-7 h-7 rounded-full object-cover" />
             <span className="text-lg font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
             </span>

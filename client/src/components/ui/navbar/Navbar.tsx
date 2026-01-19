@@ -42,9 +42,11 @@ export function Navbar({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 flex items-center justify-center transform transition-transform group-hover:scale-110">
-              <span className="text-foreground font-bold text-base sm:text-lg">M</span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Mana Chain" 
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover transform transition-transform group-hover:scale-110" 
+            />
             <span className="text-lg sm:text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
             </span>
