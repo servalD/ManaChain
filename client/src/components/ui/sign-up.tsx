@@ -52,28 +52,28 @@ const InterestButton = ({
   const label = interest.label || interest.id;
   
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`
+  <button
+    type="button"
+    onClick={onClick}
+    className={`
         relative flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 w-full min-h-[48px]
-        ${selected 
+      ${selected 
           ? 'border-violet-500 bg-violet-500/20' 
           : 'border-border bg-accent/30 hover:border-violet-400/50 hover:bg-accent/50'
-        }
-      `}
-    >
+      }
+    `}
+  >
       <span className="text-xl shrink-0 flex items-center justify-center w-6">{interest.icon}</span>
       <span 
         className={`text-sm font-medium flex-1 text-left min-w-0 ${selected ? 'text-foreground' : 'text-foreground/90'}`}
       >
         {label}
       </span>
-      {selected && (
+    {selected && (
         <Check className="h-4 w-4 shrink-0 text-violet-400 ml-2" />
-      )}
-    </button>
-  );
+    )}
+  </button>
+);
 };
 
 // --- MAIN COMPONENT ---

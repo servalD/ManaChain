@@ -183,5 +183,5 @@ export const getUserFromTokenController = async (req: Request, res: Response): P
     
     console.error('Error getting user from token:', error);
     res.status(500).json({ error: 'Error fetching user from token' });
-  }
+    }
 };
