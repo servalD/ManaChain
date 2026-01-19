@@ -7,12 +7,21 @@ import {
   updateBrand,
   deleteBrand,
   getBrandStats,
+  createBrandApplication,
+  getAllBrandApplications,
+  getBrandApplicationById,
+  approveBrandApplication,
+  rejectBrandApplication,
 } from '../services/brand.service';
 import {
   CreateBrandRequest,
   UpdateBrandRequest,
   GetBrandsRequest,
   DeleteBrandRequest,
+  CreateBrandApplicationRequest,
+  GetBrandApplicationsRequest,
+  ApproveBrandApplicationRequest,
+  RejectBrandApplicationRequest,
 } from '../interfaces/brand.interface';
 
 /**
@@ -152,7 +161,6 @@ export const getAllBrandsController = async (req: Request, res: Response): Promi
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
     const category = req.query.category as string | undefined;
-    const verified = req.query.verified === 'true' ? true : req.query.verified === 'false' ? false : undefined;
     const search = req.query.search as string | undefined;
 
     const request: GetBrandsRequest = {
@@ -160,7 +168,6 @@ export const getAllBrandsController = async (req: Request, res: Response): Promi
       offset,
       filters: {
         category,
-        verified,
         search,
       },
     };
@@ -285,6 +292,187 @@ export const getBrandStatsController = async (req: Request, res: Response): Prom
     res.json({ stats: result.data });
   } catch (error) {
     console.error('getBrandStatsController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * POST /brand-applications
+ * Create a new brand application (public endpoint)
+ */
+export const createBrandApplicationController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const request: CreateBrandApplicationRequest = req.body;
+
+    // Validate required fields
+    const requiredFields = [
+      'contact_email',
+      'contact_first_name',
+      'contact_last_name',
+      'brand_name',
+      'industry_type',
+      'business_registration_number',
+      'country',
+      'headquarters_street',
+      'headquarters_city',
+      'headquarters_zip_code',
+    ];
+
+    const missingFields = requiredFields.filter(field => !(field in req.body) || !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      res.status(400).json({
+        error: 'Missing required fields',
+        required: missingFields,
+      });
+      return;
+    }
+
+    const result = await createBrandApplication(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.status(201).json({
+      message: 'Brand application submitted successfully',
+      application: result.data,
+    });
+  } catch (error) {
+    console.error('createBrandApplicationController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * GET /brand-applications
+ * Get all brand applications with pagination and filters (admin only)
+ */
+export const getAllBrandApplicationsController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const status = req.query.status as 'pending' | 'approved' | 'rejected' | 'needs_review' | undefined;
+    const search = req.query.search as string | undefined;
+
+    const request: GetBrandApplicationsRequest = {
+      limit,
+      offset,
+      filters: {
+        status,
+        search,
+      },
+    };
+
+    const result = await getAllBrandApplications(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      applications: result.data!.applications,
+      total: result.data!.total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('getAllBrandApplicationsController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * GET /brand-applications/:id
+ * Get brand application by ID (admin only)
+ */
+export const getBrandApplicationByIdController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const result = await getBrandApplicationById(id);
+
+    if (!result.success) {
+      res.status(404).json({ error: result.error });
+      return;
+    }
+
+    res.json({ application: result.data });
+  } catch (error) {
+    console.error('getBrandApplicationByIdController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * PUT /brand-applications/:id/approve
+ * Approve a brand application (admin only)
+ */
+export const approveBrandApplicationController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const adminUserId = (req as any).userId;
+
+    const request: ApproveBrandApplicationRequest = {
+      applicationId: id,
+      adminUserId,
+    };
+
+    const result = await approveBrandApplication(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      message: 'Brand application approved successfully',
+      userId: result.data!.userId,
+      brandId: result.data!.brandId,
+    });
+  } catch (error) {
+    console.error('approveBrandApplicationController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * PUT /brand-applications/:id/reject
+ * Reject a brand application (admin only)
+ */
+export const rejectBrandApplicationController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const adminUserId = (req as any).userId;
+    const { rejection_reason } = req.body;
+
+    if (!rejection_reason) {
+      res.status(400).json({
+        error: 'Missing required field: rejection_reason',
+      });
+      return;
+    }
+
+    const request: RejectBrandApplicationRequest = {
+      applicationId: id,
+      adminUserId,
+      rejection_reason,
+    };
+
+    const result = await rejectBrandApplication(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      message: 'Brand application rejected successfully',
+    });
+  } catch (error) {
+    console.error('rejectBrandApplicationController error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

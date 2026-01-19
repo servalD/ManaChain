@@ -203,6 +203,35 @@ export const requireUser = async (
   next();
 };
 
+/**
+ * Middleware to verify that user is an admin
+ */
+export const requireAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const user = (req as any).user;
+
+  if (!user) {
+    res.status(401).json({
+      error: 'Authentication required',
+      code: 'AUTH_REQUIRED',
+    });
+    return;
+  }
+
+  if (user.role !== 'ADMIN') {
+    res.status(403).json({
+      error: 'Access reserved for administrators',
+      code: 'ADMIN_ONLY',
+    });
+    return;
+  }
+
+  next();
+};
+
 // Legacy class for compatibility
 export class AuthMiddleware {
   static async requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -214,7 +243,6 @@ export class AuthMiddleware {
   }
 
   static async requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // For now, use requireAuth
-    return requireAuth(req, res, next);
+    return requireAdmin(req, res, next);
   }
 }

@@ -1,6 +1,11 @@
 // Mana Chain Database Types
 // Generated types for Supabase database schema
 
+export type UserRole = 'ADMIN' | 'CLIENT' | 'BRANDUSER';
+export type BrandApplicationStatus = 'pending' | 'approved' | 'rejected' | 'needs_review';
+export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed';
+export type EventNFTStatus = 'pending' | 'paid' | 'minted' | 'refunded' | 'cancelled';
+
 export interface Database {
   public: {
     Tables: {
@@ -13,10 +18,13 @@ export interface Database {
           last_name: string;
           password_hash: string;
           avatar_url: string | null;
+          age_range: string;
+          blockchain_address: string | null;
           verified: boolean;
           email_verification_token: string | null;
           email_verification_expires: string | null;
           is_brand: boolean;
+          role: UserRole;
           created_at: string;
           updated_at: string;
         };
@@ -28,10 +36,13 @@ export interface Database {
           last_name: string;
           password_hash: string;
           avatar_url?: string | null;
+          age_range: string;
+          blockchain_address?: string | null;
           verified?: boolean;
           email_verification_token?: string | null;
           email_verification_expires?: string | null;
           is_brand?: boolean;
+          role?: UserRole;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,10 +54,13 @@ export interface Database {
           last_name?: string;
           password_hash?: string;
           avatar_url?: string | null;
+          age_range?: string;
+          blockchain_address?: string | null;
           verified?: boolean;
           email_verification_token?: string | null;
           email_verification_expires?: string | null;
           is_brand?: boolean;
+          role?: UserRole;
           created_at?: string;
           updated_at?: string;
         };
@@ -56,17 +70,17 @@ export interface Database {
           id: string;
           user_id: string;
           name: string;
-          category: string;
+          industry_type: string;
           description: string | null;
           logo_url: string | null;
           website_url: string | null;
-          siret: string | null;
+          business_registration_number: string | null;
           country: string;
           headquarters_street: string;
           headquarters_city: string;
           headquarters_zip_code: string;
           headquarters_address_complement: string | null;
-          verified: boolean;
+          social_medias: Record<string, string> | null;
           created_at: string;
           updated_at: string;
         };
@@ -74,17 +88,17 @@ export interface Database {
           id?: string;
           user_id: string;
           name: string;
-          category: string;
+          industry_type: string;
           description?: string | null;
           logo_url?: string | null;
           website_url?: string | null;
-          siret?: string | null;
+          business_registration_number?: string | null;
           country: string;
           headquarters_street: string;
           headquarters_city: string;
           headquarters_zip_code: string;
           headquarters_address_complement?: string | null;
-          verified?: boolean;
+          social_medias?: Record<string, string> | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -92,17 +106,17 @@ export interface Database {
           id?: string;
           user_id?: string;
           name?: string;
-          category?: string;
+          industry_type?: string;
           description?: string | null;
           logo_url?: string | null;
           website_url?: string | null;
-          siret?: string | null;
+          business_registration_number?: string | null;
           country?: string;
           headquarters_street?: string;
           headquarters_city?: string;
           headquarters_zip_code?: string;
           headquarters_address_complement?: string | null;
-          verified?: boolean;
+          social_medias?: Record<string, string> | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -137,6 +151,23 @@ export interface Database {
         };
         Update: {
           user_id?: string;
+          interest_id?: string;
+          created_at?: string;
+        };
+      };
+      brand_interest: {
+        Row: {
+          brand_id: string;
+          interest_id: string;
+          created_at: string;
+        };
+        Insert: {
+          brand_id: string;
+          interest_id: string;
+          created_at?: string;
+        };
+        Update: {
+          brand_id?: string;
           interest_id?: string;
           created_at?: string;
         };
@@ -228,6 +259,230 @@ export interface Database {
           created_at?: string;
         };
       };
+      event: {
+        Row: {
+          id: string;
+          brand_id: string;
+          title: string;
+          description: string | null;
+          location: string | null;
+          starts_at: string;
+          ends_at: string | null;
+          ticket_price: number;
+          ticket_currency: string;
+          max_tickets: number | null;
+          min_token_balance: number;
+          status: EventStatus;
+          cover_image_url: string | null;
+          nft_collection_contract_address: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_id: string;
+          title: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at: string;
+          ends_at?: string | null;
+          ticket_price?: number;
+          ticket_currency?: string;
+          max_tickets?: number | null;
+          min_token_balance?: number;
+          status?: EventStatus;
+          cover_image_url?: string | null;
+          nft_collection_contract_address?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          brand_id?: string;
+          title?: string;
+          description?: string | null;
+          location?: string | null;
+          starts_at?: string;
+          ends_at?: string | null;
+          ticket_price?: number;
+          ticket_currency?: string;
+          max_tickets?: number | null;
+          min_token_balance?: number;
+          status?: EventStatus;
+          cover_image_url?: string | null;
+          nft_collection_contract_address?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      event_nft: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          nft_token_id: string;
+          metadata_uri: string | null;
+          price_paid: number;
+          currency: string;
+          payment_tx_hash: string | null;
+          mint_tx_hash: string | null;
+          status: EventNFTStatus;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          nft_token_id: string;
+          metadata_uri?: string | null;
+          price_paid?: number;
+          currency?: string;
+          payment_tx_hash?: string | null;
+          mint_tx_hash?: string | null;
+          status?: EventNFTStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          user_id?: string;
+          nft_token_id?: string;
+          metadata_uri?: string | null;
+          price_paid?: number;
+          currency?: string;
+          payment_tx_hash?: string | null;
+          mint_tx_hash?: string | null;
+          status?: EventNFTStatus;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      brand_application: {
+        Row: {
+          id: string;
+          contact_email: string;
+          contact_first_name: string;
+          contact_last_name: string;
+          contact_phone: string | null;
+          brand_name: string;
+          industry_type: string;
+          description: string | null;
+          website_url: string | null;
+          logo_url: string | null;
+          business_registration_number: string;
+          country: string;
+          headquarters_street: string;
+          headquarters_city: string;
+          headquarters_zip_code: string;
+          headquarters_address_complement: string | null;
+          motivation: string | null;
+          estimated_community_size: number | null;
+          social_media_links: Record<string, string> | null;
+          how_did_you_hear_about_us: string | null;
+          registration_proof_url: string | null;
+          status: BrandApplicationStatus;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          rejection_reason: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          contact_email: string;
+          contact_first_name: string;
+          contact_last_name: string;
+          contact_phone?: string | null;
+          brand_name: string;
+          industry_type: string;
+          description?: string | null;
+          website_url?: string | null;
+          logo_url?: string | null;
+          business_registration_number: string;
+          country: string;
+          headquarters_street: string;
+          headquarters_city: string;
+          headquarters_zip_code: string;
+          headquarters_address_complement?: string | null;
+          motivation?: string | null;
+          estimated_community_size?: number | null;
+          social_media_links?: Record<string, string> | null;
+          how_did_you_hear_about_us?: string | null;
+          registration_proof_url?: string | null;
+          status?: BrandApplicationStatus;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          rejection_reason?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          contact_email?: string;
+          contact_first_name?: string;
+          contact_last_name?: string;
+          contact_phone?: string | null;
+          brand_name?: string;
+          industry_type?: string;
+          description?: string | null;
+          website_url?: string | null;
+          logo_url?: string | null;
+          business_registration_number?: string;
+          country?: string;
+          headquarters_street?: string;
+          headquarters_city?: string;
+          headquarters_zip_code?: string;
+          headquarters_address_complement?: string | null;
+          motivation?: string | null;
+          estimated_community_size?: number | null;
+          social_media_links?: Record<string, string> | null;
+          how_did_you_hear_about_us?: string | null;
+          registration_proof_url?: string | null;
+          status?: BrandApplicationStatus;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          rejection_reason?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      email_template: {
+        Row: {
+          id: string;
+          template_type: EmailTemplateType;
+          subject: string;
+          html_content: string;
+          text_content: string | null;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_type: EmailTemplateType;
+          subject: string;
+          html_content: string;
+          text_content?: string | null;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          template_type?: EmailTemplateType;
+          subject?: string;
+          html_content?: string;
+          text_content?: string | null;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -249,6 +504,10 @@ export type UserInterest = Database['public']['Tables']['user_interest']['Row'];
 export type UserInterestInsert = Database['public']['Tables']['user_interest']['Insert'];
 export type UserInterestUpdate = Database['public']['Tables']['user_interest']['Update'];
 
+export type BrandInterest = Database['public']['Tables']['brand_interest']['Row'];
+export type BrandInterestInsert = Database['public']['Tables']['brand_interest']['Insert'];
+export type BrandInterestUpdate = Database['public']['Tables']['brand_interest']['Update'];
+
 export type BrandToken = Database['public']['Tables']['brand_token']['Row'];
 export type BrandTokenInsert = Database['public']['Tables']['brand_token']['Insert'];
 export type BrandTokenUpdate = Database['public']['Tables']['brand_token']['Update'];
@@ -260,5 +519,23 @@ export type TokenHolderUpdate = Database['public']['Tables']['token_holder']['Up
 export type TokenTransaction = Database['public']['Tables']['token_transaction']['Row'];
 export type TokenTransactionInsert = Database['public']['Tables']['token_transaction']['Insert'];
 export type TokenTransactionUpdate = Database['public']['Tables']['token_transaction']['Update'];
+
+export type Event = Database['public']['Tables']['event']['Row'];
+export type EventInsert = Database['public']['Tables']['event']['Insert'];
+export type EventUpdate = Database['public']['Tables']['event']['Update'];
+
+export type EventNFT = Database['public']['Tables']['event_nft']['Row'];
+export type EventNFTInsert = Database['public']['Tables']['event_nft']['Insert'];
+export type EventNFTUpdate = Database['public']['Tables']['event_nft']['Update'];
+
+export type BrandApplication = Database['public']['Tables']['brand_application']['Row'];
+export type BrandApplicationInsert = Database['public']['Tables']['brand_application']['Insert'];
+export type BrandApplicationUpdate = Database['public']['Tables']['brand_application']['Update'];
+
+export type EmailTemplate = Database['public']['Tables']['email_template']['Row'];
+export type EmailTemplateInsert = Database['public']['Tables']['email_template']['Insert'];
+export type EmailTemplateUpdate = Database['public']['Tables']['email_template']['Update'];
+
+export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 
 export type TransactionType = 'purchase' | 'transfer' | 'reward' | 'initial_emission';
