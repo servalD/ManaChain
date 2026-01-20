@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { SOCIAL_MEDIA_PLATFORMS, REFERRAL_SOURCES } from "@/utils/constants";
 
 interface AdditionalInformationProps {
   formData: {
@@ -12,13 +13,16 @@ interface AdditionalInformationProps {
       instagram?: string;
       linkedin?: string;
       facebook?: string;
+      tiktok?: string;
+      youtube?: string;
     };
     how_did_you_hear_about_us: string;
   };
   onChange: (field: string, value: string | object) => void;
+  errors?: Record<string, string>;
 }
 
-export function AdditionalInformation({ formData, onChange }: AdditionalInformationProps) {
+export function AdditionalInformation({ formData, onChange, errors = {} }: AdditionalInformationProps) {
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<string>>(new Set());
 
   const handleSocialMediaChange = (platform: string, value: string) => {
@@ -26,6 +30,11 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
       ...formData.social_media_links,
       [platform]: value
     });
+    
+    // Clear error for this platform when user starts typing
+    if (errors[platform]) {
+      // The error will be cleared by the parent's handleChange
+    }
   };
 
   const togglePlatform = (platform: string) => {
@@ -39,13 +48,6 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
       return newSet;
     });
   };
-
-  const socialPlatforms = [
-    { key: 'twitter', label: 'Twitter/X', placeholder: 'https://twitter.com/yourbrand' },
-    { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourbrand' },
-    { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/company/yourbrand' },
-    { key: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/yourbrand' },
-  ];
 
   return (
     <div className="space-y-6">
@@ -63,11 +65,18 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
           </label>
           <textarea
             id="motivation"
+            name="motivation_manual"
             value={formData.motivation}
             onChange={(e) => onChange('motivation', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400 min-h-[120px]"
+            className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 min-h-[120px] ${
+              errors.motivation ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+            }`}
             placeholder="Share your motivation and how Mana Chain can help your brand..."
+            autoComplete="new-password"
           />
+          {errors.motivation && (
+            <p className="mt-1 text-xs text-red-500">{errors.motivation}</p>
+          )}
         </div>
 
         <div>
@@ -77,15 +86,23 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
           <input
             id="estimated_community_size"
             type="number"
+            name="estimated_community_size_manual"
             value={formData.estimated_community_size}
             onChange={(e) => onChange('estimated_community_size', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              errors.estimated_community_size ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+            }`}
             placeholder="10000"
             min="0"
+            autoComplete="new-password"
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            Approximate number of followers/customers across all platforms
-          </p>
+          {errors.estimated_community_size ? (
+            <p className="mt-1 text-xs text-red-500">{errors.estimated_community_size}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              Approximate number of followers/customers across all platforms
+            </p>
+          )}
         </div>
 
         <div>
@@ -93,7 +110,7 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
             Social Media Links
           </label>
           <div className="space-y-2">
-            {socialPlatforms.map((platform) => {
+            {SOCIAL_MEDIA_PLATFORMS.map((platform) => {
               const isExpanded = expandedPlatforms.has(platform.key);
               const hasValue = !!formData.social_media_links[platform.key as keyof typeof formData.social_media_links];
               
@@ -127,12 +144,19 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
                       <input
                         id={platform.key}
                         type="url"
+                        name={`${platform.key}_manual`}
                         value={formData.social_media_links[platform.key as keyof typeof formData.social_media_links] || ''}
                         onChange={(e) => handleSocialMediaChange(platform.key, e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
+                        className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+                          errors[platform.key] ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+                        }`}
                         placeholder={platform.placeholder}
+                        autoComplete="new-password"
                         onClick={(e) => e.stopPropagation()}
                       />
+                      {errors[platform.key] && (
+                        <p className="mt-1 text-xs text-red-500">{errors[platform.key]}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -152,12 +176,11 @@ export function AdditionalInformation({ formData, onChange }: AdditionalInformat
             className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
           >
             <option value="">Select an option</option>
-            <option value="social_media">Social Media</option>
-            <option value="search_engine">Search Engine</option>
-            <option value="referral">Referral</option>
-            <option value="press">Press/News Article</option>
-            <option value="event">Event/Conference</option>
-            <option value="other">Other</option>
+            {REFERRAL_SOURCES.map((source) => (
+              <option key={source.value} value={source.value}>
+                {source.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>

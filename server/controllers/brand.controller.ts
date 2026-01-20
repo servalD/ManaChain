@@ -310,7 +310,7 @@ export const createBrandApplicationController = async (req: Request, res: Respon
       'contact_first_name',
       'contact_last_name',
       'brand_name',
-      'industry_type',
+      'interest_ids',
       'business_registration_number',
       'country',
       'headquarters_street',
@@ -324,6 +324,21 @@ export const createBrandApplicationController = async (req: Request, res: Respon
       res.status(400).json({
         error: 'Missing required fields',
         required: missingFields,
+      });
+      return;
+    }
+
+    // Validate interest_ids is an array with 1-2 elements
+    if (!Array.isArray(req.body.interest_ids)) {
+      res.status(400).json({
+        error: 'interest_ids must be an array',
+      });
+      return;
+    }
+
+    if (req.body.interest_ids.length < 1 || req.body.interest_ids.length > 2) {
+      res.status(400).json({
+        error: 'You must select between 1 and 2 interests',
       });
       return;
     }

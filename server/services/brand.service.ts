@@ -328,6 +328,27 @@ export const createBrandApplication = async (
       return failure('Invalid email format');
     }
 
+    // Validate interest_ids (1-2 required)
+    if (!request.interest_ids || !Array.isArray(request.interest_ids)) {
+      return failure('Interest IDs must be an array');
+    }
+    if (request.interest_ids.length < 1) {
+      return failure('At least 1 interest is required');
+    }
+    if (request.interest_ids.length > 2) {
+      return failure('Maximum 2 interests allowed');
+    }
+
+    // Validate that all interest_ids exist
+    const { data: existingInterests, error: interestsError } = await supabase
+      .from('interest')
+      .select('id')
+      .in('id', request.interest_ids);
+
+    if (interestsError || !existingInterests || existingInterests.length !== request.interest_ids.length) {
+      return failure('One or more invalid interest IDs');
+    }
+
     const { data: existingRegistration } = await supabase
       .from('brand_application')
       .select('id')
@@ -359,10 +380,13 @@ export const createBrandApplication = async (
       return failure('This brand name is already in use');
     }
 
+    // Destructure interest_ids from request to handle separately
+    const { interest_ids, ...applicationData } = request;
+
     const { data, error } = await supabase
       .from('brand_application')
       .insert({
-        ...request,
+        ...applicationData,
         status: 'pending',
       })
       .select()
@@ -371,6 +395,23 @@ export const createBrandApplication = async (
     if (error) {
       console.error('Brand application creation error:', error);
       return failure('Error creating brand application');
+    }
+
+    // Insert interests into brand_application_interest table
+    const interestInserts = interest_ids.map(interest_id => ({
+      brand_application_id: data.id,
+      interest_id,
+    }));
+
+    const { error: interestError } = await supabase
+      .from('brand_application_interest')
+      .insert(interestInserts);
+
+    if (interestError) {
+      console.error('Brand application interest creation error:', interestError);
+      // Rollback: delete the application
+      await supabase.from('brand_application').delete().eq('id', data.id);
+      return failure('Error linking interests to brand application');
     }
 
     // Send notification email to admin
@@ -535,13 +576,25 @@ export const approveBrandApplication = async (
       return failure('Error creating user account');
     }
 
+    // Retrieve interests from brand_application_interest
+    const { data: applicationInterests, error: interestsError } = await supabase
+      .from('brand_application_interest')
+      .select('interest_id')
+      .eq('brand_application_id', request.applicationId);
+
+    if (interestsError) {
+      console.error('Error retrieving application interests:', interestsError);
+      return failure('Error retrieving application interests');
+    }
+
+    const interestIds = applicationInterests?.map(ai => ai.interest_id) || [];
+
     // Create brand
     const { data: newBrand, error: brandError } = await supabase
       .from('brand')
       .insert({
         user_id: newUser.id,
         name: application.brand_name,
-        industry_type: application.industry_type,
         description: application.description,
         logo_url: application.logo_url,
         website_url: application.website_url,
@@ -561,6 +614,26 @@ export const approveBrandApplication = async (
       // Rollback: delete the user
       await supabase.from('user').delete().eq('id', newUser.id);
       return failure('Error creating brand');
+    }
+
+    // Insert interests into brand_interest table
+    if (interestIds.length > 0) {
+      const brandInterestInserts = interestIds.map(interest_id => ({
+        brand_id: newBrand.id,
+        interest_id,
+      }));
+
+      const { error: brandInterestError } = await supabase
+        .from('brand_interest')
+        .insert(brandInterestInserts);
+
+      if (brandInterestError) {
+        console.error('Brand interest creation error:', brandInterestError);
+        // Rollback: delete brand and user
+        await supabase.from('brand').delete().eq('id', newBrand.id);
+        await supabase.from('user').delete().eq('id', newUser.id);
+        return failure('Error linking interests to brand');
+      }
     }
 
     // Update application status

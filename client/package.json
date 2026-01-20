@@ -25,6 +25,7 @@
     "lucide-react": "^0.552.0",
     "motion": "^12.27.1",
     "next": "16.0.10",
+    "pinata": "^2.5.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-router-dom": "^7.9.5",

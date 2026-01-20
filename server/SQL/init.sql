@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS brand (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,
   name TEXT NOT NULL UNIQUE,
-  industry_type TEXT NOT NULL,
   description TEXT,
   logo_url TEXT,
   website_url TEXT,
@@ -54,7 +53,6 @@ CREATE TABLE IF NOT EXISTS brand (
 -- Indexes for searches
 CREATE INDEX idx_brand_name ON brand(name);
 CREATE INDEX idx_brand_user_id ON brand(user_id);
-CREATE INDEX idx_brand_industry_type ON brand(industry_type);
 
 -- Table: interest (available interests)
 CREATE TABLE IF NOT EXISTS interest (
@@ -156,7 +154,11 @@ CREATE TABLE IF NOT EXISTS event (
   brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
-  location TEXT,
+  address_street TEXT,
+  address_city TEXT,
+  address_zip_code TEXT,
+  address_country TEXT,
+  address_complement TEXT,
   starts_at TIMESTAMP WITH TIME ZONE NOT NULL,
   ends_at TIMESTAMP WITH TIME ZONE,
   ticket_price DECIMAL(20, 8) NOT NULL DEFAULT 0,
@@ -219,7 +221,6 @@ CREATE TABLE IF NOT EXISTS brand_application (
   contact_phone TEXT,
   -- Brand Information
   brand_name TEXT NOT NULL,
-  industry_type TEXT NOT NULL,
   description TEXT,
   website_url TEXT,
   logo_url TEXT,
@@ -255,6 +256,18 @@ CREATE INDEX idx_brand_application_contact_email ON brand_application(contact_em
 CREATE INDEX idx_brand_application_brand_name ON brand_application(brand_name);
 CREATE INDEX idx_brand_application_created_at ON brand_application(created_at DESC);
 CREATE INDEX idx_brand_application_reviewed_by ON brand_application(reviewed_by);
+
+-- Table: brand_application_interest (many-to-many relationship between brand applications and interests)
+CREATE TABLE IF NOT EXISTS brand_application_interest (
+  brand_application_id UUID NOT NULL REFERENCES brand_application(id) ON DELETE CASCADE,
+  interest_id TEXT NOT NULL REFERENCES interest(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (brand_application_id, interest_id)
+);
+
+-- Indexes for searches
+CREATE INDEX idx_brand_application_interest_app_id ON brand_application_interest(brand_application_id);
+CREATE INDEX idx_brand_application_interest_interest_id ON brand_application_interest(interest_id);
 
 -- Triggers for updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -332,6 +345,7 @@ COMMENT ON TABLE token_transaction IS 'History of all token transactions';
 COMMENT ON TABLE event IS 'Brand events for token holders (represents an NFT collection)';
 COMMENT ON TABLE event_nft IS 'Individual NFTs from the event collection (tickets)';
 COMMENT ON TABLE brand_application IS 'Brand registration applications awaiting approval';
+COMMENT ON TABLE brand_application_interest IS 'Many-to-many relationship between brand applications and interests (max 2 per application)';
 
 COMMENT ON COLUMN "user".age_range IS 'Age range of the user (required, values: 18-24, 25-34, 35-44, 45-54, 55-64, 65+)';
 COMMENT ON COLUMN "user".verified IS 'Indicates if the user email has been verified';
@@ -339,7 +353,6 @@ COMMENT ON COLUMN "user".email_verification_token IS 'Token for email verificati
 COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verification token';
 COMMENT ON COLUMN "user".is_brand IS 'Indicates if the account is associated with a brand';
 COMMENT ON COLUMN "user".role IS 'User role: admin (platform administrators), client (regular users), branduser (users who own a brand)';
-COMMENT ON COLUMN brand.industry_type IS 'Type of industry (restaurant, clothing, technology, etc.)';
 COMMENT ON COLUMN brand.business_registration_number IS 'Business registration number (SIRET in France, EIN in USA, etc.)';
 COMMENT ON COLUMN brand.social_medias IS 'JSON object containing social media links (e.g., {twitter: "...", instagram: "...", linkedin: "..."})';
 COMMENT ON COLUMN brand_token.total_supply IS 'Total supply of fractional tokens (supports decimals)';
@@ -351,6 +364,11 @@ COMMENT ON COLUMN token_transaction.amount IS 'Amount of tokens transferred (sup
 COMMENT ON COLUMN token_transaction.from_user_id IS 'NULL for initial emissions';
 COMMENT ON COLUMN token_transaction.transaction_type IS 'Type: purchase, transfer, reward, or initial_emission';
 COMMENT ON COLUMN event.brand_id IS 'Brand creating the event (token can be retrieved via brand -> brand_token relation)';
+COMMENT ON COLUMN event.address_street IS 'Event address street (optional)';
+COMMENT ON COLUMN event.address_city IS 'Event address city (optional)';
+COMMENT ON COLUMN event.address_zip_code IS 'Event address ZIP/postal code (optional)';
+COMMENT ON COLUMN event.address_country IS 'Event address country (optional)';
+COMMENT ON COLUMN event.address_complement IS 'Event address complement (optional, e.g. floor/building)';
 COMMENT ON COLUMN event.ticket_price IS 'Ticket price for minting an NFT from the collection';
 COMMENT ON COLUMN event.max_tickets IS 'Maximum number of tickets available (NULL = unlimited)';
 COMMENT ON COLUMN event.min_token_balance IS 'Minimum token balance required to participate';
@@ -365,7 +383,6 @@ COMMENT ON COLUMN brand_application.contact_email IS 'Email address of the conta
 COMMENT ON COLUMN brand_application.contact_first_name IS 'First name of the contact person';
 COMMENT ON COLUMN brand_application.contact_last_name IS 'Last name of the contact person';
 COMMENT ON COLUMN brand_application.brand_name IS 'Name of the brand applying';
-COMMENT ON COLUMN brand_application.industry_type IS 'Type of industry';
 COMMENT ON COLUMN brand_application.business_registration_number IS 'Business registration number (SIRET, EIN, etc.)';
 COMMENT ON COLUMN brand_application.motivation IS 'Reason why the brand wants to join the platform';
 COMMENT ON COLUMN brand_application.estimated_community_size IS 'Estimated size of current community/followers';
