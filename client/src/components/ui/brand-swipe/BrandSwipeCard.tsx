@@ -21,12 +21,17 @@ export interface BrandSwipeCardProps {
   brands: Brand[];
   onSwipeRight?: (brand: Brand) => void;
   onSwipeLeft?: (brand: Brand) => void;
+  onButtonClickRef?: React.MutableRefObject<{ swipeLeft: () => void; swipeRight: () => void } | null>;
 }
 
-export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipeCardProps) {
+export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClickRef }: BrandSwipeCardProps) {
   const [cards, setCards] = React.useState<Brand[]>([...brands]);
   const [dragDirections, setDragDirections] = React.useState<Record<number, string | null>>({});
   const swipeThreshold = 100;
+  
+  // Get the current swipe direction for the top card
+  const topCardIndex = cards.length - 1;
+  const currentSwipeDirection = topCardIndex >= 0 ? dragDirections[topCardIndex] : null;
 
   React.useEffect(() => {
     if (brands.length > 0 && cards.length === 0) {
@@ -50,27 +55,34 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
   };
 
   const handleDragEnd = (event: any, info: any, index: number) => {
+    const direction = info.offset.x > 0 ? "right" : "left";
+    
     if (Math.abs(info.offset.x) > swipeThreshold) {
-      handleSwipe(index, dragDirections[index] || "left");
+      // Swipe immediately without delay
+      handleSwipe(index, direction);
     } else {
+      // Reset if not enough movement
       setDragDirections((prev) => ({ ...prev, [index]: null }));
     }
   };
 
   const handleSwipe = (index: number, direction: string) => {
     const brand = cards[index];
-    setDragDirections((prev) => ({ ...prev, [index]: direction }));
-
-    // Trigger callbacks
+    
+    // Trigger callbacks immediately
     if (direction === "right" && onSwipeRight) {
       onSwipeRight(brand);
     } else if (direction === "left" && onSwipeLeft) {
       onSwipeLeft(brand);
     }
 
-    setTimeout(() => {
-      setCards((prevCards) => prevCards.filter((_, i) => i !== index));
-    }, 300);
+    // Remove card immediately, animation will handle the visual
+    setCards((prevCards) => prevCards.filter((_, i) => i !== index));
+    setDragDirections((prev) => {
+      const newDirs = { ...prev };
+      delete newDirs[index];
+      return newDirs;
+    });
   };
 
   const handleButtonClick = (direction: "right" | "left") => {
@@ -78,6 +90,16 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
       handleSwipe(cards.length - 1, direction);
     }
   };
+
+  // Expose button click handlers via ref
+  React.useEffect(() => {
+    if (onButtonClickRef) {
+      onButtonClickRef.current = {
+        swipeLeft: () => handleButtonClick("left"),
+        swipeRight: () => handleButtonClick("right"),
+      };
+    }
+  }, [cards.length, onButtonClickRef]);
 
   if (cards.length === 0) {
     return (
@@ -92,7 +114,7 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
   return (
     <div className="relative w-full h-full flex flex-col items-center z-10">
       {/* Card Stack */}
-      <div className="relative w-full max-w-md h-[500px] sm:h-[550px] md:h-[600px] mb-6 sm:mb-8">
+      <div className="relative w-full max-w-md lg:max-w-xl xl:max-w-2xl h-[500px] sm:h-[550px] md:h-[600px] lg:h-[550px] xl:h-[600px]">
         <AnimatePresence>
           {cards.map((brand, index) => {
             const isTopCard = index === cards.length - 1;
@@ -102,8 +124,8 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
               <motion.div
                 key={brand.id}
                 drag={isTopCard ? "x" : false}
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.5}
+                dragConstraints={{ left: -500, right: 500 }}
+                dragElastic={0.2}
                 onDrag={(e, i) => handleDrag(e, i, index)}
                 onDragEnd={(e, i) => handleDragEnd(e, i, index)}
                 custom={{ direction }}
@@ -112,13 +134,16 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
                   scale: isTopCard ? 1 : 0.95,
                   y: isTopCard ? 0 : -20,
                   opacity: 1,
-                  transition: { duration: 0.3, ease: "easeOut" },
+                  x: 0,
+                  rotate: 0,
+                  transition: { duration: 0.2, ease: "easeOut" },
                 }}
                 exit={{
-                  x: direction === "right" ? 400 : -400,
-                  rotate: direction === "right" ? 20 : -20,
+                  x: direction === "right" ? 500 : -500,
+                  rotate: direction === "right" ? 30 : -30,
                   opacity: 0,
-                  transition: { duration: 0.3, ease: "easeIn" },
+                  scale: 0.8,
+                  transition: { duration: 0.25, ease: "easeIn" },
                 }}
                 className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden cursor-grab active:cursor-grabbing z-10"
                 style={{
@@ -167,38 +192,38 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
                 </div>
 
                 {/* Brand Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-10">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 z-10">
                   {/* Logo and Name */}
-                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <img
                       src={brand.logo}
                       alt={brand.name}
-                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white/20"
+                      className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full object-cover border-2 border-white/20"
                     />
                     <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-white">{brand.name}</h2>
-                      <p className="text-xs sm:text-sm text-gray-300">{brand.industry}</p>
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{brand.name}</h2>
+                      <p className="text-sm sm:text-base lg:text-lg text-gray-300">{brand.industry}</p>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs sm:text-sm text-gray-200 mb-3 sm:mb-4 line-clamp-2">{brand.description}</p>
+                  <p className="text-sm sm:text-base lg:text-lg text-gray-200 mb-4 sm:mb-5 lg:mb-6 line-clamp-2 lg:line-clamp-3">{brand.description}</p>
 
                   {/* Token Info */}
-                  <div className="flex items-center justify-between gap-2 sm:gap-4 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
+                  <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/20">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-400">Token</p>
-                      <p className="text-sm sm:text-lg font-bold" style={{ color: "#D4AF37" }}>
+                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Token</p>
+                      <p className="text-base sm:text-xl lg:text-2xl font-bold" style={{ color: "#D4AF37" }}>
                         {brand.tokenSymbol}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-400">Price</p>
-                      <p className="text-sm sm:text-lg font-semibold text-white">${brand.tokenPrice.toFixed(2)}</p>
+                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Price</p>
+                      <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">${brand.tokenPrice.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-400">Holders</p>
-                      <p className="text-sm sm:text-lg font-semibold text-white">{brand.holders.toLocaleString("en-US")}</p>
+                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Holders</p>
+                      <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">{brand.holders.toLocaleString("en-US")}</p>
                     </div>
                   </div>
                 </div>
@@ -209,18 +234,32 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft }: BrandSwipe
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-center gap-4 sm:gap-6">
+      <div className="flex items-center justify-center gap-4 sm:gap-6 lg:gap-4 mt-4 sm:mt-6 lg:mt-4">
         <button
           onClick={() => handleButtonClick("left")}
-          className="group w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent/50 backdrop-blur-sm border border-border flex items-center justify-center hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300"
+          className={`group w-16 h-16 sm:w-18 sm:h-18 lg:w-18 lg:h-18 rounded-full backdrop-blur-sm border-2 flex items-center justify-center transition-all duration-300 shadow-lg active:scale-95 ${
+            currentSwipeDirection === "left"
+              ? "bg-red-500/40 border-red-500/70 shadow-red-500/50"
+              : "bg-accent/50 border-border hover:bg-red-500/20 hover:border-red-500/50"
+          }`}
+          aria-label="Dislike"
         >
-          <X className="w-7 h-7 sm:w-8 sm:h-8 text-red-400 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+          <X className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-9 lg:h-9 group-hover:scale-110 transition-transform ${
+            currentSwipeDirection === "left" ? "text-red-300" : "text-red-400"
+          }`} strokeWidth={2.5} />
         </button>
         <button
           onClick={() => handleButtonClick("right")}
-          className="group w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-accent/50 backdrop-blur-sm border-2 border-border flex items-center justify-center hover:bg-green-500/20 hover:border-green-500/50 transition-all duration-300"
+          className={`group w-16 h-16 sm:w-18 sm:h-18 lg:w-18 lg:h-18 rounded-full backdrop-blur-sm border-2 flex items-center justify-center transition-all duration-300 shadow-lg active:scale-95 ${
+            currentSwipeDirection === "right"
+              ? "bg-green-500/40 border-green-500/70 shadow-green-500/50"
+              : "bg-accent/50 border-border hover:bg-green-500/20 hover:border-green-500/50"
+          }`}
+          aria-label="Like"
         >
-          <Heart className="w-8 h-8 sm:w-10 sm:h-10 text-green-400 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+          <Heart className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-9 lg:h-9 group-hover:scale-110 transition-transform ${
+            currentSwipeDirection === "right" ? "text-green-300 fill-green-300/60" : "text-green-400 fill-green-400/20 group-hover:fill-green-400/40"
+          }`} strokeWidth={2.5} />
         </button>
       </div>
     </div>

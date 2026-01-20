@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { BrandSwipeCard, Brand } from "@/components/ui/brand-swipe";
+import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
+import { DiscoverHeader, DiscoverContent } from "@/components/discover";
 
 // Mock data for brands
 const mockBrands: Brand[] = [
@@ -118,20 +119,10 @@ export default function DiscoverPage() {
   const handleSwipeRight = (brand: Brand) => {
     console.log("Liked brand:", brand.name);
     setLikedBrands((prev) => [...prev, brand]);
-    toast({
-      title: `You liked ${brand.name}! 💜`,
-      description: `${brand.tokenSymbol} added to your interests`,
-      variant: "success",
-    });
   };
 
   const handleSwipeLeft = (brand: Brand) => {
     console.log("Passed on brand:", brand.name);
-    toast({
-      title: "Passed",
-      description: `Maybe next time!`,
-      variant: "default",
-    });
   };
 
   const handleWalletConnected = async (address: string) => {
@@ -205,11 +196,7 @@ export default function DiscoverPage() {
 
   const handleLogout = async () => {
     await logout();
-    toast({
-      title: "Logged out",
-      description: "See you soon!",
-      variant: "success",
-    });
+    // Toast is already shown in AuthService.logout
   };
 
   const handleProfile = () => {
@@ -236,47 +223,17 @@ export default function DiscoverPage() {
         />
 
       {/* Main Content */}
-      <div className="pt-28 sm:pt-32 md:pt-36 pb-8 sm:pb-12 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="pt-34 sm:pt-24 pb-8 sm:pb-12 px-2 sm:px-4">
+        <div className="max-w-8xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8 sm:mb-12">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">
-              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Discover Brands
-              </span>
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
-              Swipe right to support brands you love. Build your portfolio of community tokens.
-            </p>
-          </div>
+          <DiscoverHeader />
 
-          {/* Swipe Cards */}
-          <div className="flex justify-center">
-            <BrandSwipeCard
-              brands={mockBrands}
-              onSwipeRight={handleSwipeRight}
-              onSwipeLeft={handleSwipeLeft}
-            />
-          </div>
-
-          {/* Instructions */}
-          <div className="mt-8 sm:mt-12 text-center px-2">
-            <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl bg-accent/30 backdrop-blur-sm border border-border">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                  <span className="text-red-400 text-sm">←</span>
-                </div>
-                <span className="text-xs sm:text-sm text-muted-foreground">Swipe left to pass</span>
-              </div>
-              <div className="hidden sm:block w-px h-8 bg-border" />
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                  <span className="text-green-400 text-sm">→</span>
-                </div>
-                <span className="text-xs sm:text-sm text-muted-foreground">Swipe right to like</span>
-              </div>
-            </div>
-          </div>
+          {/* Main Content Area */}
+          <DiscoverContent
+            brands={mockBrands}
+            onSwipeRight={handleSwipeRight}
+            onSwipeLeft={handleSwipeLeft}
+          />
         </div>
       </div>
       </div>
