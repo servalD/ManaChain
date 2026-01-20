@@ -74,7 +74,7 @@ export function BrandInformation({ formData, onChange, interests, errors = {} }:
           <p className="text-xs text-muted-foreground mb-3">
             {selectedCount}/{maxSelections} selected
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {interests.map((interest) => {
               const isSelected = formData.interest_ids?.includes(interest.id);
               const isDisabled = !isSelected && selectedCount >= maxSelections;
@@ -86,7 +86,7 @@ export function BrandInformation({ formData, onChange, interests, errors = {} }:
                   onClick={() => toggleInterest(interest.id)}
                   disabled={isDisabled}
                   className={`
-                    relative px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all
+                    relative px-2 sm:px-4 py-2 sm:py-3 rounded-lg border-2 text-xs sm:text-sm font-medium transition-all overflow-hidden
                     ${isSelected 
                       ? 'border-violet-500 bg-violet-500/10 text-foreground' 
                       : 'border-border bg-transparent text-foreground hover:border-violet-400'
@@ -94,11 +94,11 @@ export function BrandInformation({ formData, onChange, interests, errors = {} }:
                     ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                   `}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {interest.icon && <span className="text-lg">{interest.icon}</span>}
-                    <span>{interest.label}</span>
+                  <div className="flex items-center justify-center gap-1 sm:gap-2">
+                    {interest.icon && <span className="text-sm sm:text-lg shrink-0">{interest.icon}</span>}
+                    <span className="truncate">{interest.label}</span>
                     {isSelected && (
-                      <Check className="absolute top-2 right-2 w-4 h-4 text-violet-500" />
+                      <Check className="absolute top-1 right-1 sm:top-2 sm:right-2 w-3 h-3 sm:w-4 sm:h-4 text-violet-500 shrink-0" />
                     )}
                   </div>
                 </button>

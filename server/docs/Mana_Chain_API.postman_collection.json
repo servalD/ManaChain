@@ -304,7 +304,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"TechStart Inc\",\n  \"industry_type\": \"technology\",\n  \"description\": \"A cutting-edge technology startup\",\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"website_url\": \"https://techstart.com\",\n  \"business_registration_number\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Innovation Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A, Floor 5\",\n  \"interests\": [\"tech\", \"finance\"]\n}"
+              "raw": "{\n  \"name\": \"TechStart Inc\",\n  \"category\": \"technology\",\n  \"description\": \"A cutting-edge technology startup\",\n  \"logo_url\": \"https://example.com/logo.png\",\n  \"website_url\": \"https://techstart.com\",\n  \"siret\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Innovation Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A, Floor 5\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/brands",
@@ -403,7 +403,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"TechStart Corp\",\n  \"description\": \"Updated description\",\n  \"logo_url\": \"https://example.com/new-logo.png\",\n  \"interests\": [\"tech\", \"finance\", \"education\"]\n}"
+              "raw": "{\n  \"name\": \"TechStart Corp\",\n  \"category\": \"technology\",\n  \"description\": \"Updated description\",\n  \"logo_url\": \"https://example.com/new-logo.png\",\n  \"website_url\": \"https://techstart.com\",\n  \"siret\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Innovation Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A, Floor 5\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/brands/{{brand_id}}",
@@ -701,12 +701,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"contact_email\": \"contact@mybrand.com\",\n  \"contact_first_name\": \"John\",\n  \"contact_last_name\": \"Doe\",\n  \"contact_phone\": \"+33612345678\",\n  \"brand_name\": \"My Awesome Brand\",\n  \"industry_type\": \"fashion\",\n  \"description\": \"We create sustainable fashion for the modern generation.\",\n  \"website_url\": \"https://mybrand.com\",\n  \"logo_url\": \"https://mybrand.com/logo.png\",\n  \"business_registration_number\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Fashion Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A\",\n  \"registration_proof_url\": \"https://storage.com/proof.pdf\",\n  \"motivation\": \"We want to build a passionate community around sustainable fashion.\",\n  \"estimated_community_size\": 10000,\n  \"social_media_links\": {\n    \"instagram\": \"https://instagram.com/mybrand\",\n    \"twitter\": \"https://twitter.com/mybrand\",\n    \"linkedin\": \"https://linkedin.com/company/mybrand\"\n  },\n  \"how_did_you_hear_about_us\": \"Social media\"\n}"
+              "raw": "{\n  \"contact_email\": \"contact@mybrand.com\",\n  \"contact_first_name\": \"John\",\n  \"contact_last_name\": \"Doe\",\n  \"contact_phone\": \"+33612345678\",\n  \"brand_name\": \"My Awesome Brand\",\n  \"interest_ids\": [\"interest-uuid-1\", \"interest-uuid-2\"],\n  \"description\": \"We create sustainable fashion for the modern generation.\",\n  \"website_url\": \"https://mybrand.com\",\n  \"logo_url\": \"https://mybrand.com/logo.png\",\n  \"business_registration_number\": \"123456789\",\n  \"country\": \"France\",\n  \"headquarters_street\": \"123 Fashion Street\",\n  \"headquarters_city\": \"Paris\",\n  \"headquarters_zip_code\": \"75001\",\n  \"headquarters_address_complement\": \"Building A\",\n  \"registration_proof_url\": \"https://storage.com/proof.pdf\",\n  \"motivation\": \"We want to build a passionate community around sustainable fashion.\",\n  \"estimated_community_size\": 10000,\n  \"social_media_links\": {\n    \"instagram\": \"https://instagram.com/mybrand\",\n    \"twitter\": \"https://twitter.com/mybrand\",\n    \"linkedin\": \"https://linkedin.com/company/mybrand\",\n    \"facebook\": \"https://facebook.com/mybrand\",\n    \"tiktok\": \"https://tiktok.com/@mybrand\",\n    \"youtube\": \"https://youtube.com/@mybrand\"\n  },\n  \"how_did_you_hear_about_us\": \"Social media\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/brand-applications",
+              "raw": "{{base_url}}/brands/applications",
               "host": ["{{base_url}}"],
-              "path": ["brand-applications"]
+              "path": ["brands", "applications"]
             }
           },
           "description": "Public endpoint - Submit a new brand application (no authentication required)"
@@ -722,9 +722,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/brand-applications?limit=20&offset=0&status=pending",
+              "raw": "{{base_url}}/brands/applications?limit=20&offset=0&status=pending",
               "host": ["{{base_url}}"],
-              "path": ["brand-applications"],
+              "path": ["brands", "applications"],
               "query": [
                 {
                   "key": "limit",
@@ -761,9 +761,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/brand-applications/:id",
+              "raw": "{{base_url}}/brands/applications/:id",
               "host": ["{{base_url}}"],
-              "path": ["brand-applications", ":id"],
+              "path": ["brands", "applications", ":id"],
               "variable": [
                 {
                   "key": "id",
@@ -786,9 +786,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/brand-applications/:id/approve",
+              "raw": "{{base_url}}/brands/applications/:id/approve",
               "host": ["{{base_url}}"],
-              "path": ["brand-applications", ":id", "approve"],
+              "path": ["brands", "applications", ":id", "approve"],
               "variable": [
                 {
                   "key": "id",
@@ -819,9 +819,9 @@
               "raw": "{\n  \"rejection_reason\": \"The business registration document is not legible. Please upload a higher quality scan or official certificate.\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/brand-applications/:id/reject",
+              "raw": "{{base_url}}/brands/applications/:id/reject",
               "host": ["{{base_url}}"],
-              "path": ["brand-applications", ":id", "reject"],
+              "path": ["brands", "applications", ":id", "reject"],
               "variable": [
                 {
                   "key": "id",

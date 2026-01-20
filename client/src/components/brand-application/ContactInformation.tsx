@@ -38,31 +38,14 @@ export function ContactInformation({
       onCountryCodeChange(newCode);
     }
 
-    // Update phone number with new country code
-    const newCountry = COUNTRY_PHONE_CODES.find(c => c.code === newCode)!;
-    const currentPhone = formData.contact_phone || '';
-    
-    // Remove old country code if present (match + followed by 1-4 digits and optional space)
-    const phoneWithoutCode = currentPhone.replace(/^\+\d{1,4}\s?/, '').trim();
-    
-    // Add new country code with space
-    const newPhone = phoneWithoutCode ? `${newCountry.dialCode} ${phoneWithoutCode}` : `${newCountry.dialCode} `;
-    onChange('contact_phone', newPhone);
+    // Don't pre-fill the phone number field with country code
+    // Just update the country code selection, user will type the number themselves
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    // If user starts typing without country code, add it
-    if (value && !value.startsWith('+')) {
-      value = `${selectedCountry.dialCode} ${value}`;
-    }
-    
-    // Ensure there's a space after the country code
-    if (value.startsWith(selectedCountry.dialCode) && value.length > selectedCountry.dialCode.length && !value.startsWith(`${selectedCountry.dialCode} `)) {
-      value = `${selectedCountry.dialCode} ${value.substring(selectedCountry.dialCode.length)}`;
-    }
-    
+    const value = e.target.value;
+    // Just update the value without automatically adding country code
+    // The country code is shown in the select dropdown, user types the number
     onChange('contact_phone', value);
   };
   return (
@@ -147,11 +130,11 @@ export function ContactInformation({
           <label htmlFor="contact_phone" className="block text-sm font-medium text-foreground mb-1">
             Phone Number
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <select
               value={localCountryCode}
               onChange={handleCountryChange}
-              className="px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2 border-border focus:ring-violet-400 min-w-[80px] text-sm"
+              className="px-2 sm:px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2 border-border focus:ring-violet-400 sm:min-w-[100px] text-xs sm:text-sm"
               aria-label="Country code"
             >
               {COUNTRY_PHONE_CODES.map((country) => (
@@ -166,10 +149,10 @@ export function ContactInformation({
               name="contact_phone_manual"
               value={formData.contact_phone}
               onChange={handlePhoneChange}
-              className={`flex-1 px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              className={`flex-1 min-w-0 px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 text-sm sm:text-base ${
                 errors.contact_phone ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
               }`}
-              placeholder={`${selectedCountry.dialCode} (555) 123-4567`}
+              placeholder="(555) 123-4567"
               autoComplete="new-password"
             />
           </div>

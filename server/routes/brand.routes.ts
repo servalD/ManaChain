@@ -4,9 +4,15 @@ import * as brandController from '../controllers/brand.controller';
 
 const router = Router();
 
-// Brand Application Routes
+// =============================================================
+//                     BRAND APPLICATION ROUTES
+// =============================================================
+
 // POST /brand-applications - Create a new brand application (public)
 router.post('/applications', brandController.createBrandApplicationController);
+
+// POST /brand-applications/verify-email - Verify email for brand application (public)
+router.post('/applications/verify-email', brandController.verifyBrandApplicationEmailController);
 
 // GET /brand-applications - Get all brand applications (admin only)
 router.get('/applications', requireAuth, requireAdmin, brandController.getAllBrandApplicationsController);
@@ -20,7 +26,11 @@ router.put('/applications/:id/approve', requireAuth, requireAdmin, brandControll
 // PUT /brand-applications/:id/reject - Reject brand application (admin only)
 router.put('/applications/:id/reject', requireAuth, requireAdmin, brandController.rejectBrandApplicationController);
 
-// Brand Routes
+
+// =============================================================
+//                         BRAND ROUTES
+// =============================================================
+
 // POST /brands - Create a new brand
 router.post('/', requireAuth, requireVerified, brandController.createBrandController);
 

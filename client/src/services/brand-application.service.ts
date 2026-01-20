@@ -27,7 +27,7 @@ export default class BrandApplicationService {
       if (res.status === 201) {
         toast({
           title: "Application submitted",
-          description: "Your brand application has been submitted successfully. We'll review it soon!",
+          description: "Your brand application has been submitted successfully! Please check your email to verify your address. We'll review your application once your email is verified.",
           variant: "success",
         });
 
@@ -78,6 +78,70 @@ export default class BrandApplicationService {
       } else {
         toast({
           title: "Application error",
+          description: "An unexpected error occurred",
+          variant: "error",
+        });
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Verify email for a brand application (public endpoint)
+   */
+  static async verifyEmail(token: string): Promise<BrandApplication | null> {
+    try {
+      const res = await axios.post(
+        `${ApiService.baseURL}/brands/applications/verify-email`,
+        { token }
+      );
+
+      if (res.status === 200) {
+        toast({
+          title: "Email verified",
+          description: "Your email has been successfully verified! Your application will be reviewed soon.",
+          variant: "success",
+        });
+
+        return res.data.application;
+      }
+      return null;
+    } catch (err: any) {
+      if (err.response) {
+        const status = err.response.status;
+        const data = err.response.data;
+
+        switch (status) {
+          case 400:
+            toast({
+              title: "Verification error",
+              description: data?.error || "The verification link is invalid or expired",
+              variant: "error",
+            });
+            break;
+          case 500:
+            toast({
+              title: "Server error",
+              description: "Temporary issue, please try again",
+              variant: "error",
+            });
+            break;
+          default:
+            toast({
+              title: "Verification error",
+              description: data?.error || "An unexpected error occurred",
+              variant: "error",
+            });
+        }
+      } else if (err.request) {
+        toast({
+          title: "Connection error",
+          description: "Unable to reach the server. Check your internet connection.",
+          variant: "error",
+        });
+      } else {
+        toast({
+          title: "Verification error",
           description: "An unexpected error occurred",
           variant: "error",
         });

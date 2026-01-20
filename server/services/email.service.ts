@@ -202,6 +202,42 @@ export const sendBrandApplicationNotificationEmail = async (
 };
 
 /**
+ * Send brand application verification email
+ */
+export const sendBrandApplicationVerificationEmail = async (
+  toEmail: string,
+  verificationToken: string,
+  firstName: string,
+  brandName: string
+): Promise<void> => {
+  const verificationUrl = `${FRONTEND_URL}/verify-brand-application?token=${verificationToken}`;
+  
+  const templateResult = await renderEmailTemplate('verification', {
+    username: firstName,
+    verificationUrl,
+    frontendUrl: FRONTEND_URL,
+  });
+
+  if (!templateResult.success || !templateResult.data) {
+    console.error('Failed to render brand application verification email template:', templateResult.error);
+    throw new Error('Failed to render email template');
+  }
+
+  // Customize subject for brand application
+  const subject = `Verify your email for ${brandName} - Mana Chain`;
+
+  await sendEmail({
+    to: toEmail,
+    subject,
+    html: templateResult.data.html.replace(
+      'Verify your email',
+      `Verify your email for ${brandName} brand application`
+    ),
+    text: templateResult.data.text,
+  });
+};
+
+/**
  * Send brand application approval email with credentials
  */
 export const sendBrandApplicationApprovedEmail = async (

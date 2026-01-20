@@ -282,15 +282,15 @@ export function FileUpload({
                     <Upload className="w-6 h-6 text-violet-400" />
                   )}
                 </div>
-                <div>
+                <div className="w-full">
                   <p className="text-sm font-medium text-foreground">
                     Drag and drop your file here
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     or click to browse
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Accepted: {accept}
+                  <p className="text-xs text-muted-foreground mt-2 px-2">
+                    Accepted: <span className="break-all inline-block max-w-full">{accept}</span>
                   </p>
                 </div>
               </>

@@ -12,7 +12,8 @@ import {
   RejectBrandApplicationRequest,
 } from '../interfaces/brand.interface';
 import { SecurityUtils } from '../utils/crypto';
-import { sendBrandApplicationNotificationEmail, sendBrandApplicationApprovedEmail, sendBrandApplicationRejectedEmail } from './email.service';
+import { sendBrandApplicationNotificationEmail, sendBrandApplicationApprovedEmail, sendBrandApplicationRejectedEmail, sendBrandApplicationVerificationEmail } from './email.service';
+import crypto from 'crypto';
 
 /**
  * Create a new brand for a user
@@ -383,11 +384,18 @@ export const createBrandApplication = async (
     // Destructure interest_ids from request to handle separately
     const { interest_ids, ...applicationData } = request;
 
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
     const { data, error } = await supabase
       .from('brand_application')
       .insert({
         ...applicationData,
         status: 'pending',
+        email_verification_token: verificationToken,
+        email_verification_expires: verificationExpires.toISOString(),
+        email_verified: false,
       })
       .select()
       .single();
@@ -412,6 +420,19 @@ export const createBrandApplication = async (
       // Rollback: delete the application
       await supabase.from('brand_application').delete().eq('id', data.id);
       return failure('Error linking interests to brand application');
+    }
+
+    // Send verification email to brand contact
+    try {
+      await sendBrandApplicationVerificationEmail(
+        data.contact_email,
+        verificationToken,
+        data.contact_first_name,
+        data.brand_name
+      );
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't fail the application creation if email fails
     }
 
     // Send notification email to admin
@@ -530,6 +551,11 @@ export const approveBrandApplication = async (
       return failure('Only pending or needs_review applications can be approved');
     }
 
+    // Check if email is verified
+    if (!application.email_verified) {
+      return failure('Email must be verified before the application can be approved');
+    }
+
     // Generate secure password and username
     const generatedPassword = SecurityUtils.generateSecurePassword();
     const passwordHash = await SecurityUtils.hashPassword(generatedPassword);
@@ -563,7 +589,7 @@ export const approveBrandApplication = async (
         first_name: application.contact_first_name,
         last_name: application.contact_last_name,
         password_hash: passwordHash,
-        age_range: '0', // Default, can be updated by brand later
+        age_range: '18-24', // Default, can be updated by brand later
         is_brand: true,
         role: 'BRANDUSER',
         verified: true, // Pre-verified
@@ -676,6 +702,61 @@ export const approveBrandApplication = async (
   } catch (error) {
     console.error('approveBrandApplication error:', error);
     return failure('Server error approving brand application');
+  }
+};
+
+/**
+ * Verify email for a brand application
+ */
+export const verifyBrandApplicationEmail = async (
+  token: string
+): Promise<ServiceResponse<BrandApplication>> => {
+  try {
+    // Get application with this verification token
+    const { data: application, error } = await supabase
+      .from('brand_application')
+      .select('*')
+      .eq('email_verification_token', token)
+      .single();
+
+    if (error || !application) {
+      return failure('Invalid verification token');
+    }
+
+    // Check if token has expired
+    const now = new Date();
+    const expiresAt = new Date(application.email_verification_expires || 0);
+
+    if (now > expiresAt) {
+      return failure('Verification token has expired');
+    }
+
+    // Check if already verified
+    if (application.email_verified) {
+      return success(application);
+    }
+
+    // Mark email as verified
+    const { data: updatedApplication, error: updateError } = await supabase
+      .from('brand_application')
+      .update({
+        email_verified: true,
+        email_verification_token: null,
+        email_verification_expires: null,
+      })
+      .eq('id', application.id)
+      .select()
+      .single();
+
+    if (updateError || !updatedApplication) {
+      console.error('Application update error:', updateError);
+      return failure('Error verifying email');
+    }
+
+    return success(updatedApplication);
+  } catch (error) {
+    console.error('Email verification error:', error);
+    return failure('Server error during email verification');
   }
 };
 

@@ -395,6 +395,9 @@ export interface Database {
           reviewed_at: string | null;
           rejection_reason: string | null;
           notes: string | null;
+          email_verification_token: string | null;
+          email_verification_expires: string | null;
+          email_verified: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -424,6 +427,9 @@ export interface Database {
           reviewed_at?: string | null;
           rejection_reason?: string | null;
           notes?: string | null;
+          email_verification_token?: string | null;
+          email_verification_expires?: string | null;
+          email_verified?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -453,6 +459,9 @@ export interface Database {
           reviewed_at?: string | null;
           rejection_reason?: string | null;
           notes?: string | null;
+          email_verification_token?: string | null;
+          email_verification_expires?: string | null;
+          email_verified?: boolean;
           created_at?: string;
           updated_at?: string;
         };

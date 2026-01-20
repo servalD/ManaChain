@@ -244,6 +244,10 @@ CREATE TABLE IF NOT EXISTS brand_application (
   reviewed_at TIMESTAMP WITH TIME ZONE,
   rejection_reason TEXT,
   notes TEXT,
+  -- Email Verification
+  email_verification_token TEXT,
+  email_verification_expires TIMESTAMP WITH TIME ZONE,
+  email_verified BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_brand_application_status CHECK (status IN ('pending', 'approved', 'rejected', 'needs_review')),
@@ -256,6 +260,7 @@ CREATE INDEX idx_brand_application_contact_email ON brand_application(contact_em
 CREATE INDEX idx_brand_application_brand_name ON brand_application(brand_name);
 CREATE INDEX idx_brand_application_created_at ON brand_application(created_at DESC);
 CREATE INDEX idx_brand_application_reviewed_by ON brand_application(reviewed_by);
+CREATE INDEX idx_brand_application_email_verification_token ON brand_application(email_verification_token);
 
 -- Table: brand_application_interest (many-to-many relationship between brand applications and interests)
 CREATE TABLE IF NOT EXISTS brand_application_interest (

@@ -12,6 +12,7 @@ import {
   getBrandApplicationById,
   approveBrandApplication,
   rejectBrandApplication,
+  verifyBrandApplicationEmail,
 } from '../services/brand.service';
 import {
   CreateBrandRequest,
@@ -449,6 +450,36 @@ export const approveBrandApplicationController = async (req: Request, res: Respo
     });
   } catch (error) {
     console.error('approveBrandApplicationController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * POST /brands/applications/verify-email
+ * Verify email for a brand application (public endpoint)
+ */
+export const verifyBrandApplicationEmailController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      res.status(400).json({ error: 'Token required' });
+      return;
+    }
+
+    const result = await verifyBrandApplicationEmail(token);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      message: 'Email verified successfully',
+      application: result.data,
+    });
+  } catch (error) {
+    console.error('verifyBrandApplicationEmailController error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
