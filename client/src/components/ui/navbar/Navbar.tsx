@@ -45,7 +45,7 @@ export function Navbar({
             <img 
               src="/logo.png" 
               alt="Mana Chain" 
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover transform transition-transform group-hover:scale-110" 
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover transform transition-transform group-hover:scale-110" 
             />
             <span className="text-lg sm:text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain

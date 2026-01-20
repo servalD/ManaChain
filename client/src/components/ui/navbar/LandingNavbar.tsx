@@ -48,7 +48,7 @@ export function LandingNavbar() {
         <div className="hidden lg:flex items-center justify-between">
           {/* Logo */}
           <Link href="#hero" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Mana Chain" className="w-8 h-8 rounded-full object-cover" />
+            <img src="/logo.png" alt="Mana Chain" className="w-12 h-12 rounded-full object-cover" />
             <span className="text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
             </span>
@@ -126,7 +126,7 @@ export function LandingNavbar() {
         <div className="lg:hidden flex items-center justify-between">
           {/* Logo */}
           <Link href="#hero" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Mana Chain" className="w-7 h-7 rounded-full object-cover" />
+            <img src="/logo.png" alt="Mana Chain" className="w-10 h-10 rounded-full object-cover" />
             <span className="text-lg font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
             </span>
