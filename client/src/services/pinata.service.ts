@@ -1,27 +1,16 @@
 import axios from "axios";
 import { toast } from "@/lib/toast";
-import { ApiService } from "./api.service";
 
 export default class PinataService {
-  private static readonly JWT = process.env.NEXT_PUBLIC_PINATA_JWT || "";
   private static readonly UPLOAD_TIMEOUT = 30000; // 30 seconds
   private static readonly MAX_RETRIES = 2;
 
   /**
-   * Upload a file to Pinata IPFS
+   * Upload a file to Pinata IPFS via Next.js API route
    * @param file - The file to upload
    * @returns The IPFS URL of the uploaded file
    */
   static async uploadFile(file: File): Promise<string> {
-    if (!this.JWT || !ApiService.PINATA_GATEWAY_URL) {
-      toast({
-        title: "Configuration error",
-        description: "Pinata credentials are not configured",
-        variant: "error",
-      });
-      throw new Error("Pinata credentials missing");
-    }
-
     // Validate file size
     const maxSize = file.type.startsWith('image/') ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB for images, 10MB for PDFs
     if (file.size > maxSize) {
@@ -40,46 +29,27 @@ export default class PinataService {
         const formData = new FormData();
         formData.append("file", file);
 
-        // Add metadata
-        const metadata = JSON.stringify({
-          name: file.name,
-          keyvalues: {
-            uploadedAt: new Date().toISOString(),
-            originalName: file.name,
-            type: file.type,
-          },
-        });
-        formData.append("pinataMetadata", metadata);
-
-        // Add options
-        const options = JSON.stringify({
-          cidVersion: 1,
-        });
-        formData.append("pinataOptions", options);
-
         const response = await axios.post(
-          `${ApiService.PINATA_API_URL}/pinning/pinFileToIPFS`,
+          '/api/pinata/upload',
           formData,
           {
-            headers: {
-              Authorization: `Bearer ${this.JWT}`,
-            },
             timeout: this.UPLOAD_TIMEOUT,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
           }
         );
 
-        if (response.data && response.data.IpfsHash) {
-          const ipfsUrl = `${ApiService.PINATA_GATEWAY_URL}/ipfs/${response.data.IpfsHash}`;
-          
+        if (response.data?.ipfsUrl) {
           toast({
             title: "Upload successful",
             description: "Your file has been uploaded to IPFS",
             variant: "success",
           });
 
-          return ipfsUrl;
+          return response.data.ipfsUrl;
         } else {
-          throw new Error("Invalid response from Pinata");
+          throw new Error("Invalid response from server");
         }
       } catch (error: any) {
         lastError = error;
@@ -122,7 +92,7 @@ export default class PinataService {
     } else if (lastError?.message?.includes('Network Error')) {
       toast({
         title: "Network error",
-        description: "Unable to reach Pinata. Check your internet connection.",
+        description: "Unable to reach server. Check your internet connection.",
         variant: "error",
       });
     } else {
@@ -137,16 +107,11 @@ export default class PinataService {
   }
 
   /**
-   * Delete (unpin) a file from Pinata
+   * Delete (unpin) a file from Pinata via Next.js API route
    * @param ipfsHashOrUrl - The IPFS hash or full URL
    * @returns true if successful, false otherwise
    */
   static async deleteFile(ipfsHashOrUrl: string): Promise<boolean> {
-    if (!this.JWT || !ApiService.PINATA_GATEWAY_URL) {
-      console.error("Pinata credentials missing");
-      return false;
-    }
-
     try {
       const ipfsHash = this.extractIpfsHash(ipfsHashOrUrl);
       
@@ -155,26 +120,19 @@ export default class PinataService {
         return false;
       }
 
-      await axios.delete(
-        `${ApiService.PINATA_API_URL}/pinning/unpin/${ipfsHash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.JWT}`,
-          },
-          timeout: 10000, // 10 seconds
-        }
-      );
+      await axios.delete(`/api/pinata/delete?hash=${ipfsHash}`, {
+        timeout: 10000,
+      });
 
       return true;
     } catch (error: any) {
-      // Don't show error toast for delete failures (could be already deleted)
-      console.error("Error deleting file from Pinata:", error);
-      
-      // Consider 404 as success (file already unpinned)
+      // 404 means already deleted, consider as success
       if (error.response?.status === 404) {
         return true;
       }
       
+      // Don't show error toast for delete failures (could be already deleted)
+      console.error("Error deleting file from Pinata:", error);
       return false;
     }
   }
