@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -14,6 +14,19 @@ import {
 } from "@/components/brand-application";
 import { toast } from "sonner";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import FormCacheService from "@/services/form-cache.service";
+import BrandApplicationService from "@/services/brand-application.service";
+import InterestsService from "@/services/interests.service";
+import { Interest } from "@/types/interest.types";
+import { COUNTRY_PHONE_CODES } from "@/utils/constants";
+import {
+  validateContactInfo,
+  validateBrandInfo,
+  validateLegalInfo,
+  validateAdditionalInfo,
+  validateDocuments,
+  validateAllSteps,
+} from "@/utils/brand-application-validation";
 
 interface FormData {
   // Contact Information
@@ -23,7 +36,7 @@ interface FormData {
   contact_phone: string;
   // Brand Information
   brand_name: string;
-  industry_type: string;
+  interest_ids: string[];
   description: string;
   website_url: string;
   logo_url: string;
@@ -42,6 +55,8 @@ interface FormData {
     instagram?: string;
     linkedin?: string;
     facebook?: string;
+    tiktok?: string;
+    youtube?: string;
   };
   how_did_you_hear_about_us: string;
   // Documents
@@ -56,7 +71,7 @@ export default function BrandApplicationPage() {
     contact_last_name: '',
     contact_phone: '',
     brand_name: '',
-    industry_type: '',
+    interest_ids: [],
     description: '',
     website_url: '',
     logo_url: '',
@@ -72,65 +87,245 @@ export default function BrandApplicationPage() {
     how_did_you_hear_about_us: '',
     registration_proof_url: '',
   });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [currentStep, setCurrentStep] = useState(1);
+  const [interests, setInterests] = useState<Interest[]>([]);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('GB'); // UK par défaut
+
+  // Fetch interests on mount
+  useEffect(() => {
+    const fetchInterests = async () => {
+      const fetchedInterests = await InterestsService.getAllInterests();
+      setInterests(fetchedInterests);
+    };
+    fetchInterests();
+  }, []);
+
+  // Load cached form data on mount (before initializing defaults)
+  useEffect(() => {
+    const cached = FormCacheService.loadFormData();
+    if (cached) {
+      setFormData(prev => ({
+        ...prev,
+        ...cached,
+      }));
+      
+      // Extract country code from phone number if present
+      if (cached.contact_phone) {
+        const phoneMatch = cached.contact_phone.match(/^\+(\d{1,4})/);
+        if (phoneMatch) {
+          const dialCode = `+${phoneMatch[1]}`;
+          const country = COUNTRY_PHONE_CODES.find(c => c.dialCode === dialCode);
+          if (country) {
+            setSelectedCountryCode(country.code);
+          }
+        }
+      }
+      
+      toast.info("Resumed application", {
+        description: "Your previous progress has been restored.",
+      });
+    } else {
+      // Initialize phone number with UK code only if no cache exists
+      if (!formData.contact_phone) {
+        const initialPhone = '+44 ';
+        setFormData(prev => ({
+          ...prev,
+          contact_phone: initialPhone
+        }));
+        FormCacheService.saveFormData({ contact_phone: initialPhone });
+      }
+    }
+  }, []);
+
+  const isNextDisabled = (() => {
+    switch (currentStep) {
+      case 1: {
+        const email = formData.contact_email?.trim();
+        const firstName = formData.contact_first_name?.trim();
+        const lastName = formData.contact_last_name?.trim();
+        return !email || !firstName || !lastName;
+      }
+      case 2: {
+        const brandName = formData.brand_name?.trim();
+        const interestsCount = formData.interest_ids?.length || 0;
+        return !brandName || interestsCount < 1;
+      }
+      case 3: {
+        const regNumber = formData.business_registration_number?.trim();
+        const country = formData.country?.trim();
+        const street = formData.headquarters_street?.trim();
+        const city = formData.headquarters_city?.trim();
+        const zip = formData.headquarters_zip_code?.trim();
+        return !regNumber || !country || !street || !city || !zip;
+      }
+      default:
+        return false;
+    }
+  })();
 
   const handleChange = (field: string, value: string | object) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [field]: value
+      };
+      return updated;
+    });
+    
+    // Save to cache immediately
+    FormCacheService.saveFormData({ [field]: value });
+    
+    // Clear validation error for this field if it exists
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+    
+    // If updating social_media_links, also clear errors for individual platforms
+    if (field === 'social_media_links' && typeof value === 'object' && value !== null) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        // Clear errors for all social media platforms
+        ['twitter', 'instagram', 'linkedin', 'facebook', 'tiktok', 'youtube'].forEach(platform => {
+          if (newErrors[platform]) {
+            delete newErrors[platform];
+          }
+        });
+        return newErrors;
+      });
+    }
+  };
+
+  const validateCurrentStep = (step: number): boolean => {
+    let validation;
+    
+    switch (step) {
+      case 1:
+        validation = validateContactInfo({
+          contact_email: formData.contact_email,
+          contact_first_name: formData.contact_first_name,
+          contact_last_name: formData.contact_last_name,
+          contact_phone: formData.contact_phone,
+        });
+        break;
+      case 2:
+        validation = validateBrandInfo({
+          brand_name: formData.brand_name,
+          interest_ids: formData.interest_ids,
+          description: formData.description,
+          website_url: formData.website_url,
+          logo_url: formData.logo_url,
+        });
+        break;
+      case 3:
+        validation = validateLegalInfo({
+          business_registration_number: formData.business_registration_number,
+          country: formData.country,
+          headquarters_street: formData.headquarters_street,
+          headquarters_city: formData.headquarters_city,
+          headquarters_zip_code: formData.headquarters_zip_code,
+          headquarters_address_complement: formData.headquarters_address_complement,
+        });
+        break;
+      case 4:
+        validation = validateAdditionalInfo({
+          motivation: formData.motivation,
+          estimated_community_size: formData.estimated_community_size,
+          social_media_links: formData.social_media_links,
+          how_did_you_hear_about_us: formData.how_did_you_hear_about_us,
+        });
+        break;
+      case 5:
+        validation = validateDocuments({
+          registration_proof_url: formData.registration_proof_url,
+        });
+        break;
+      default:
+        validation = { isValid: true, errors: {} };
+    }
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      
+      // Show first error
+      const firstError = Object.values(validation.errors)[0];
+      toast.error("Validation failed", {
+        description: firstError,
+      });
+      
+      return false;
+    }
+
+    setValidationErrors({});
+    return true;
   };
 
   const handleStepChange = (step: number) => {
-    toast.success(`Step ${step} completed!`, {
-      description: "Moving to the next step...",
-    });
+    setCurrentStep(step);
   };
 
-  const handleFinalSubmit = () => {
-    // Mock validation
-    if (!formData.contact_email || !formData.contact_first_name || !formData.contact_last_name) {
-      toast.error("Missing required fields", {
-        description: "Please fill in all required contact information.",
+  const handleFinalSubmit = async () => {
+    // Validate all steps
+    const validation = validateAllSteps(formData);
+    
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      toast.error("Validation failed", {
+        description: "Please check all fields and try again.",
       });
       return;
     }
 
-    if (!formData.brand_name || !formData.industry_type) {
-      toast.error("Missing required fields", {
-        description: "Please fill in all required brand information.",
-      });
-      return;
+    try {
+      // Prepare data for API
+      const applicationData = {
+        contact_email: formData.contact_email,
+        contact_first_name: formData.contact_first_name,
+        contact_last_name: formData.contact_last_name,
+        contact_phone: formData.contact_phone || undefined,
+        brand_name: formData.brand_name,
+        interest_ids: formData.interest_ids,
+        description: formData.description || undefined,
+        website_url: formData.website_url || undefined,
+        logo_url: formData.logo_url || undefined,
+        business_registration_number: formData.business_registration_number,
+        country: formData.country,
+        headquarters_street: formData.headquarters_street,
+        headquarters_city: formData.headquarters_city,
+        headquarters_zip_code: formData.headquarters_zip_code,
+        headquarters_address_complement: formData.headquarters_address_complement || undefined,
+        motivation: formData.motivation || undefined,
+        estimated_community_size: formData.estimated_community_size 
+          ? parseInt(formData.estimated_community_size, 10) 
+          : undefined,
+        social_media_links: Object.keys(formData.social_media_links).length > 0 
+          ? formData.social_media_links 
+          : undefined,
+        how_did_you_hear_about_us: formData.how_did_you_hear_about_us || undefined,
+        registration_proof_url: formData.registration_proof_url || undefined,
+      };
+
+      // Submit to API
+      const result = await BrandApplicationService.createApplication(applicationData);
+
+      if (result) {
+        // Clear cache on success
+        FormCacheService.clearFormData();
+        
+        // Redirect to home page
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      // Keep cache so user can retry
     }
-
-    if (!formData.business_registration_number || !formData.country || 
-        !formData.headquarters_street || !formData.headquarters_city || 
-        !formData.headquarters_zip_code) {
-      toast.error("Missing required fields", {
-        description: "Please fill in all required legal information.",
-      });
-      return;
-    }
-
-    if (!formData.registration_proof_url) {
-      toast.error("Missing required document", {
-        description: "Please provide your business registration proof.",
-      });
-      return;
-    }
-
-    // Mock successful submission
-    toast.success("Application submitted successfully!", {
-      description: "We will review your application and get back to you soon.",
-      duration: 5000,
-    });
-
-    // Log form data for debugging
-    console.log("Application Data:", formData);
-
-    // Redirect to home page after a delay
-    setTimeout(() => {
-      router.push('/');
-    }, 2000);
   };
 
   return (
@@ -172,16 +367,25 @@ export default function BrandApplicationPage() {
           <div className="flex-1 overflow-y-auto px-8 pb-8">
             <div className="w-full max-w-2xl mx-auto">
               <Stepper
-              initialStep={1}
-              onStepChange={handleStepChange}
-              onFinalStepCompleted={handleFinalSubmit}
-              backButtonText="Previous"
-              nextButtonText="Next"
-              stepCircleContainerClassName="bg-card/50 backdrop-blur-sm max-w-4xl"
-              stepContainerClassName="bg-card/30"
-              contentClassName="text-foreground"
-              footerClassName=""
-            >
+                initialStep={1}
+                onStepChange={handleStepChange}
+                onFinalStepCompleted={handleFinalSubmit}
+                backButtonText="Previous"
+                nextButtonText="Next"
+                stepCircleContainerClassName="bg-card/50 backdrop-blur-sm max-w-4xl"
+                stepContainerClassName="bg-card/30"
+                contentClassName="text-foreground"
+                footerClassName=""
+                disableStepIndicators
+                isNextDisabled={isNextDisabled}
+                canChangeStep={(targetStep, current) => {
+                  // Only validate when moving forward
+                  if (targetStep > current) {
+                    return validateCurrentStep(current);
+                  }
+                  return true;
+                }}
+              >
               <Step>
                 <ContactInformation 
                   formData={{
@@ -191,6 +395,9 @@ export default function BrandApplicationPage() {
                     contact_phone: formData.contact_phone,
                   }}
                   onChange={handleChange}
+                  errors={validationErrors}
+                  selectedCountryCode={selectedCountryCode}
+                  onCountryCodeChange={setSelectedCountryCode}
                 />
               </Step>
 
@@ -198,12 +405,14 @@ export default function BrandApplicationPage() {
                 <BrandInformation 
                   formData={{
                     brand_name: formData.brand_name,
-                    industry_type: formData.industry_type,
+                    interest_ids: formData.interest_ids,
                     description: formData.description,
                     website_url: formData.website_url,
                     logo_url: formData.logo_url,
                   }}
                   onChange={handleChange}
+                  interests={interests}
+                  errors={validationErrors}
                 />
               </Step>
 
@@ -218,6 +427,7 @@ export default function BrandApplicationPage() {
                     headquarters_address_complement: formData.headquarters_address_complement,
                   }}
                   onChange={handleChange}
+                  errors={validationErrors}
                 />
               </Step>
 
@@ -230,6 +440,7 @@ export default function BrandApplicationPage() {
                     how_did_you_hear_about_us: formData.how_did_you_hear_about_us,
                   }}
                   onChange={handleChange}
+                  errors={validationErrors}
                 />
               </Step>
 
@@ -239,6 +450,7 @@ export default function BrandApplicationPage() {
                     registration_proof_url: formData.registration_proof_url,
                   }}
                   onChange={handleChange}
+                  errors={validationErrors}
                 />
               </Step>
               </Stepper>

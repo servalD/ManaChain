@@ -70,7 +70,6 @@ export interface Database {
           id: string;
           user_id: string;
           name: string;
-          industry_type: string;
           description: string | null;
           logo_url: string | null;
           website_url: string | null;
@@ -88,7 +87,6 @@ export interface Database {
           id?: string;
           user_id: string;
           name: string;
-          industry_type: string;
           description?: string | null;
           logo_url?: string | null;
           website_url?: string | null;
@@ -106,7 +104,6 @@ export interface Database {
           id?: string;
           user_id?: string;
           name?: string;
-          industry_type?: string;
           description?: string | null;
           logo_url?: string | null;
           website_url?: string | null;
@@ -265,7 +262,11 @@ export interface Database {
           brand_id: string;
           title: string;
           description: string | null;
-          location: string | null;
+          address_street: string | null;
+          address_city: string | null;
+          address_zip_code: string | null;
+          address_country: string | null;
+          address_complement: string | null;
           starts_at: string;
           ends_at: string | null;
           ticket_price: number;
@@ -283,7 +284,11 @@ export interface Database {
           brand_id: string;
           title: string;
           description?: string | null;
-          location?: string | null;
+          address_street?: string | null;
+          address_city?: string | null;
+          address_zip_code?: string | null;
+          address_country?: string | null;
+          address_complement?: string | null;
           starts_at: string;
           ends_at?: string | null;
           ticket_price?: number;
@@ -301,7 +306,11 @@ export interface Database {
           brand_id?: string;
           title?: string;
           description?: string | null;
-          location?: string | null;
+          address_street?: string | null;
+          address_city?: string | null;
+          address_zip_code?: string | null;
+          address_country?: string | null;
+          address_complement?: string | null;
           starts_at?: string;
           ends_at?: string | null;
           ticket_price?: number;
@@ -367,7 +376,6 @@ export interface Database {
           contact_last_name: string;
           contact_phone: string | null;
           brand_name: string;
-          industry_type: string;
           description: string | null;
           website_url: string | null;
           logo_url: string | null;
@@ -397,7 +405,6 @@ export interface Database {
           contact_last_name: string;
           contact_phone?: string | null;
           brand_name: string;
-          industry_type: string;
           description?: string | null;
           website_url?: string | null;
           logo_url?: string | null;
@@ -427,7 +434,6 @@ export interface Database {
           contact_last_name?: string;
           contact_phone?: string | null;
           brand_name?: string;
-          industry_type?: string;
           description?: string | null;
           website_url?: string | null;
           logo_url?: string | null;
@@ -483,6 +489,23 @@ export interface Database {
           updated_at?: string;
         };
       };
+      brand_application_interest: {
+        Row: {
+          brand_application_id: string;
+          interest_id: string;
+          created_at: string;
+        };
+        Insert: {
+          brand_application_id: string;
+          interest_id: string;
+          created_at?: string;
+        };
+        Update: {
+          brand_application_id?: string;
+          interest_id?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -535,6 +558,10 @@ export type BrandApplicationUpdate = Database['public']['Tables']['brand_applica
 export type EmailTemplate = Database['public']['Tables']['email_template']['Row'];
 export type EmailTemplateInsert = Database['public']['Tables']['email_template']['Insert'];
 export type EmailTemplateUpdate = Database['public']['Tables']['email_template']['Update'];
+
+export type BrandApplicationInterest = Database['public']['Tables']['brand_application_interest']['Row'];
+export type BrandApplicationInterestInsert = Database['public']['Tables']['brand_application_interest']['Insert'];
+export type BrandApplicationInterestUpdate = Database['public']['Tables']['brand_application_interest']['Update'];
 
 export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 

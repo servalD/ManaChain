@@ -55,7 +55,7 @@ export interface CreateBrandApplicationRequest {
   
   // Brand Information
   brand_name: string;
-  industry_type: string;
+  interest_ids: string[]; // 1-2 interests required
   description?: string;
   website_url?: string;
   logo_url?: string;

@@ -6,6 +6,11 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   initialStep?: number;
   onStepChange?: (step: number) => void;
   onFinalStepCompleted?: () => void;
+  /**
+   * Optional guard function to control if a step change is allowed.
+   * Return false to prevent navigation to the requested step.
+   */
+  canChangeStep?: (targetStep: number, currentStep: number) => boolean;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
   contentClassName?: string;
@@ -20,6 +25,10 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
     currentStep: number;
     onStepClick: (clicked: number) => void;
   }) => ReactNode;
+  /**
+   * When true, visually and functionally disables the \"Next\" button.
+   */
+  isNextDisabled?: boolean;
 }
 
 export default function Stepper({
@@ -27,6 +36,7 @@ export default function Stepper({
   initialStep = 1,
   onStepChange = () => {},
   onFinalStepCompleted = () => {},
+  canChangeStep = () => true,
   stepCircleContainerClassName = '',
   stepContainerClassName = '',
   contentClassName = '',
@@ -37,6 +47,7 @@ export default function Stepper({
   nextButtonText = 'Continue',
   disableStepIndicators = false,
   renderStepIndicator,
+  isNextDisabled = false,
   ...rest
 }: StepperProps) {
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
@@ -47,6 +58,11 @@ export default function Stepper({
   const isLastStep = currentStep === totalSteps;
 
   const updateStep = (newStep: number) => {
+    // Let parent decide if navigation is allowed (e.g. validation)
+    if (!canChangeStep(newStep, currentStep)) {
+      return;
+    }
+
     setCurrentStep(newStep);
     if (newStep > totalSteps) {
       onFinalStepCompleted();
@@ -119,7 +135,7 @@ export default function Stepper({
           isCompleted={isCompleted}
           currentStep={currentStep}
           direction={direction}
-          className={`space-y-2 px-8 ${contentClassName}`}
+          className={`space-y-2 px-8 pb-8 ${contentClassName}`}
         >
           {stepsArray[currentStep - 1]}
         </StepContentWrapper>
@@ -141,8 +157,14 @@ export default function Stepper({
                 </button>
               )}
               <button
+                type="button"
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
+                disabled={isNextDisabled}
+                className={`duration-350 flex items-center justify-center rounded-full py-1.5 px-3.5 font-medium tracking-tight text-white transition ${
+                  isNextDisabled
+                    ? 'bg-green-500/60 cursor-not-allowed opacity-60'
+                    : 'bg-green-500 hover:bg-green-600 active:bg-green-700'
+                }`}
                 {...nextButtonProps}
               >
                 {isLastStep ? 'Complete' : nextButtonText}
@@ -241,7 +263,7 @@ interface StepProps {
 }
 
 export function Step({ children }: StepProps) {
-  return <div className="px-8">{children}</div>;
+  return <div className="px-8 pb-1">{children}</div>;
 }
 
 interface StepIndicatorProps {

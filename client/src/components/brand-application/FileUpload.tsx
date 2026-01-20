@@ -2,6 +2,9 @@
 
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { Upload, X, File, Image as ImageIcon } from "lucide-react";
+import PinataService from "@/services/pinata.service";
+import FormCacheService from "@/services/form-cache.service";
+import { toast, confirmToast } from "@/lib/toast";
 
 interface FileUploadProps {
   value: string;
@@ -11,6 +14,9 @@ interface FileUploadProps {
   description?: string;
   required?: boolean;
   error?: string;
+  fieldName?: string; // For tracking file metadata
+  onUploadStart?: () => void;
+  onUploadComplete?: (url: string) => void;
 }
 
 export function FileUpload({
@@ -21,9 +27,13 @@ export function FileUpload({
   description,
   required = false,
   error,
+  fieldName = "",
+  onUploadStart,
+  onUploadComplete,
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentIpfsHash, setCurrentIpfsHash] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
@@ -65,29 +75,38 @@ export function FileUpload({
   const handleFile = async (file: File) => {
     const validationError = validateFile(file);
     if (validationError) {
-      alert(validationError);
+      toast({
+        title: "Invalid file",
+        description: validationError,
+        variant: "error",
+      });
       return;
     }
 
     setIsUploading(true);
+    onUploadStart?.();
     
     try {
-      // Convert file to data URL for now (mock implementation)
-      // In production, you would upload to a server and get a URL back
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        onChange(dataUrl);
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        alert('Error reading file');
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      // Upload to Pinata IPFS
+      const ipfsUrl = await PinataService.uploadFile(file);
+      
+      // Extract and store IPFS hash for later deletion
+      const ipfsHash = PinataService.extractIpfsHash(ipfsUrl);
+      setCurrentIpfsHash(ipfsHash);
+      
+      // Save file metadata to cache
+      if (fieldName) {
+        FormCacheService.saveFileMetadata(fieldName, ipfsHash, ipfsUrl);
+      }
+      
+      // Update form with the IPFS URL
+      onChange(ipfsUrl);
+      onUploadComplete?.(ipfsUrl);
+      
     } catch (error) {
-      console.error('Error handling file:', error);
-      alert('Error processing file');
+      console.error('Error uploading file:', error);
+      // Error toast is already shown by PinataService
+    } finally {
       setIsUploading(false);
     }
   };
@@ -114,9 +133,60 @@ export function FileUpload({
     fileInputRef.current?.click();
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
+  const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange('');
+    
+    // Show confirmation toast
+    confirmToast({
+      title: "Remove file?",
+      description: "Are you sure you want to remove this file?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          // Try to delete from Pinata if we have the hash
+          let hashToDelete = currentIpfsHash;
+          
+          // If not in state, try to get from cache
+          if (!hashToDelete && fieldName) {
+            hashToDelete = FormCacheService.getFileIpfsHash(fieldName);
+          }
+          
+          // If still no hash, try to extract from the current value
+          if (!hashToDelete && value) {
+            hashToDelete = PinataService.extractIpfsHash(value);
+          }
+          
+          // Delete from Pinata if we have a hash
+          if (hashToDelete) {
+            await PinataService.deleteFile(hashToDelete);
+            
+            // Remove from cache metadata
+            if (fieldName) {
+              FormCacheService.removeFileMetadata(fieldName);
+            }
+            
+            toast({
+              title: "File removed",
+              description: "The file has been deleted",
+              variant: "success",
+            });
+          }
+          
+          // Clear the value
+          setCurrentIpfsHash(null);
+          onChange('');
+        } catch (error) {
+          console.error('Error removing file:', error);
+          // Still clear the value even if deletion failed
+          setCurrentIpfsHash(null);
+          onChange('');
+        }
+      },
+      onCancel: () => {
+        // User cancelled, do nothing
+      },
+    });
   };
 
   const isImage = value && (value.startsWith('data:image') || /\.(png|svg|jpeg|jpg)$/i.test(value));
@@ -148,7 +218,7 @@ export function FileUpload({
           >
             <div className="flex items-center gap-4">
               {isImage ? (
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <img
                     src={value}
                     alt="Preview"
@@ -156,7 +226,7 @@ export function FileUpload({
                   />
                 </div>
               ) : isPdf ? (
-                <div className="flex-shrink-0 w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                <div className="shrink-0 w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
                   <File className="w-8 h-8 text-red-500" />
                 </div>
               ) : null}
@@ -173,7 +243,7 @@ export function FileUpload({
               <button
                 type="button"
                 onClick={handleRemove}
-                className="flex-shrink-0 p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                className="shrink-0 p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
                 aria-label="Remove file"
               >
                 <X className="w-5 h-5" />

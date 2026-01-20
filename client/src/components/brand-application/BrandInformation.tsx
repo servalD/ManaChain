@@ -1,38 +1,40 @@
 "use client";
 
 import { FileUpload } from "./FileUpload";
+import { Interest } from "@/types/interest.types";
+import { Check } from "lucide-react";
 
 interface BrandInformationProps {
   formData: {
     brand_name: string;
-    industry_type: string;
+    interest_ids: string[];
     description: string;
     website_url: string;
     logo_url: string;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: any) => void;
+  interests: Interest[];
+  errors?: Record<string, string>;
 }
 
-export function BrandInformation({ formData, onChange }: BrandInformationProps) {
-  const industries = [
-    'Fashion',
-    'Technology',
-    'Food & Beverage',
-    'Health & Wellness',
-    'Entertainment',
-    'Sports',
-    'Education',
-    'Finance',
-    'Automotive',
-    'Beauty',
-    'Travel',
-    'Art',
-    'Music',
-    'Gaming',
-    'Environment',
-    'Other'
-  ];
+export function BrandInformation({ formData, onChange, interests, errors = {} }: BrandInformationProps) {
+  const selectedCount = formData.interest_ids?.length || 0;
+  const maxSelections = 2;
 
+  const toggleInterest = (interestId: string) => {
+    const currentInterests = formData.interest_ids || [];
+    
+    if (currentInterests.includes(interestId)) {
+      // Remove interest
+      const newInterests = currentInterests.filter(id => id !== interestId);
+      onChange('interest_ids', newInterests);
+    } else {
+      // Add interest (if not at max)
+      if (currentInterests.length < maxSelections) {
+        onChange('interest_ids', [...currentInterests, interestId]);
+      }
+    }
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -50,32 +52,62 @@ export function BrandInformation({ formData, onChange }: BrandInformationProps) 
           <input
             id="brand_name"
             type="text"
+            name="brand_name_manual"
             value={formData.brand_name}
             onChange={(e) => onChange('brand_name', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              errors.brand_name ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+            }`}
             placeholder="Your Brand Name"
+            autoComplete="new-password"
             required
           />
+          {errors.brand_name && (
+            <p className="mt-1 text-xs text-red-500">{errors.brand_name}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="industry_type" className="block text-sm font-medium text-foreground mb-2">
-            Industry Type <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Brand Interests (Select 1-2) <span className="text-red-500">*</span>
           </label>
-          <select
-            id="industry_type"
-            value={formData.industry_type}
-            onChange={(e) => onChange('industry_type', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
-            required
-          >
-            <option value="">Select an industry</option>
-            {industries.map((industry) => (
-              <option key={industry} value={industry}>
-                {industry}
-              </option>
-            ))}
-          </select>
+          <p className="text-xs text-muted-foreground mb-3">
+            {selectedCount}/{maxSelections} selected
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {interests.map((interest) => {
+              const isSelected = formData.interest_ids?.includes(interest.id);
+              const isDisabled = !isSelected && selectedCount >= maxSelections;
+              
+              return (
+                <button
+                  key={interest.id}
+                  type="button"
+                  onClick={() => toggleInterest(interest.id)}
+                  disabled={isDisabled}
+                  className={`
+                    relative px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all
+                    ${isSelected 
+                      ? 'border-violet-500 bg-violet-500/10 text-foreground' 
+                      : 'border-border bg-transparent text-foreground hover:border-violet-400'
+                    }
+                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {interest.icon && <span className="text-lg">{interest.icon}</span>}
+                    <span>{interest.label}</span>
+                    {isSelected && (
+                      <Check className="absolute top-2 right-2 w-4 h-4 text-violet-500" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {errors.interest_ids && (
+            <p className="mt-2 text-xs text-red-500">{errors.interest_ids}</p>
+          )}
         </div>
 
         <div>
@@ -84,11 +116,18 @@ export function BrandInformation({ formData, onChange }: BrandInformationProps) 
           </label>
           <textarea
             id="description"
+            name="description_manual"
             value={formData.description}
             onChange={(e) => onChange('description', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400 min-h-[100px]"
+            className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 min-h-[100px] ${
+              errors.description ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+            }`}
             placeholder="Describe your brand, mission, and values..."
+            autoComplete="new-password"
           />
+          {errors.description && (
+            <p className="mt-1 text-xs text-red-500">{errors.description}</p>
+          )}
         </div>
 
         <div>
@@ -98,11 +137,18 @@ export function BrandInformation({ formData, onChange }: BrandInformationProps) 
           <input
             id="website_url"
             type="url"
+            name="website_url_manual"
             value={formData.website_url}
             onChange={(e) => onChange('website_url', e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400"
+            className={`w-full px-4 py-2 rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 ${
+              errors.website_url ? 'border-red-500 focus:ring-red-400' : 'border-border focus:ring-violet-400'
+            }`}
             placeholder="https://www.yourbrand.com"
+            autoComplete="new-password"
           />
+          {errors.website_url && (
+            <p className="mt-1 text-xs text-red-500">{errors.website_url}</p>
+          )}
         </div>
 
         <div>
@@ -112,19 +158,9 @@ export function BrandInformation({ formData, onChange }: BrandInformationProps) 
             accept=".png,.svg,.jpeg,.jpg,image/png,image/svg+xml,image/jpeg"
             label="Brand Logo"
             description="Upload your brand logo (PNG, SVG, or JPEG)"
+            fieldName="logo_url"
+            error={errors.logo_url}
           />
-          {formData.logo_url && !formData.logo_url.startsWith('data:') && (
-            <div className="mt-2">
-              <p className="text-xs text-muted-foreground mb-1">Or provide a URL:</p>
-              <input
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) => onChange('logo_url', e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400 text-sm"
-                placeholder="https://www.yourbrand.com/logo.png"
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
