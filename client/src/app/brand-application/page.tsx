@@ -125,16 +125,6 @@ export default function BrandApplicationPage() {
       toast.info("Resumed application", {
         description: "Your previous progress has been restored.",
       });
-    } else {
-      // Initialize phone number with UK code only if no cache exists
-      if (!formData.contact_phone) {
-        const initialPhone = '+44 ';
-        setFormData(prev => ({
-          ...prev,
-          contact_phone: initialPhone
-        }));
-        FormCacheService.saveFormData({ contact_phone: initialPhone });
-      }
     }
   }, []);
 
