@@ -21,7 +21,7 @@ export function Hero() {
           <div className="space-y-6 sm:space-y-8">
             {/* Main Headline */}
             <div className={`transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl xl:text-9xl font-black text-foreground tracking-tighter leading-[1.1]" style={{
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-foreground tracking-tighter leading-[1.1]" style={{
                 fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif'
               }}>
                 Support<br />
