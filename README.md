@@ -1,4 +1,4 @@
-# Mana Chain
+# ManaChain
 
 ## 🏆 Engrainages Competition
 
