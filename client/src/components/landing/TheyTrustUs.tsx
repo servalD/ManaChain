@@ -14,7 +14,7 @@ interface Testimonial {
 }
 
 interface TestimonialsProps {
-  testimonials: Testimonial[]
+  testimonials?: Testimonial[]
   className?: string
   title?: string
   description?: string
