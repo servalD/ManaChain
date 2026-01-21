@@ -1,6 +1,6 @@
 "use client"
 
-import { testimonialsData } from "@/utils/constants"
+import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Icons } from "@/components/ui/icons"
 import ScrollFloat from "@/components/ui/scroll-float/scroll-float"
@@ -20,11 +20,11 @@ interface TestimonialsProps {
   description?: string
 }
 
-export function TheyTrustUs({
-  testimonials = testimonialsData,
-  className="pb-20 pt-15",
-  title="They Trust Us",
-  description="Discover what our founders and supporters say about Mana Chain"
+export function Testimonials({
+  testimonials,
+  className,
+  title = "Read what people are saying",
+  description = "Dummy feedback from virtual customers using our component library.",
 }: TestimonialsProps) {
   const openInNewTab = (url: string) => {
     window.open(url, "_blank")?.focus()
@@ -104,4 +104,3 @@ export function TheyTrustUs({
     </div>
   )
 }
-
