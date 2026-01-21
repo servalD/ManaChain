@@ -1,0 +1,173 @@
+"use client";
+
+import { useState } from "react";
+import { TrendingUp, TrendingDown, MoreHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+interface Token {
+  id: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  value: number;
+  change24h: number;
+  logo?: string;
+}
+
+// Mock tokens data
+const mockTokens: Token[] = [
+  {
+    id: "1",
+    symbol: "NIKE",
+    name: "Nike Token",
+    amount: 150.5,
+    value: 1250.75,
+    change24h: 5.2,
+    logo: "/Logo_NIKE.svg",
+  },
+  {
+    id: "2",
+    symbol: "BMW",
+    name: "BMW Token",
+    amount: 80.25,
+    value: 890.50,
+    change24h: -2.1,
+    logo: "/BMW_logo_(gray).svg",
+  },
+  {
+    id: "3",
+    symbol: "LVMH",
+    name: "LVMH Token",
+    amount: 45.0,
+    value: 675.00,
+    change24h: 8.5,
+    logo: "/LVMH_wordmark.svg",
+  },
+];
+
+export function MyTokens() {
+  const [tokens] = useState<Token[]>(mockTokens);
+  
+  const totalValue = tokens.reduce((sum, token) => sum + token.value, 0);
+
+  if (tokens.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground text-sm">No tokens yet</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Start investing in brands to see your tokens here
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 pt-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">My Tokens</h2>
+          <p className="text-sm text-muted-foreground">
+            Total Value: <span className="font-semibold text-foreground">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Token</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Value</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">24h Change</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tokens.map((token, index) => {
+                const isPositive = token.change24h >= 0;
+                return (
+                  <tr
+                    key={token.id}
+                    className={`border-b border-border hover:bg-muted/20 transition-colors ${
+                      index === tokens.length - 1 ? "border-b-0" : ""
+                    }`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        {token.logo ? (
+                          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 border border-border overflow-hidden">
+                            <img
+                              src={token.logo}
+                              alt={token.name}
+                              className="w-full h-full object-contain p-1"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  target.style.display = 'none';
+                                  const placeholder = document.createElement('div');
+                                  placeholder.className = 'w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center';
+                                  placeholder.textContent = token.symbol.charAt(0);
+                                  parent.appendChild(placeholder);
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                            <span className="text-sm font-bold text-violet-400">
+                              {token.symbol.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-semibold text-sm">{token.symbol}</div>
+                          <div className="text-xs text-muted-foreground">{token.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="font-semibold text-sm">
+                        ${token.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                            {token.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} tokens
+                      </div>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className={cn(
+                        "flex items-center justify-end gap-1 text-sm font-medium",
+                        isPositive ? "text-green-500" : "text-red-500"
+                      )}>
+                        {isPositive ? (
+                          <TrendingUp className="h-4 w-4" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4" />
+                        )}
+                        <span>{isPositive ? "+" : ""}{token.change24h.toFixed(1)}%</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs"
+                        >
+                          <MoreHorizontal className="h-3 w-3 mr-1" />
+                          More Details
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

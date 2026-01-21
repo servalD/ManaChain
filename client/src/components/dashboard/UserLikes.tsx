@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { ILikeWithBrand } from "@/types/like.types";
 import LikeService from "@/services/like.service";
 import PinataService from "@/services/pinata.service";
+import { ExternalLink, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function UserLikes() {
   const [likes, setLikes] = useState<ILikeWithBrand[]>([]);
@@ -42,72 +44,110 @@ export function UserLikes() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pt-8">
       <div>
-        <h2 className="text-2xl font-bold mb-2">My Liked Brands</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-xl font-bold">My Liked Brands</h2>
+        <p className="text-sm text-muted-foreground">
           {likes.length} {likes.length === 1 ? "brand" : "brands"} you've shown interest in
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {likes.map((like) => (
-          <div
-            key={like.id}
-            className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
-          >
-            {/* Brand Logo */}
-            {like.brand.logo_url && (
-              <div className="relative w-full h-48 bg-accent/30">
-                <img
-                  src={PinataService.normalizeIpfsUrl(like.brand.logo_url)}
-                  alt={like.brand.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Brand Info */}
-            <div className="p-5 space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg mb-1">{like.brand.name}</h3>
-                {like.brand.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {like.brand.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="pt-3 border-t border-border">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Liked on</span>
-                  <span>
-                    {new Date(like.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              {like.brand.website_url && (
-                <a
-                  href={like.brand.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center py-2 px-4 bg-violet-500/10 hover:bg-violet-500/20 text-violet-500 rounded-lg transition-colors text-sm font-medium"
+      <div className="border border-border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Brand</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Liked On</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {likes.map((like, index) => (
+                <tr
+                  key={like.id}
+                  className={`border-b border-border hover:bg-muted/20 transition-colors ${
+                    index === likes.length - 1 ? "border-b-0" : ""
+                  }`}
                 >
-                  Visit Website
-                </a>
-              )}
-            </div>
-          </div>
-        ))}
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      {like.brand.logo_url ? (
+                        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
+                          <img
+                            src={PinataService.normalizeIpfsUrl(like.brand.logo_url)}
+                            alt={like.brand.name}
+                            className="w-full h-full object-contain"
+                            style={{ maxWidth: '100%', maxHeight: '100%' }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                target.style.display = 'none';
+                                const placeholder = document.createElement('div');
+                                placeholder.className = 'w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center';
+                                placeholder.textContent = like.brand.name.charAt(0);
+                                parent.appendChild(placeholder);
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center">
+                          <span className="text-sm font-bold text-violet-400">
+                            {like.brand.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="font-semibold text-sm">{like.brand.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(like.created_at).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center justify-end gap-2">
+                      {like.brand.website_url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="h-8 text-xs"
+                        >
+                          <a
+                            href={like.brand.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Visit Website
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs"
+                      >
+                        <MoreHorizontal className="h-3 w-3 mr-1" />
+                        More Details
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

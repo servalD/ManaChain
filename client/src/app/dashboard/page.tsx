@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
 import { useState } from "react";
-import { UserLikes } from "@/components/dashboard";
+import { UserLikes, PortfolioValueChart, MyTokens, UpcomingEvents, ActivityTimeline } from "@/components/dashboard";
 
 export default function ClientDashboardPage() {
   const { user, logout, refreshUser } = useAuth();
@@ -98,23 +98,28 @@ export default function ClientDashboardPage() {
           shouldDisconnectWallet={shouldDisconnectWallet}
         />
 
-        <div className="pt-28 sm:pt-32 md:pt-36 pb-8 sm:pb-12 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                  My Dashboard
-                </span>
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your liked brands and discover new opportunities.
-              </p>
+        <div className="pt-30 sm:pt-30 pb-8 sm:pb-12 px-2 sm:px-4">
+          <div className="max-w-8xl mx-auto space-y-8">
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                My Dashboard
+              </span>
+            </h1>
+
+            {/* Portfolio Value Chart */}
+            <PortfolioValueChart />
+
+            {/* User Likes and My Tokens Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <UserLikes />
+              <MyTokens />
             </div>
 
-            {/* User Likes Section */}
-            <div className="bg-card border border-border rounded-xl p-6">
-              <UserLikes />
-            </div>
+            {/* Upcoming Events Section */}
+            <UpcomingEvents />
+
+            {/* Activity Timeline Section */}
+            <ActivityTimeline />
           </div>
         </div>
       </div>
