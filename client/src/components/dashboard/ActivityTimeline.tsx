@@ -154,8 +154,9 @@ export function ActivityTimeline() {
                   color: "hsl(var(--foreground))",
                   fontWeight: 600,
                 }}
-                formatter={(value: number | undefined, name: string) => {
-                  return [value, name === "likes" ? "Likes" : name === "tokens" ? "Tokens" : "Events"];
+                formatter={(value: number | undefined, name: string | undefined) => {
+                  const label = name === "likes" ? "Likes" : name === "tokens" ? "Tokens" : "Events";
+                  return [value ?? 0, label];
                 }}
               />
               <Legend 

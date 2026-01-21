@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "user" (
   email_verification_expires TIMESTAMP WITH TIME ZONE,
   is_brand BOOLEAN NOT NULL DEFAULT FALSE,
   role TEXT NOT NULL DEFAULT 'CLIENT',
+  last_login TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_age_range CHECK (age_range IN ('18-24', '25-34', '35-44', '45-54', '55-64', '65+')),
@@ -153,6 +154,7 @@ CREATE TABLE IF NOT EXISTS event (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
+  type TEXT NOT NULL,
   description TEXT,
   address_street TEXT,
   address_city TEXT,
@@ -456,3 +458,105 @@ COMMENT ON COLUMN email_template.subject IS 'Email subject line (can contain pla
 COMMENT ON COLUMN email_template.html_content IS 'HTML content of the email (can contain placeholders like {{username}}, {{link}})';
 COMMENT ON COLUMN email_template.text_content IS 'Plain text version of the email (optional, for email clients that do not support HTML)';
 COMMENT ON COLUMN email_template.description IS 'Description of when this template is used';
+
+-- Table: user_ban (user bannishments)
+CREATE TABLE IF NOT EXISTS user_ban (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  banned_by UUID NOT NULL REFERENCES "user"(id) ON DELETE RESTRICT,
+  banned_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE,
+  is_permanent BOOLEAN NOT NULL DEFAULT FALSE,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_user_ban_expires_at CHECK (
+    is_permanent = TRUE OR expires_at IS NULL OR expires_at > banned_at
+  )
+);
+
+-- Indexes for searches
+CREATE INDEX idx_user_ban_user_id ON user_ban(user_id);
+CREATE INDEX idx_user_ban_banned_by ON user_ban(banned_by);
+CREATE INDEX idx_user_ban_banned_at ON user_ban(banned_at DESC);
+CREATE INDEX idx_user_ban_expires_at ON user_ban(expires_at);
+CREATE INDEX idx_user_ban_is_permanent ON user_ban(is_permanent);
+CREATE INDEX idx_user_ban_active ON user_ban(user_id, expires_at) WHERE is_permanent = FALSE;
+
+-- Table: brand_ban (brand bannishments)
+CREATE TABLE IF NOT EXISTS brand_ban (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
+  reason TEXT NOT NULL,
+  banned_by UUID NOT NULL REFERENCES "user"(id) ON DELETE RESTRICT,
+  banned_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE,
+  is_permanent BOOLEAN NOT NULL DEFAULT FALSE,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_brand_ban_expires_at CHECK (
+    is_permanent = TRUE OR expires_at IS NULL OR expires_at > banned_at
+  )
+);
+
+-- Indexes for searches
+CREATE INDEX idx_brand_ban_brand_id ON brand_ban(brand_id);
+CREATE INDEX idx_brand_ban_banned_by ON brand_ban(banned_by);
+CREATE INDEX idx_brand_ban_banned_at ON brand_ban(banned_at DESC);
+CREATE INDEX idx_brand_ban_expires_at ON brand_ban(expires_at);
+CREATE INDEX idx_brand_ban_is_permanent ON brand_ban(is_permanent);
+CREATE INDEX idx_brand_ban_active ON brand_ban(brand_id, expires_at) WHERE is_permanent = FALSE;
+
+-- Function to validate that banned_by is an admin
+CREATE OR REPLACE FUNCTION validate_ban_admin()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM "user" WHERE id = NEW.banned_by AND role = 'ADMIN') THEN
+    RAISE EXCEPTION 'Only ADMIN users can issue bans';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Triggers for updated_at
+CREATE TRIGGER update_user_ban_updated_at
+  BEFORE UPDATE ON user_ban
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_brand_ban_updated_at
+  BEFORE UPDATE ON brand_ban
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Triggers to validate admin role
+CREATE TRIGGER validate_user_ban_admin
+  BEFORE INSERT OR UPDATE ON user_ban
+  FOR EACH ROW
+  EXECUTE FUNCTION validate_ban_admin();
+
+CREATE TRIGGER validate_brand_ban_admin
+  BEFORE INSERT OR UPDATE ON brand_ban
+  FOR EACH ROW
+  EXECUTE FUNCTION validate_ban_admin();
+
+-- Comments for documentation
+COMMENT ON TABLE user_ban IS 'Tracks user bannishments by administrators';
+COMMENT ON COLUMN user_ban.user_id IS 'User who was banned';
+COMMENT ON COLUMN user_ban.reason IS 'Reason for the ban (required)';
+COMMENT ON COLUMN user_ban.banned_by IS 'Admin user who issued the ban';
+COMMENT ON COLUMN user_ban.banned_at IS 'When the ban was issued';
+COMMENT ON COLUMN user_ban.expires_at IS 'When the ban expires (NULL if permanent)';
+COMMENT ON COLUMN user_ban.is_permanent IS 'Whether the ban is permanent';
+COMMENT ON COLUMN user_ban.notes IS 'Optional internal notes about the ban';
+
+COMMENT ON TABLE brand_ban IS 'Tracks brand bannishments by administrators';
+COMMENT ON COLUMN brand_ban.brand_id IS 'Brand that was banned';
+COMMENT ON COLUMN brand_ban.reason IS 'Reason for the ban (required)';
+COMMENT ON COLUMN brand_ban.banned_by IS 'Admin user who issued the ban';
+COMMENT ON COLUMN brand_ban.banned_at IS 'When the ban was issued';
+COMMENT ON COLUMN brand_ban.expires_at IS 'When the ban expires (NULL if permanent)';
+COMMENT ON COLUMN brand_ban.is_permanent IS 'Whether the ban is permanent';
+COMMENT ON COLUMN brand_ban.notes IS 'Optional internal notes about the ban';

@@ -25,6 +25,7 @@ export interface Database {
           email_verification_expires: string | null;
           is_brand: boolean;
           role: UserRole;
+          last_login: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -261,6 +262,7 @@ export interface Database {
           id: string;
           brand_id: string;
           title: string;
+          type: string;
           description: string | null;
           address_street: string | null;
           address_city: string | null;
@@ -535,6 +537,82 @@ export interface Database {
           created_at?: string;
         };
       };
+      user_ban: {
+        Row: {
+          id: string;
+          user_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at: string;
+          expires_at: string | null;
+          is_permanent: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          reason?: string;
+          banned_by?: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      brand_ban: {
+        Row: {
+          id: string;
+          brand_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at: string;
+          expires_at: string | null;
+          is_permanent: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          brand_id?: string;
+          reason?: string;
+          banned_by?: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -595,6 +673,14 @@ export type BrandLikeUpdate = Database['public']['Tables']['brand_like']['Update
 export type BrandApplicationInterest = Database['public']['Tables']['brand_application_interest']['Row'];
 export type BrandApplicationInterestInsert = Database['public']['Tables']['brand_application_interest']['Insert'];
 export type BrandApplicationInterestUpdate = Database['public']['Tables']['brand_application_interest']['Update'];
+
+export type UserBan = Database['public']['Tables']['user_ban']['Row'];
+export type UserBanInsert = Database['public']['Tables']['user_ban']['Insert'];
+export type UserBanUpdate = Database['public']['Tables']['user_ban']['Update'];
+
+export type BrandBan = Database['public']['Tables']['brand_ban']['Row'];
+export type BrandBanInsert = Database['public']['Tables']['brand_ban']['Insert'];
+export type BrandBanUpdate = Database['public']['Tables']['brand_ban']['Update'];
 
 export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 
