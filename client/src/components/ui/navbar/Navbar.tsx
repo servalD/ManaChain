@@ -88,7 +88,11 @@ export function Navbar({
           {/* Navigation Links - Desktop Only */}
           <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = currentPage === item.href.replace("/", "") || (item.href === "/" && currentPage === "");
+              const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
+                              currentPage === "discover" && item.href.includes("/discover") ||
+                              currentPage === "events" && item.href.includes("/events") ||
+                              currentPage === "brands" && item.href.includes("/brands") ||
+                              (item.href === "/" && currentPage === "");
               
               return (
                 <Link
@@ -160,7 +164,11 @@ export function Navbar({
         {/* Mobile Navigation */}
         <div className="lg:hidden flex items-center gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
           {navItems.map((item) => {
-            const isActive = currentPage === item.href.replace("/", "") || (item.href === "/" && currentPage === "");
+            const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
+                            currentPage === "discover" && item.href.includes("/discover") ||
+                            currentPage === "events" && item.href.includes("/events") ||
+                            currentPage === "brands" && item.href.includes("/brands") ||
+                            (item.href === "/" && currentPage === "");
             
             return (
               <Link
