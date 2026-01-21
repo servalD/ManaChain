@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, X } from "lucide-react";
+import PinataService from "@/services/pinata.service";
 
 export interface Brand {
   id: string;
@@ -15,6 +16,7 @@ export interface Brand {
   tokenPrice: number;
   holders: number;
   raised: number;
+  hasToken: boolean; // Indicates if the brand has a token
 }
 
 export interface BrandSwipeCardProps {
@@ -152,9 +154,20 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
               >
                 {/* Cover Image */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${brand.coverImage})` }}
+                  className="absolute inset-0 bg-cover bg-center bg-accent/30"
+                  style={brand.coverImage ? { backgroundImage: `url(${PinataService.normalizeIpfsUrl(brand.coverImage)})` } : {}}
                 >
+                  {/* Placeholder if no image */}
+                  {!brand.coverImage && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-violet-500/20 to-fuchsia-500/20">
+                      <div className="text-center p-8">
+                        <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-violet-500/30 flex items-center justify-center">
+                          <span className="text-4xl">🏢</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">No image available</p>
+                      </div>
+                    </div>
+                  )}
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
 
@@ -195,11 +208,25 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8 z-10">
                   {/* Logo and Name */}
                   <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                    <img
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full object-cover border-2 border-white/20"
-                    />
+                    {brand.logo ? (
+                      <img
+                        src={PinataService.normalizeIpfsUrl(brand.logo)}
+                        alt={brand.name}
+                        className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full object-cover border-2 border-white/20"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const placeholder = target.nextElementSibling as HTMLElement;
+                          if (placeholder) placeholder.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-violet-500/30 border-2 border-white/20 flex items-center justify-center ${brand.logo ? 'hidden' : ''}`}
+                    >
+                      <span className="text-2xl sm:text-3xl">🏢</span>
+                    </div>
                     <div>
                       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{brand.name}</h2>
                       <p className="text-sm sm:text-base lg:text-lg text-gray-300">{brand.industry}</p>
@@ -210,22 +237,33 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
                   <p className="text-sm sm:text-base lg:text-lg text-gray-200 mb-4 sm:mb-5 lg:mb-6 line-clamp-2 lg:line-clamp-3">{brand.description}</p>
 
                   {/* Token Info */}
-                  <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/20">
-                    <div>
-                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Token</p>
-                      <p className="text-base sm:text-xl lg:text-2xl font-bold" style={{ color: "#D4AF37" }}>
-                        {brand.tokenSymbol}
+                  {brand.hasToken ? (
+                    <div className="flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/20">
+                      <div>
+                        <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Token</p>
+                        <p className="text-base sm:text-xl lg:text-2xl font-bold" style={{ color: "#D4AF37" }}>
+                          {brand.tokenSymbol}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Price</p>
+                        <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">${brand.tokenPrice.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Holders</p>
+                        <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">{brand.holders.toLocaleString("en-US")}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/20 text-center">
+                      <p className="text-sm sm:text-base lg:text-lg text-gray-300">
+                        No token available yet
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-400 mt-1">
+                        This brand hasn't issued tokens yet
                       </p>
                     </div>
-                    <div>
-                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Price</p>
-                      <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">${brand.tokenPrice.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm lg:text-base text-gray-400 mb-1">Holders</p>
-                      <p className="text-base sm:text-xl lg:text-2xl font-semibold text-white">{brand.holders.toLocaleString("en-US")}</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </motion.div>
             );

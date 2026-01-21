@@ -9,6 +9,7 @@ export interface IUser {
   blockchain_address?: string;
   verified: boolean;
   is_brand: boolean;
+  role?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
   created_at: string;
   updated_at: string;
 }

@@ -1,128 +1,95 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
 import { DiscoverHeader, DiscoverContent } from "@/components/discover";
-
-// Mock data for brands
-const mockBrands: Brand[] = [
-  {
-    id: "1",
-    name: "EcoWear",
-    logo: "https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-    description: "Sustainable fashion brand creating eco-friendly clothing from recycled materials. Join our community and support ethical fashion.",
-    industry: "Fashion & Sustainability",
-    tokenSymbol: "ECOW",
-    tokenPrice: 2.45,
-    holders: 12450,
-    raised: 3250000,
-  },
-  {
-    id: "2",
-    name: "TechFlow",
-    logo: "https://images.unsplash.com/photo-1563906267088-b029e7101114?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80",
-    description: "Revolutionary tech startup building the future of AI-powered automation tools for creative professionals.",
-    industry: "Technology",
-    tokenSymbol: "TECH",
-    tokenPrice: 5.80,
-    holders: 28900,
-    raised: 8500000,
-  },
-  {
-    id: "3",
-    name: "BiteBox",
-    logo: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
-    description: "Healthy meal delivery service bringing fresh, organic food to your doorstep. Supporting local farmers.",
-    industry: "Food & Beverage",
-    tokenSymbol: "BITE",
-    tokenPrice: 1.20,
-    holders: 8750,
-    raised: 1200000,
-  },
-  {
-    id: "4",
-    name: "FitPulse",
-    logo: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
-    description: "Next-gen fitness app connecting trainers and athletes worldwide with personalized workout programs.",
-    industry: "Health & Wellness",
-    tokenSymbol: "FITP",
-    tokenPrice: 3.15,
-    holders: 19200,
-    raised: 4800000,
-  },
-  {
-    id: "5",
-    name: "UrbanBeats",
-    logo: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=800&q=80",
-    description: "Independent music label discovering and promoting emerging artists from underground scenes.",
-    industry: "Music & Entertainment",
-    tokenSymbol: "URBN",
-    tokenPrice: 4.50,
-    holders: 15600,
-    raised: 2900000,
-  },
-  {
-    id: "6",
-    name: "GreenDrive",
-    logo: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80",
-    description: "Electric vehicle charging network making sustainable transportation accessible for everyone.",
-    industry: "Automotive & Environment",
-    tokenSymbol: "GRND",
-    tokenPrice: 6.25,
-    holders: 22100,
-    raised: 9800000,
-  },
-  {
-    id: "7",
-    name: "ArtVerse",
-    logo: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&q=80",
-    description: "Digital art marketplace empowering creators to showcase and monetize their work through NFTs.",
-    industry: "Art & Digital",
-    tokenSymbol: "ARTV",
-    tokenPrice: 7.90,
-    holders: 31500,
-    raised: 12400000,
-  },
-  {
-    id: "8",
-    name: "LearnHub",
-    logo: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=200&h=200&fit=crop",
-    coverImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80",
-    description: "Online education platform connecting students with expert mentors for personalized learning experiences.",
-    industry: "Education",
-    tokenSymbol: "LRNH",
-    tokenPrice: 2.80,
-    holders: 17800,
-    raised: 5600000,
-  },
-];
-
+import { InvestmentModal } from "@/components/ui/investment-modal";
+import LikeService from "@/services/like.service";
+import BrandService from "@/services/brand.service";
+import PinataService from "@/services/pinata.service";
+import { BrandFromAPI } from "@/types/brand.types";
 
 export default function DiscoverPage() {
   const { user, logout, refreshUser } = useAuth();
-  const [likedBrands, setLikedBrands] = useState<Brand[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
+  const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
 
-  const handleSwipeRight = (brand: Brand) => {
-    console.log("Liked brand:", brand.name);
-    setLikedBrands((prev) => [...prev, brand]);
+  // Fetch brands from API
+  useEffect(() => {
+    const fetchBrands = async () => {
+      setIsLoadingBrands(true);
+      const response = await BrandService.getAllBrands(50, 0);
+      
+      if (response) {
+        // Transform API brands to Brand format
+        const transformedBrands: Brand[] = response.brands.map((brand: BrandFromAPI) => {
+          // Get interests as industry string
+          const industry = brand.brand_interest && brand.brand_interest.length > 0
+            ? brand.brand_interest.map((bi: { interest: { id: string; label: string } }) => bi.interest.label).join(", ")
+            : "General";
+
+          // Get token info (brand_token is an array, get first one or defaults)
+          const token = brand.brand_token && brand.brand_token.length > 0 ? brand.brand_token[0] : null;
+          const hasToken = !!token;
+          const tokenSymbol = token?.symbol || "N/A";
+          const tokenPrice = token ? parseFloat(token.current_price) : 0;
+          const holders = token ? Math.floor(token.total_supply) : 0;
+          const raised = token ? parseFloat(token.current_price) * token.total_supply : 0;
+
+          // Normalize IPFS URLs to ensure they have https:// protocol
+          const normalizedLogo = brand.logo_url ? PinataService.normalizeIpfsUrl(brand.logo_url) : "";
+          
+          return {
+            id: brand.id,
+            name: brand.name,
+            logo: normalizedLogo,
+            coverImage: normalizedLogo,
+            description: brand.description || "No description available.",
+            industry: industry,
+            tokenSymbol: tokenSymbol,
+            tokenPrice: tokenPrice,
+            holders: holders,
+            raised: raised,
+            hasToken: hasToken,
+          };
+        });
+        
+        setBrands(transformedBrands);
+      }
+      
+      setIsLoadingBrands(false);
+    };
+
+    fetchBrands();
+  }, []);
+
+  const handleSwipeRight = async (brand: Brand) => {
+    // Create like in database with real brand ID
+    const result = await LikeService.createLike(brand.id);
+    
+    if (result?.success) {
+      // Show investment modal
+      setSelectedBrand(brand);
+      setIsInvestmentModalOpen(true);
+    }
   };
 
   const handleSwipeLeft = (brand: Brand) => {
     console.log("Passed on brand:", brand.name);
+  };
+
+  const handleCloseInvestmentModal = () => {
+    setIsInvestmentModalOpen(false);
+    setSelectedBrand(null);
   };
 
   const handleWalletConnected = async (address: string) => {
@@ -208,13 +175,14 @@ export default function DiscoverPage() {
   };
 
   return (
-    <ProtectedRoute>
+    <RoleProtectedRoute allowedRoles={['CLIENT']}>
       <div className="min-h-screen bg-background">
         {/* Navbar */}
         <Navbar 
           currentPage="discover" 
           isLoggedIn={true}
           userName={user?.username}
+          userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}
           onWalletConnected={handleWalletConnected}
@@ -229,14 +197,31 @@ export default function DiscoverPage() {
           <DiscoverHeader />
 
           {/* Main Content Area */}
-          <DiscoverContent
-            brands={mockBrands}
-            onSwipeRight={handleSwipeRight}
-            onSwipeLeft={handleSwipeLeft}
-          />
+          {isLoadingBrands ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+            </div>
+          ) : brands.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground text-lg">No brands available at the moment.</p>
+            </div>
+          ) : (
+            <DiscoverContent
+              brands={brands}
+              onSwipeRight={handleSwipeRight}
+              onSwipeLeft={handleSwipeLeft}
+            />
+          )}
         </div>
       </div>
       </div>
-    </ProtectedRoute>
+
+      {/* Investment Modal */}
+      <InvestmentModal
+        isOpen={isInvestmentModalOpen}
+        onClose={handleCloseInvestmentModal}
+        brand={selectedBrand}
+      />
+    </RoleProtectedRoute>
   );
 }

@@ -64,7 +64,16 @@ export async function POST(request: NextRequest) {
     );
 
     if (response.data?.IpfsHash) {
-      const gatewayUrl = process.env.PINATA_GATEWAY_URL || process.env.NEXT_PUBLIC_PINATA_GATEWAY || '';
+      let gatewayUrl = process.env.NEXT_PUBLIC_PINATA_GATEWAY || '';
+      
+      // Ensure the gateway URL has https:// protocol
+      if (gatewayUrl && !gatewayUrl.startsWith('http://') && !gatewayUrl.startsWith('https://')) {
+        gatewayUrl = `https://${gatewayUrl}`;
+      }
+      
+      // Remove trailing slash if present
+      gatewayUrl = gatewayUrl.replace(/\/$/, '');
+      
       const ipfsUrl = `${gatewayUrl}/ipfs/${response.data.IpfsHash}`;
       
       return NextResponse.json({ 

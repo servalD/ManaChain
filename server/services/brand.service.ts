@@ -126,7 +126,23 @@ export const getAllBrands = async (
 ): Promise<ServiceResponse<{ brands: Brand[]; total: number }>> => {
   try {
     const { limit, offset, filters } = request;
-    let query = supabase.from('brand').select('*', { count: 'exact' });
+    let query = supabase
+      .from('brand')
+      .select(`
+        *,
+        brand_token (
+          id,
+          symbol,
+          current_price,
+          total_supply
+        ),
+        brand_interest (
+          interest:interest_id (
+            id,
+            label
+          )
+        )
+      `, { count: 'exact' });
 
     // Apply filters
     if (filters?.category) {

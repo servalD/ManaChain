@@ -515,6 +515,26 @@ export interface Database {
           created_at?: string;
         };
       };
+      brand_like: {
+        Row: {
+          id: string;
+          user_id: string;
+          brand_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          brand_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          brand_id?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -567,6 +587,10 @@ export type BrandApplicationUpdate = Database['public']['Tables']['brand_applica
 export type EmailTemplate = Database['public']['Tables']['email_template']['Row'];
 export type EmailTemplateInsert = Database['public']['Tables']['email_template']['Insert'];
 export type EmailTemplateUpdate = Database['public']['Tables']['email_template']['Update'];
+
+export type BrandLike = Database['public']['Tables']['brand_like']['Row'];
+export type BrandLikeInsert = Database['public']['Tables']['brand_like']['Insert'];
+export type BrandLikeUpdate = Database['public']['Tables']['brand_like']['Update'];
 
 export type BrandApplicationInterest = Database['public']['Tables']['brand_application_interest']['Row'];
 export type BrandApplicationInterestInsert = Database['public']['Tables']['brand_application_interest']['Insert'];

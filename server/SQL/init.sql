@@ -262,6 +262,26 @@ CREATE INDEX idx_brand_application_created_at ON brand_application(created_at DE
 CREATE INDEX idx_brand_application_reviewed_by ON brand_application(reviewed_by);
 CREATE INDEX idx_brand_application_email_verification_token ON brand_application(email_verification_token);
 
+-- Table: brand_like (likes from users to brands)
+CREATE TABLE IF NOT EXISTS brand_like (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, brand_id)
+);
+
+-- Indexes for searches
+CREATE INDEX idx_brand_like_user_id ON brand_like(user_id);
+CREATE INDEX idx_brand_like_brand_id ON brand_like(brand_id);
+CREATE INDEX idx_brand_like_created_at ON brand_like(created_at DESC);
+
+-- Comments
+COMMENT ON TABLE brand_like IS 'Tracks which users have liked which brands';
+COMMENT ON COLUMN brand_like.user_id IS 'User who liked the brand';
+COMMENT ON COLUMN brand_like.brand_id IS 'Brand that was liked';
+COMMENT ON COLUMN brand_like.created_at IS 'When the like was created';
+
 -- Table: brand_application_interest (many-to-many relationship between brand applications and interests)
 CREATE TABLE IF NOT EXISTS brand_application_interest (
   brand_application_id UUID NOT NULL REFERENCES brand_application(id) ON DELETE CASCADE,

@@ -275,6 +275,13 @@ export default class AuthService {
   }
 
   /**
+   * Get the authentication token from localStorage
+   */
+  static getToken(): string | null {
+    return localStorage.getItem("Token");
+  }
+
+  /**
    * Get current user or redirect to login
    */
   static async getUser(): Promise<IUser | undefined> {
