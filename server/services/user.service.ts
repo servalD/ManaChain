@@ -1,7 +1,7 @@
 import supabase from '../config/supabase.config';
 import { ServiceResponse, success, failure } from './service.result';
 import { User, Interest } from '../types/database.types';
-import { CreateUserRequest, UpdateUserRequest, UpdateUserInterestsRequest } from '../interfaces/user.interface';
+import { CreateUserRequest, UpdateUserRequest, UpdateUserInterestsRequest, GetUsersRequest } from '../interfaces/user.interface';
 
 /**
  * Create a new user with interests
@@ -485,3 +485,45 @@ export class UserService {
     return failure('Obsolete method - use JWT');
   }
 }
+
+/**
+ * Get all users with pagination and filters (admin only)
+ */
+export const getAllUsers = async (
+  request: GetUsersRequest
+): Promise<ServiceResponse<{ users: User[]; total: number }>> => {
+  try {
+    const { limit, offset, filters } = request;
+    let query = supabase
+      .from('user')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    // Apply filters
+    if (filters?.role) {
+      query = query.eq('role', filters.role);
+    }
+    if (filters?.search) {
+      const searchTerm = `%${filters.search}%`;
+      query = query.or(`username.ilike.${searchTerm},email.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},id.ilike.${searchTerm}`);
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('getAllUsers error:', error);
+      return failure('Error retrieving users');
+    }
+
+    return success({
+      users: data || [],
+      total: count || 0,
+    });
+  } catch (error) {
+    console.error('getAllUsers error:', error);
+    return failure('Server error retrieving users');
+  }
+};

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Check, X as XIcon, MoreHorizontal, ExternalLink } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Check, X as XIcon, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BrandApplication } from "@/types/brand-application.types";
 import BrandApplicationService from "@/services/brand-application.service";
@@ -11,108 +12,85 @@ import PinataService from "@/services/pinata.service";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-
-// Mock applications data
-const mockApplications: BrandApplication[] = [
-  {
-    id: "770e8400-e29b-41d4-a716-446655440000",
-    contact_email: "contact@newbrand.com",
-    contact_first_name: "John",
-    contact_last_name: "Smith",
-    contact_phone: "+33612345678",
-    brand_name: "New Fashion Brand",
-    description: "A sustainable fashion brand",
-    website_url: "https://newbrand.com",
-    logo_url: "/Logo_NIKE.svg",
-    business_registration_number: "123456789",
-    country: "France",
-    headquarters_street: "123 Fashion Street",
-    headquarters_city: "Paris",
-    headquarters_zip_code: "75001",
-    headquarters_address_complement: null,
-    motivation: "We want to build a community",
-    estimated_community_size: 5000,
-    social_media_links: { instagram: "https://instagram.com/newbrand" },
-    how_did_you_hear_about_us: "Social media",
-    registration_proof_url: "https://example.com/proof.pdf",
-    status: "pending",
-    reviewed_by: null,
-    reviewed_at: null,
-    rejection_reason: null,
-    notes: null,
-    created_at: "2024-01-20T10:00:00Z",
-    updated_at: "2024-01-20T10:00:00Z",
-  },
-  {
-    id: "770e8400-e29b-41d4-a716-446655440001",
-    contact_email: "info@techstartup.com",
-    contact_first_name: "Jane",
-    contact_last_name: "Doe",
-    contact_phone: "+33698765432",
-    brand_name: "Tech Startup",
-    description: "Innovative tech solutions",
-    website_url: "https://techstartup.com",
-    logo_url: "/Adidas_Logo.svg",
-    business_registration_number: "987654321",
-    country: "USA",
-    headquarters_street: "456 Tech Avenue",
-    headquarters_city: "San Francisco",
-    headquarters_zip_code: "94102",
-    headquarters_address_complement: null,
-    motivation: "We want to engage with our community",
-    estimated_community_size: 10000,
-    social_media_links: { twitter: "https://twitter.com/techstartup" },
-    how_did_you_hear_about_us: "Referral",
-    registration_proof_url: "https://example.com/proof2.pdf",
-    status: "needs_review",
-    reviewed_by: null,
-    reviewed_at: null,
-    rejection_reason: null,
-    notes: "Need to verify documents",
-    created_at: "2024-01-18T10:00:00Z",
-    updated_at: "2024-01-19T10:00:00Z",
-  },
-];
+import AuthService from "@/services/auth.service";
 
 export function BrandApplicationsTable() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [applications, setApplications] = useState<BrandApplication[]>(mockApplications);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [limit, setLimit] = useState<number>(10);
+  const [applications, setApplications] = useState<BrandApplication[]>([]);
+  const [total, setTotal] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<BrandApplication | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionNotes, setRejectionNotes] = useState("");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // TODO: Fetch applications from API
-  // useEffect(() => {
-  //   const fetchApplications = async () => {
-  //     setIsLoading(true);
-  //     const response = await BrandApplicationService.getApplications({});
-  //     if (response?.success) {
-  //       setApplications(response.data.applications);
-  //     }
-  //     setIsLoading(false);
-  //   };
-  //   fetchApplications();
-  // }, []);
+  // Debounce search query
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-  const filteredApplications = applications.filter((app) =>
-    app.brand_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.contact_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    app.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Fetch applications when debouncedSearchQuery, statusFilter, or limit changes
+  useEffect(() => {
+    const fetchApplications = async () => {
+      setIsLoading(true);
+      const token = AuthService.getToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await BrandApplicationService.getAllApplications({
+        limit,
+        offset: 0,
+        status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
+        search: debouncedSearchQuery || undefined,
+      });
+
+      if (response) {
+        setApplications(response.applications);
+        setTotal(response.total);
+      }
+      setIsLoading(false);
+    };
+
+    fetchApplications();
+  }, [debouncedSearchQuery, statusFilter, limit]);
 
   const handleApprove = async (applicationId: string) => {
     try {
       const response = await BrandApplicationService.approveApplication(applicationId);
       if (response) {
         // Refresh applications
-        setApplications(applications.map(app => 
-          app.id === applicationId 
-            ? { ...app, status: 'approved' as const }
-            : app
-        ));
+        const token = AuthService.getToken();
+        if (token) {
+          const refreshResponse = await BrandApplicationService.getAllApplications({
+            limit,
+            offset: 0,
+            status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
+            search: debouncedSearchQuery || undefined,
+          });
+          if (refreshResponse) {
+            setApplications(refreshResponse.applications);
+            setTotal(refreshResponse.total);
+          }
+        }
       }
     } catch (error) {
       // Error handling is done in the service
@@ -143,16 +121,19 @@ export function BrandApplicationsTable() {
       );
       if (response) {
         // Refresh applications
-        setApplications(applications.map(app => 
-          app.id === selectedApplication.id 
-            ? { 
-                ...app, 
-                status: 'rejected' as const,
-                rejection_reason: rejectionReason,
-                notes: rejectionNotes || app.notes,
-              }
-            : app
-        ));
+        const token = AuthService.getToken();
+        if (token) {
+          const refreshResponse = await BrandApplicationService.getAllApplications({
+            limit,
+            offset: 0,
+            status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
+            search: debouncedSearchQuery || undefined,
+          });
+          if (refreshResponse) {
+            setApplications(refreshResponse.applications);
+            setTotal(refreshResponse.total);
+          }
+        }
         setRejectModalOpen(false);
         setSelectedApplication(null);
         setRejectionReason("");
@@ -178,34 +159,51 @@ export function BrandApplicationsTable() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-4 pt-8 w-full">
         <div>
           <h2 className="text-xl font-bold">Brand Applications</h2>
           <p className="text-sm text-muted-foreground">
-            {filteredApplications.length} {filteredApplications.length === 1 ? "application" : "applications"} found
+            {isLoading ? "Loading..." : `${total} ${total === 1 ? "application" : "applications"} found`}
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search by brand name, email, or ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by brand name, email, or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-3 items-center">
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="min-w-[150px]"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="needs_review">Needs Review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </Select>
+            <Select
+              value={limit.toString()}
+              onChange={(e) => setLimit(parseInt(e.target.value))}
+              className="min-w-[100px]"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </Select>
+          </div>
         </div>
 
         {/* Table */}
@@ -222,19 +220,27 @@ export function BrandApplicationsTable() {
                 </tr>
               </thead>
               <tbody>
-                {filteredApplications.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="w-6 h-6 border-3 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+                      </div>
+                    </td>
+                  </tr>
+                ) : applications.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-muted-foreground">
                       No applications found
                     </td>
                   </tr>
                 ) : (
-                  filteredApplications.map((app, index) => (
+                  applications.map((app, index) => (
                     <tr
                       key={app.id}
                       className={cn(
                         "border-b border-border hover:bg-muted/20 transition-colors",
-                        index === filteredApplications.length - 1 && "border-b-0"
+                        index === applications.length - 1 && "border-b-0"
                       )}
                     >
                       <td className="p-4">

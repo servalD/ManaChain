@@ -37,22 +37,25 @@ router.post('/', requireAuth, requireVerified, brandController.createBrandContro
 // GET /brands - Get all brands with pagination and filters
 router.get('/', optionalAuth, brandController.getAllBrandsController);
 
-// GET /brands/me - Get current user's brand
+// GET /brands/admin/active - Get all active brands (admin only) - MUST be before /:id route
+router.get('/admin/active', requireAuth, requireAdmin, brandController.getAllActiveBrandsController);
+
+// GET /brands/me - Get current user's brand - MUST be before /:id route
 router.get('/me', requireAuth, requireBrand, brandController.getMyBrandController);
+
+// GET /brands/user/:userId - Get brand by user ID - MUST be before /:id route
+router.get('/user/:userId', optionalAuth, brandController.getBrandByUserIdController);
+
+// GET /brands/:id/stats - Get brand statistics - MUST be before /:id route
+router.get('/:id/stats', optionalAuth, brandController.getBrandStatsController);
 
 // GET /brands/:id - Get brand by ID
 router.get('/:id', optionalAuth, brandController.getBrandByIdController);
-
-// GET /brands/user/:userId - Get brand by user ID
-router.get('/user/:userId', optionalAuth, brandController.getBrandByUserIdController);
 
 // PUT /brands/:id - Update brand
 router.put('/:id', requireAuth, requireBrand, brandController.updateBrandController);
 
 // DELETE /brands/:id - Delete brand
 router.delete('/:id', requireAuth, requireBrand, brandController.deleteBrandController);
-
-// GET /brands/:id/stats - Get brand statistics
-router.get('/:id/stats', optionalAuth, brandController.getBrandStatsController);
 
 export default router;

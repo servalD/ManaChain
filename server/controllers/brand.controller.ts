@@ -4,6 +4,7 @@ import {
   getBrandById,
   getBrandByUserId,
   getAllBrands,
+  getAllActiveBrands,
   updateBrand,
   deleteBrand,
   getBrandStats,
@@ -519,6 +520,45 @@ export const rejectBrandApplicationController = async (req: Request, res: Respon
     });
   } catch (error) {
     console.error('rejectBrandApplicationController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * GET /brands/admin/active
+ * Get all active brands with pagination and filters (admin only)
+ */
+export const getAllActiveBrandsController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const category = req.query.category as string | undefined;
+    const search = req.query.search as string | undefined;
+
+    const request: GetBrandsRequest = {
+      limit,
+      offset,
+      filters: {
+        category,
+        search,
+      },
+    };
+
+    const result = await getAllActiveBrands(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      brands: result.data!.brands,
+      total: result.data!.total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('getAllActiveBrandsController error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,89 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
-  verified: boolean;
-  created_at: string;
-}
-
-// Mock users data
-const mockUsers: User[] = [
-  {
-    id: "660e8400-e29b-41d4-a716-446655440000",
-    username: "johndoe",
-    email: "john@example.com",
-    first_name: "John",
-    last_name: "Doe",
-    role: "CLIENT",
-    verified: true,
-    created_at: "2024-01-10T10:00:00Z",
-  },
-  {
-    id: "660e8400-e29b-41d4-a716-446655440001",
-    username: "janedoe",
-    email: "jane@example.com",
-    first_name: "Jane",
-    last_name: "Doe",
-    role: "CLIENT",
-    verified: true,
-    created_at: "2024-01-12T10:00:00Z",
-  },
-  {
-    id: "660e8400-e29b-41d4-a716-446655440002",
-    username: "nike_brand",
-    email: "brand@nike.com",
-    first_name: "Nike",
-    last_name: "Brand",
-    role: "BRANDUSER",
-    verified: true,
-    created_at: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "660e8400-e29b-41d4-a716-446655440003",
-    username: "admin_user",
-    email: "admin@manachain.com",
-    first_name: "Admin",
-    last_name: "User",
-    role: "ADMIN",
-    verified: true,
-    created_at: "2024-01-01T10:00:00Z",
-  },
-  {
-    id: "660e8400-e29b-41d4-a716-446655440004",
-    username: "testuser",
-    email: "test@example.com",
-    first_name: "Test",
-    last_name: "User",
-    role: "CLIENT",
-    verified: false,
-    created_at: "2024-02-20T10:00:00Z",
-  },
-];
+import AdminService from "@/services/admin.service";
+import { User } from "@/types/admin.types";
+import AuthService from "@/services/auth.service";
 
 export function ActiveUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const [users] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filteredUsers = users.filter((user) =>
-    user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Debounce search query
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-  const displayedUsers = filteredUsers.slice(0, limit);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Fetch users when debouncedSearchQuery or limit changes
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      const token = AuthService.getToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await AdminService.getUsers(
+        {
+          limit,
+          offset: 0,
+          search: debouncedSearchQuery || undefined,
+        },
+        token
+      );
+
+      if (response) {
+        setUsers(response.users);
+        setTotal(response.total);
+      }
+      setIsLoading(false);
+    };
+
+    fetchUsers();
+  }, [debouncedSearchQuery, limit]);
 
   const handleBan = (userId: string) => {
     // TODO: Implement ban functionality
@@ -106,7 +85,7 @@ export function ActiveUsersTable() {
       <div>
         <h2 className="text-xl font-bold">Active Users</h2>
         <p className="text-sm text-muted-foreground">
-          {filteredUsers.length} {filteredUsers.length === 1 ? "user" : "users"} found
+          {isLoading ? "Loading..." : `${total} ${total === 1 ? "user" : "users"} found`}
         </p>
       </div>
 
@@ -147,27 +126,47 @@ export function ActiveUsersTable() {
               </tr>
             </thead>
             <tbody>
-              {displayedUsers.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                    Loading...
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
                     No users found
                   </td>
                 </tr>
               ) : (
-                displayedUsers.map((user, index) => (
+                users.map((user, index) => (
                   <tr
                     key={user.id}
                     className={`border-b border-border hover:bg-muted/20 transition-colors ${
-                      index === displayedUsers.length - 1 ? "border-b-0" : ""
+                      index === users.length - 1 ? "border-b-0" : ""
                     }`}
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
-                          <span className="text-sm font-bold text-violet-400">
-                            {user.first_name.charAt(0)}{user.last_name.charAt(0)}
-                          </span>
-                        </div>
+                        {user.avatar_url ? (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
+                            <img
+                              src={user.avatar_url}
+                              alt={user.username}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                            <span className="text-sm font-bold text-violet-400">
+                              {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <div className="font-semibold text-sm">{user.username}</div>
                           <div className="text-xs text-muted-foreground">{user.email}</div>

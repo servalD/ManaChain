@@ -1,76 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import PinataService from "@/services/pinata.service";
-
-interface Brand {
-  id: string;
-  name: string;
-  logo_url: string | null;
-  website_url: string | null;
-  country: string;
-  created_at: string;
-}
-
-// Mock brands data
-const mockBrands: Brand[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440000",
-    name: "Nike",
-    logo_url: "/Logo_NIKE.svg",
-    website_url: "https://nike.com",
-    country: "USA",
-    created_at: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440001",
-    name: "Adidas",
-    logo_url: "/Adidas_Logo.svg",
-    website_url: "https://adidas.com",
-    country: "Germany",
-    created_at: "2024-01-20T10:00:00Z",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440002",
-    name: "LVMH",
-    logo_url: "/LVMH_wordmark.svg",
-    website_url: "https://lvmh.com",
-    country: "France",
-    created_at: "2024-02-01T10:00:00Z",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440003",
-    name: "BMW",
-    logo_url: "/BMW_logo_(gray).svg",
-    website_url: "https://bmw.com",
-    country: "Germany",
-    created_at: "2024-02-10T10:00:00Z",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440004",
-    name: "Apple",
-    logo_url: null,
-    website_url: "https://apple.com",
-    country: "USA",
-    created_at: "2024-02-15T10:00:00Z",
-  },
-];
+import AdminService from "@/services/admin.service";
+import { BrandFromAPI } from "@/types/brand.types";
+import AuthService from "@/services/auth.service";
 
 export function ActiveBrandsTable() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const [brands] = useState<Brand[]>(mockBrands);
+  const [brands, setBrands] = useState<BrandFromAPI[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filteredBrands = brands.filter((brand) =>
-    brand.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    brand.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Debounce search query
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
 
-  const displayedBrands = filteredBrands.slice(0, limit);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Fetch brands when debouncedSearchQuery or limit changes
+  useEffect(() => {
+    const fetchBrands = async () => {
+      setIsLoading(true);
+      const token = AuthService.getToken();
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await AdminService.getActiveBrands(
+        {
+          limit,
+          offset: 0,
+          search: debouncedSearchQuery || undefined,
+        },
+        token
+      );
+
+      if (response) {
+        setBrands(response.brands);
+        setTotal(response.total);
+      }
+      setIsLoading(false);
+    };
+
+    fetchBrands();
+  }, [debouncedSearchQuery, limit]);
 
   const handleBan = (brandId: string) => {
     // TODO: Implement ban functionality
@@ -82,7 +75,7 @@ export function ActiveBrandsTable() {
       <div>
         <h2 className="text-xl font-bold">Active Brands</h2>
         <p className="text-sm text-muted-foreground">
-          {filteredBrands.length} {filteredBrands.length === 1 ? "brand" : "brands"} found
+          {isLoading ? "Loading..." : `${total} ${total === 1 ? "brand" : "brands"} found`}
         </p>
       </div>
 
@@ -123,24 +116,30 @@ export function ActiveBrandsTable() {
               </tr>
             </thead>
             <tbody>
-              {displayedBrands.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                    Loading...
+                  </td>
+                </tr>
+              ) : brands.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
                     No brands found
                   </td>
                 </tr>
               ) : (
-                displayedBrands.map((brand, index) => (
+                brands.map((brand, index) => (
                   <tr
                     key={brand.id}
                     className={`border-b border-border hover:bg-muted/20 transition-colors ${
-                      index === displayedBrands.length - 1 ? "border-b-0" : ""
+                      index === brands.length - 1 ? "border-b-0" : ""
                     }`}
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         {brand.logo_url ? (
-                          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
+                          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border overflow-hidden">
                             <img
                               src={PinataService.normalizeIpfsUrl(brand.logo_url)}
                               alt={brand.name}

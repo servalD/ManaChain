@@ -173,6 +173,63 @@ export const getAllBrands = async (
 };
 
 /**
+ * Get all active brands with pagination and filters (admin only)
+ * Active brands are brands that exist and are not currently banned
+ */
+export const getAllActiveBrands = async (
+  request: GetBrandsRequest
+): Promise<ServiceResponse<{ brands: Brand[]; total: number }>> => {
+  try {
+    const { limit, offset, filters } = request;
+    
+    // Get all brand IDs that are currently banned (active bans)
+    const { data: activeBans } = await supabase
+      .from('brand_ban')
+      .select('brand_id')
+      .or('is_permanent.eq.true,expires_at.gt.NOW()');
+
+    const bannedBrandIds = activeBans?.map(ban => ban.brand_id) || [];
+
+    let query = supabase
+      .from('brand')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    // Exclude banned brands
+    if (bannedBrandIds.length > 0) {
+      // Use filter to exclude banned brand IDs - Supabase PostgREST syntax
+      for (const bannedId of bannedBrandIds) {
+        query = query.neq('id', bannedId);
+      }
+    }
+
+    // Apply filters
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+    if (filters?.search) {
+      query = query.ilike('name', `%${filters.search}%`);
+    }
+
+    // Apply pagination
+    const { data, error, count } = await query.range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('getAllActiveBrands error:', error);
+      return failure('Error retrieving brands');
+    }
+
+    return success({
+      brands: data || [],
+      total: count || 0,
+    });
+  } catch (error) {
+    console.error('getAllActiveBrands error:', error);
+    return failure('Server error retrieving brands');
+  }
+};
+
+/**
  * Update brand
  */
 export const updateBrand = async (
@@ -496,7 +553,7 @@ export const getAllBrandApplications = async (
       query = query.eq('status', filters.status);
     }
     if (filters?.search) {
-      query = query.or(`contact_email.ilike.%${filters.search}%,brand_name.ilike.%${filters.search}%`);
+      query = query.or(`contact_email.ilike.%${filters.search}%,brand_name.ilike.%${filters.search}%,id.ilike.%${filters.search}%`);
     }
 
     // Pagination and sorting

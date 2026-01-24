@@ -371,13 +371,13 @@ export function NotificationCenter() {
             <div className="space-y-3">
               <div className="p-4 bg-muted/50 rounded-lg border border-border">
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-sm">
+                      <h4 className="font-semibold text-sm break-words">
                         {form.title || "Notification Title"}
                       </h4>
                       {form.priority === 'high' && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded-full shrink-0">
                           High Priority
                         </span>
                       )}
@@ -387,30 +387,30 @@ export function NotificationCenter() {
                       {form.recipientType === 'all_brands' && 'To: All Brands'}
                       {form.recipientType === 'both' && 'To: All Users & Brands'}
                     </p>
-                    <div className="text-sm text-foreground">
+                    <div className="text-sm text-foreground max-h-[300px] overflow-y-auto pr-2 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       {form.message ? (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <div className="prose prose-sm dark:prose-invert max-w-none break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                           <ReactMarkdown
                             components={{
-                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                              h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-4 first:mt-0">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0">{children}</h3>,
-                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                              li: ({ children }) => <li className="text-sm">{children}</li>,
-                              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                              em: ({ children }) => <em className="italic">{children}</em>,
+                              p: ({ children }) => <p className="mb-2 last:mb-0 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</p>,
+                              h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-4 first:mt-0 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</h1>,
+                              h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</h2>,
+                              h3: ({ children }) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</h3>,
+                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</ol>,
+                              li: ({ children }) => <li className="text-sm break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</li>,
+                              strong: ({ children }) => <strong className="font-semibold break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</strong>,
+                              em: ({ children }) => <em className="italic break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</em>,
                               code: ({ children }) => (
-                                <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">{children}</code>
+                                <code className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono break-all" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{children}</code>
                               ),
                               a: ({ href, children }) => (
-                                <a href={href} className="text-violet-500 hover:text-violet-600 underline" target="_blank" rel="noopener noreferrer">
+                                <a href={href} className="text-violet-500 hover:text-violet-600 underline break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }} target="_blank" rel="noopener noreferrer">
                                   {children}
                                 </a>
                               ),
                               blockquote: ({ children }) => (
-                                <blockquote className="border-l-4 border-violet-500 pl-3 italic my-2 text-muted-foreground">
+                                <blockquote className="border-l-4 border-violet-500 pl-3 italic my-2 text-muted-foreground break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                   {children}
                                 </blockquote>
                               ),
@@ -454,7 +454,7 @@ export function NotificationCenter() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Message length:</span>
-                    <span className="font-medium">{form.message.length}/500</span>
+                    <span className="font-medium">{form.message.length}/2000</span>
                   </div>
                 </div>
               </div>
