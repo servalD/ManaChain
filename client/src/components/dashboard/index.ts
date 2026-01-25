@@ -10,3 +10,7 @@ export { ActiveUsersTable } from './admin/ActiveUsersTable';
 export { BrandApplicationsTable } from './admin/BrandApplicationsTable';
 export { NotificationCenter } from './admin/NotificationCenter';
 export { BanManagementTable } from './admin/BanManagementTable';
+export { MyBrandChart } from './brand/MyBrandChart';
+export { BrandEvents } from './brand/BrandEvents';
+export { BrandNotifications } from './brand/BrandNotifications';
+export { BrandContentMedia } from './brand/BrandContentMedia';

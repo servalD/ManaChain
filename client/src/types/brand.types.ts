@@ -32,3 +32,10 @@ export interface GetBrandsResponse {
   limit: number;
   offset: number;
 }
+
+export interface BrandStats {
+  tokenHolders: number;
+  totalRaised: string;
+  tokenSymbol: string | null;
+  tokenPrice: string | null;
+}

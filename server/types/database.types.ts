@@ -613,6 +613,35 @@ export interface Database {
           updated_at?: string;
         };
       };
+      brand_media: {
+        Row: {
+          id: string;
+          brand_id: string;
+          image_url: string;
+          ipfs_hash: string;
+          display_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_id: string;
+          image_url: string;
+          ipfs_hash: string;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          brand_id?: string;
+          image_url?: string;
+          ipfs_hash?: string;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -681,6 +710,10 @@ export type UserBanUpdate = Database['public']['Tables']['user_ban']['Update'];
 export type BrandBan = Database['public']['Tables']['brand_ban']['Row'];
 export type BrandBanInsert = Database['public']['Tables']['brand_ban']['Insert'];
 export type BrandBanUpdate = Database['public']['Tables']['brand_ban']['Update'];
+
+export type BrandMedia = Database['public']['Tables']['brand_media']['Row'];
+export type BrandMediaInsert = Database['public']['Tables']['brand_media']['Insert'];
+export type BrandMediaUpdate = Database['public']['Tables']['brand_media']['Update'];
 
 export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 

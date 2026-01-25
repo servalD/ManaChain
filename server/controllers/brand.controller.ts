@@ -16,6 +16,11 @@ import {
   verifyBrandApplicationEmail,
 } from '../services/brand.service';
 import {
+  confirmBrandMedia,
+  getBrandMedia,
+  deleteBrandMedia,
+} from '../services/brand-media.service';
+import {
   CreateBrandRequest,
   UpdateBrandRequest,
   GetBrandsRequest,
@@ -559,6 +564,90 @@ export const getAllActiveBrandsController = async (req: Request, res: Response):
     });
   } catch (error) {
     console.error('getAllActiveBrandsController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * POST /brands/:id/media/confirm
+ * Confirm and save a brand media that was already uploaded to Pinata
+ */
+export const confirmBrandMediaController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).userId;
+    const { id } = req.params;
+    const { ipfsHash, ipfsUrl } = req.body;
+
+    if (!ipfsHash || !ipfsUrl) {
+      res.status(400).json({
+        error: 'Missing required fields',
+        required: ['ipfsHash', 'ipfsUrl'],
+      });
+      return;
+    }
+
+    const result = await confirmBrandMedia(id, userId, ipfsHash, ipfsUrl);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.status(201).json({
+      message: 'Media confirmed and saved successfully',
+      media: result.data,
+    });
+  } catch (error) {
+    console.error('confirmBrandMediaController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * GET /brands/:id/media
+ * Get all media for a brand
+ */
+export const getBrandMediaController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const result = await getBrandMedia(id);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      media: result.data || [],
+    });
+  } catch (error) {
+    console.error('getBrandMediaController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
+ * DELETE /brands/:id/media/:mediaId
+ * Delete a brand media (unpin is handled by frontend)
+ */
+export const deleteBrandMediaController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).userId;
+    const { id, mediaId } = req.params;
+
+    const result = await deleteBrandMedia(mediaId, id, userId);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      message: 'Media deleted successfully',
+    });
+  } catch (error) {
+    console.error('deleteBrandMediaController error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -49,6 +49,15 @@ router.get('/user/:userId', optionalAuth, brandController.getBrandByUserIdContro
 // GET /brands/:id/stats - Get brand statistics - MUST be before /:id route
 router.get('/:id/stats', optionalAuth, brandController.getBrandStatsController);
 
+// GET /brands/:id/media - Get all media for a brand - MUST be before /:id route
+router.get('/:id/media', optionalAuth, brandController.getBrandMediaController);
+
+// POST /brands/:id/media/confirm - Confirm and save media - MUST be before /:id route
+router.post('/:id/media/confirm', requireAuth, requireBrand, brandController.confirmBrandMediaController);
+
+// DELETE /brands/:id/media/:mediaId - Delete media - MUST be before /:id route
+router.delete('/:id/media/:mediaId', requireAuth, requireBrand, brandController.deleteBrandMediaController);
+
 // GET /brands/:id - Get brand by ID
 router.get('/:id', optionalAuth, brandController.getBrandByIdController);
 

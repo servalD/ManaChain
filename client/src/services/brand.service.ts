@@ -2,7 +2,9 @@ import axios from "axios";
 import { ApiService } from "./api.service";
 import { toast } from "@/lib/toast";
 import AuthService from "./auth.service";
-import { BrandFromAPI, GetBrandsResponse } from "@/types/brand.types";
+import { BrandFromAPI, GetBrandsResponse, BrandStats } from "@/types/brand.types";
+import { BrandMedia, ConfirmBrandMediaRequest, GetBrandMediaResponse } from "@/types/brand-media.types";
+
 
 class BrandService {
   /**
@@ -58,6 +60,162 @@ class BrandService {
     } catch (error: any) {
       console.error("Error fetching brand:", error);
       return null;
+    }
+  }
+
+  /**
+   * Get current user's brand
+   */
+  async getMyBrand(): Promise<BrandFromAPI | null> {
+    try {
+      const token = AuthService.getToken();
+      if (!token) {
+        return null;
+      }
+
+      const response = await axios.get<{ brand: BrandFromAPI }>(
+        `${ApiService.baseURL}/brands/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.brand;
+    } catch (error: any) {
+      console.error("Error fetching my brand:", error);
+      if (error.response?.status === 404) {
+        // Brand not found for this user
+        return null;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Get brand statistics (token holders, total raised, etc.)
+   */
+  async getBrandStats(brandId: string): Promise<BrandStats | null> {
+    try {
+      const token = AuthService.getToken();
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await axios.get<{ stats: BrandStats }>(
+        `${ApiService.baseURL}/brands/${brandId}/stats`,
+        { headers }
+      );
+
+      return response.data.stats;
+    } catch (error: any) {
+      console.error("Error fetching brand stats:", error);
+      if (error.response?.status === 404) {
+        // Brand stats not found (no token yet)
+        return null;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Confirm and save a brand media that was already uploaded to Pinata
+   */
+  async confirmBrandMedia(brandId: string, ipfsHash: string, ipfsUrl: string): Promise<BrandMedia | null> {
+    try {
+      const token = AuthService.getToken();
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to confirm media",
+          variant: "error",
+        });
+        return null;
+      }
+
+      const request: ConfirmBrandMediaRequest = { ipfsHash, ipfsUrl };
+      const response = await axios.post<{ media: BrandMedia }>(
+        `${ApiService.baseURL}/brands/${brandId}/media/confirm`,
+        request,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.media;
+    } catch (error: any) {
+      console.error("Error confirming brand media:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to confirm media. Please try again.",
+        variant: "error",
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Get all media for a brand
+   */
+  async getBrandMedia(brandId: string): Promise<BrandMedia[]> {
+    try {
+      const token = AuthService.getToken();
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await axios.get<GetBrandMediaResponse>(
+        `${ApiService.baseURL}/brands/${brandId}/media`,
+        { headers }
+      );
+
+      return response.data.media;
+    } catch (error: any) {
+      console.error("Error fetching brand media:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete a brand media
+   */
+  async deleteBrandMedia(brandId: string, mediaId: string): Promise<boolean> {
+    try {
+      const token = AuthService.getToken();
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to delete media",
+          variant: "error",
+        });
+        return false;
+      }
+
+      await axios.delete(
+        `${ApiService.baseURL}/brands/${brandId}/media/${mediaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return true;
+    } catch (error: any) {
+      console.error("Error deleting brand media:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to delete media. Please try again.",
+        variant: "error",
+      });
+      return false;
     }
   }
 }

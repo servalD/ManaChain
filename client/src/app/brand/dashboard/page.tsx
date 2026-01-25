@@ -5,34 +5,48 @@ import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
+import BrandService from "@/services/brand.service";
 import { useState, useEffect } from "react";
-import { BrandLikes } from "@/components/dashboard";
+import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
 
 export default function BrandDashboardPage() {
   const { user, logout, refreshUser } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
   const [brandId, setBrandId] = useState<string | null>(null);
+  const [hasToken, setHasToken] = useState<boolean>(false);
+  const [isLoadingBrand, setIsLoadingBrand] = useState<boolean>(true);
+  const [brandName, setBrandName] = useState<string>("");
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBrandId = async () => {
-      // Fetch the brand ID for the current user
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/brands/me`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setBrandId(data.data.id);
+    const fetchBrandData = async () => {
+      setIsLoadingBrand(true);
+      try {
+        const brand = await BrandService.getMyBrand();
+        if (brand) {
+          setBrandId(brand.id);
+          setBrandName(brand.name);
+          setBrandLogo(brand.logo_url);
+          // Mock: always set hasToken to true for testing
+          setHasToken(true);
+          // Check if brand has a token (commented out for mocking)
+          // const stats = await BrandService.getBrandStats(brand.id);
+          // if (stats) {
+          //   setHasToken(!!stats.tokenSymbol);
+          // }
         }
+      } catch (error) {
+        console.error("Error fetching brand data:", error);
+      } finally {
+        setIsLoadingBrand(false);
       }
     };
 
     if (user) {
-      fetchBrandId();
+      fetchBrandData();
+    } else {
+      setIsLoadingBrand(false);
     }
   }, [user]);
 
@@ -121,24 +135,31 @@ export default function BrandDashboardPage() {
           shouldDisconnectWallet={shouldDisconnectWallet}
         />
 
-        <div className="pt-28 sm:pt-32 md:pt-36 pb-8 sm:pb-12 px-4 sm:px-6">
-          <div className="max-w-7xl mx-auto space-y-8">
-            <div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                  Brand Dashboard
-                </span>
-              </h1>
-              <p className="text-muted-foreground">
-                Welcome to your brand dashboard. Manage your community and tokens here.
-              </p>
-            </div>
+        <div className="pt-30 sm:pt-30 pb-8 sm:pb-12 px-2 sm:px-4">
+          <div className="max-w-8xl mx-auto space-y-8">
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                Brand Dashboard
+              </span>
+            </h1>
 
-            {/* Brand Likes Section */}
-            {brandId && (
-              <div className="bg-card border border-border rounded-xl p-6">
-                <h2 className="text-2xl font-bold mb-6">Community Engagement</h2>
-                <BrandLikes brandId={brandId} />
+            {/* My Brand Section */}
+            {isLoadingBrand ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+              </div>
+            ) : brandId ? (
+              <>
+                <MyBrandChart brandId={brandId} hasToken={hasToken} brandName={brandName} brandLogo={brandLogo} />
+                <BrandEvents />
+                <BrandContentMedia brandId={brandId} />
+                <BrandNotifications />
+              </>
+            ) : (
+              <div className="p-6 border border-border rounded-lg bg-muted/50">
+                <p className="text-muted-foreground text-center">
+                  No brand found. Please contact support if you believe this is an error.
+                </p>
               </div>
             )}
           </div>

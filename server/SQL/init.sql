@@ -560,3 +560,31 @@ COMMENT ON COLUMN brand_ban.banned_at IS 'When the ban was issued';
 COMMENT ON COLUMN brand_ban.expires_at IS 'When the ban expires (NULL if permanent)';
 COMMENT ON COLUMN brand_ban.is_permanent IS 'Whether the ban is permanent';
 COMMENT ON COLUMN brand_ban.notes IS 'Optional internal notes about the ban';
+
+CREATE TABLE IF NOT EXISTS brand_media (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  brand_id UUID NOT NULL REFERENCES brand(id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  ipfs_hash TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Indexes for searches
+CREATE INDEX idx_brand_media_brand_id ON brand_media(brand_id);
+CREATE INDEX idx_brand_media_display_order ON brand_media(display_order);
+
+-- Trigger to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_brand_media_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_brand_media_updated_at
+  BEFORE UPDATE ON brand_media
+  FOR EACH ROW
+  EXECUTE FUNCTION update_brand_media_updated_at();
