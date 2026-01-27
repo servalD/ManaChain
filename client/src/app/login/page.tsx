@@ -65,14 +65,29 @@ export default function LoginPage() {
     try {
       const result = await AuthService.login(email, password);
 
-      if (result) {
-        // Redirect to discover page after successful login
+      if (result && result.user) {
+        // Redirect based on user role
+        const redirectPath = getRedirectPathByRole(result.user.role);
         setTimeout(() => {
-          router.push("/discover");
+          router.push(redirectPath);
         }, 1000);
       }
     } catch (error) {
       console.error("Login error:", error);
+    }
+  };
+
+  const getRedirectPathByRole = (role?: string): string => {
+    switch (role) {
+      case 'CLIENT':
+        return '/discover';
+      case 'BRANDUSER':
+        return '/brand/dashboard';
+      case 'ADMIN':
+        return '/admin/dashboard';
+      default:
+        // Default to discover for backward compatibility
+        return '/discover';
     }
   };
 

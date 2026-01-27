@@ -31,3 +31,14 @@ export interface UpdateUserInterestsRequest {
   userId: string;
   interestIds: string[];
 }
+
+export interface GetUsersFilters {
+  search?: string;
+  role?: 'ADMIN' | 'CLIENT' | 'BRANDUSER';
+}
+
+export interface GetUsersRequest {
+  limit: number;
+  offset: number;
+  filters?: GetUsersFilters;
+}

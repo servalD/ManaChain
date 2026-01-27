@@ -10,6 +10,7 @@ export interface NavbarProps {
   currentPage?: string;
   isLoggedIn?: boolean;
   userName?: string;
+  userRole?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
   onLogout?: () => void;
   onProfile?: () => void;
   onWalletConnected?: (address: string) => void;
@@ -20,19 +21,51 @@ export interface NavbarProps {
 export function Navbar({ 
   currentPage = "discover", 
   isLoggedIn = false, 
-  userName, 
+  userName,
+  userRole,
   onLogout,
   onProfile,
   onWalletConnected,
   onWalletDisconnected,
   shouldDisconnectWallet,
 }: NavbarProps) {
-  const navItems = [
-    { label: "Home", href: "/" },
-    { label: "Discover", href: "/discover" },
-    { label: "Portfolio", href: "#portfolio" },
-    { label: "Events", href: "#events" },
-  ];
+  // Define nav items based on user role
+  const getNavItems = () => {
+    if (!isLoggedIn) {
+      return [
+        { label: "Home", href: "/" },
+        { label: "Discover", href: "/discover" },
+        { label: "Events", href: "#events" },
+      ];
+    }
+
+    switch (userRole) {
+      case 'CLIENT':
+        return [
+          { label: "Discover", href: "/discover" },
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Events", href: "/events" },
+        ];
+      case 'BRANDUSER':
+        return [
+          { label: "Dashboard", href: "/brand/dashboard" },
+          { label: "Events", href: "/brand/events" },
+        ];
+      case 'ADMIN':
+        return [
+          { label: "Dashboard", href: "/admin/dashboard" },
+          { label: "Browse Brands", href: "/admin/brands" },
+          { label: "Events", href: "/admin/events" },
+        ];
+      default:
+        return [
+          { label: "Home", href: "/" },
+          { label: "Discover", href: "/discover" },
+        ];
+    }
+  };
+
+  const navItems = getNavItems();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-100 border-b border-border backdrop-blur-xl bg-background/80 dark:bg-background/60" style={{
@@ -55,7 +88,11 @@ export function Navbar({
           {/* Navigation Links - Desktop Only */}
           <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = currentPage === item.href.replace("/", "") || (item.href === "/" && currentPage === "");
+              const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
+                              currentPage === "discover" && item.href.includes("/discover") ||
+                              currentPage === "events" && item.href.includes("/events") ||
+                              currentPage === "brands" && item.href.includes("/brands") ||
+                              (item.href === "/" && currentPage === "");
               
               return (
                 <Link
@@ -127,7 +164,11 @@ export function Navbar({
         {/* Mobile Navigation */}
         <div className="lg:hidden flex items-center gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
           {navItems.map((item) => {
-            const isActive = currentPage === item.href.replace("/", "") || (item.href === "/" && currentPage === "");
+            const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
+                            currentPage === "discover" && item.href.includes("/discover") ||
+                            currentPage === "events" && item.href.includes("/events") ||
+                            currentPage === "brands" && item.href.includes("/brands") ||
+                            (item.href === "/" && currentPage === "");
             
             return (
               <Link

@@ -172,4 +172,66 @@ export default class PinataService {
     if (!url) return false;
     return url.includes('/ipfs/') || url.startsWith('ipfs://');
   }
+
+  /**
+   * Normalize an IPFS URL to ensure it has the https:// protocol
+   * This fixes issues where URLs are stored without the protocol and treated as relative
+   * Also converts direct Pinata gateway URLs to use the proxy route for authenticated access
+   * @param url - The URL to normalize
+   * @returns The normalized URL (using proxy route if needed)
+   */
+  static normalizeIpfsUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    
+    // Helper to get proxy URL
+    const getProxyUrl = (hash: string): string => {
+      // Use absolute URL if we're in the browser, relative otherwise (for SSR)
+      if (typeof window !== 'undefined') {
+        return `${window.location.origin}/api/pinata/proxy?hash=${hash}`;
+      }
+      // For SSR, use relative URL (Next.js will handle it)
+      return `/api/pinata/proxy?hash=${hash}`;
+    };
+    
+    // If it's already a proxy route, ensure it's absolute if in browser
+    if (url.startsWith('/api/pinata/proxy')) {
+      if (typeof window !== 'undefined' && !url.startsWith('http')) {
+        return `${window.location.origin}${url}`;
+      }
+      return url;
+    }
+    
+    // Extract IPFS hash from URL if it's a full Pinata gateway URL
+    const ipfsHashMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
+    if (ipfsHashMatch && ipfsHashMatch[1]) {
+      const ipfsHash = ipfsHashMatch[1];
+      // Use proxy route for authenticated access
+      return getProxyUrl(ipfsHash);
+    }
+    
+    // If it's already a full URL with protocol and not a Pinata gateway, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      // Check if it's a Pinata gateway URL that we should proxy
+      if (url.includes('pinata') && url.includes('/ipfs/')) {
+        const hashMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
+        if (hashMatch && hashMatch[1]) {
+          return getProxyUrl(hashMatch[1]);
+        }
+      }
+      return url;
+    }
+    
+    // If it starts with //, add https:
+    if (url.startsWith('//')) {
+      return `https:${url}`;
+    }
+    
+    // If it's just a hash, use proxy route
+    if (!url.includes('/') && url.length > 10) {
+      return getProxyUrl(url);
+    }
+    
+    // Otherwise, add https://
+    return `https://${url}`;
+  }
 }

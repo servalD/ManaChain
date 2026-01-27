@@ -1,0 +1,1 @@
+export { InvestmentModal } from './InvestmentModal';

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.middleware';
+import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import {
   getUserProfileController,
   updateUserController,
@@ -8,6 +8,7 @@ import {
   updateUserInterestsController,
   getAllInterestsController,
   getUserFromTokenController,
+  getAllUsersController,
 } from '../controllers/user.controller';
 
 const router = Router();
@@ -32,5 +33,8 @@ router.get('/interests', getAllInterestsController);
 
 // GET /users/from-token/:token - Get user from JWT token
 router.get('/from-token/:token', getUserFromTokenController);
+
+// GET /users - Get all users (admin only)
+router.get('/', requireAuth, requireAdmin, getAllUsersController);
 
 export default router;

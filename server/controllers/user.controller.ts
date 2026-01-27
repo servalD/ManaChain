@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as userService from '../services/user.service';
-import { UpdateUserRequest, UpdateUserInterestsRequest } from '../interfaces/user.interface';
+import { UpdateUserRequest, UpdateUserInterestsRequest, GetUsersRequest } from '../interfaces/user.interface';
 import { verifyToken } from '../services/jwt.service';
 
 /**
@@ -184,4 +184,42 @@ export const getUserFromTokenController = async (req: Request, res: Response): P
     console.error('Error getting user from token:', error);
     res.status(500).json({ error: 'Error fetching user from token' });
     }
+};
+
+/**
+ * GET /users - Get all users with pagination and filters (admin only)
+ */
+export const getAllUsersController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const search = req.query.search as string | undefined;
+    const role = req.query.role as 'ADMIN' | 'CLIENT' | 'BRANDUSER' | undefined;
+
+    const request: GetUsersRequest = {
+      limit,
+      offset,
+      filters: {
+        search,
+        role,
+      },
+    };
+
+    const result = await userService.getAllUsers(request);
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.json({
+      users: result.data!.users,
+      total: result.data!.total,
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('getAllUsersController error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 };

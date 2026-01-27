@@ -41,6 +41,30 @@ export interface CountryPhoneCode {
   name: string;
 }
 
+export const testimonialsData = [
+  {
+    image: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    text: 'Mana Chain allowed us to create a truly engaged community. Our customers have become our best ambassadors!',
+    name: 'Marie L.',
+    username: '@marie_ecowave',
+    social: 'https://twitter.com'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    text: 'I discovered incredible brands and feel truly connected to their missions. The exclusive events are amazing!',
+    name: 'Thomas K.',
+    username: '@thomas_supporter',
+    social: 'https://twitter.com'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    text: 'I appreciate the attention to detail in the design. The components are visually appealing and professional.',
+    name: 'Kevin White',
+    username: '@kevinwhite',
+    social: 'https://twitter.com'
+  },
+];
+
 export const COUNTRY_PHONE_CODES: CountryPhoneCode[] = [
   { code: 'AF', dialCode: '+93', flag: '🇦🇫', name: 'Afghanistan' },
   { code: 'AL', dialCode: '+355', flag: '🇦🇱', name: 'Albania' },

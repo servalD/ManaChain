@@ -25,6 +25,7 @@ export interface Database {
           email_verification_expires: string | null;
           is_brand: boolean;
           role: UserRole;
+          last_login: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -261,6 +262,7 @@ export interface Database {
           id: string;
           brand_id: string;
           title: string;
+          type: string;
           description: string | null;
           address_street: string | null;
           address_city: string | null;
@@ -515,6 +517,131 @@ export interface Database {
           created_at?: string;
         };
       };
+      brand_like: {
+        Row: {
+          id: string;
+          user_id: string;
+          brand_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          brand_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          brand_id?: string;
+          created_at?: string;
+        };
+      };
+      user_ban: {
+        Row: {
+          id: string;
+          user_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at: string;
+          expires_at: string | null;
+          is_permanent: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          reason?: string;
+          banned_by?: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      brand_ban: {
+        Row: {
+          id: string;
+          brand_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at: string;
+          expires_at: string | null;
+          is_permanent: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_id: string;
+          reason: string;
+          banned_by: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          brand_id?: string;
+          reason?: string;
+          banned_by?: string;
+          banned_at?: string;
+          expires_at?: string | null;
+          is_permanent?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      brand_media: {
+        Row: {
+          id: string;
+          brand_id: string;
+          image_url: string;
+          ipfs_hash: string;
+          display_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand_id: string;
+          image_url: string;
+          ipfs_hash: string;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          brand_id?: string;
+          image_url?: string;
+          ipfs_hash?: string;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -568,9 +695,25 @@ export type EmailTemplate = Database['public']['Tables']['email_template']['Row'
 export type EmailTemplateInsert = Database['public']['Tables']['email_template']['Insert'];
 export type EmailTemplateUpdate = Database['public']['Tables']['email_template']['Update'];
 
+export type BrandLike = Database['public']['Tables']['brand_like']['Row'];
+export type BrandLikeInsert = Database['public']['Tables']['brand_like']['Insert'];
+export type BrandLikeUpdate = Database['public']['Tables']['brand_like']['Update'];
+
 export type BrandApplicationInterest = Database['public']['Tables']['brand_application_interest']['Row'];
 export type BrandApplicationInterestInsert = Database['public']['Tables']['brand_application_interest']['Insert'];
 export type BrandApplicationInterestUpdate = Database['public']['Tables']['brand_application_interest']['Update'];
+
+export type UserBan = Database['public']['Tables']['user_ban']['Row'];
+export type UserBanInsert = Database['public']['Tables']['user_ban']['Insert'];
+export type UserBanUpdate = Database['public']['Tables']['user_ban']['Update'];
+
+export type BrandBan = Database['public']['Tables']['brand_ban']['Row'];
+export type BrandBanInsert = Database['public']['Tables']['brand_ban']['Insert'];
+export type BrandBanUpdate = Database['public']['Tables']['brand_ban']['Update'];
+
+export type BrandMedia = Database['public']['Tables']['brand_media']['Row'];
+export type BrandMediaInsert = Database['public']['Tables']['brand_media']['Insert'];
+export type BrandMediaUpdate = Database['public']['Tables']['brand_media']['Update'];
 
 export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 

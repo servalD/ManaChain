@@ -1,37 +1,137 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { Layers, Search, Zap } from "lucide-react";
+import type React from "react";
 import ScrollFloat from "@/components/ui/scroll-float/scroll-float";
-import SpotlightCard from '@/components/ui/spotlight-card/SpotlightCard';
 
-export function HowItWorks() {
-  const steps = [
+// The main props for the HowItWorks component
+interface HowItWorksProps extends React.HTMLAttributes<HTMLElement> {}
+
+// The props for a single step card
+interface StepCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  benefits: string[];
+  color: string;
+  iconBgColor: string;
+  dotColor: string;
+}
+
+/**
+ * A single step card within the "How It Works" section.
+ * It displays an icon, title, description, and a list of benefits.
+ */
+const StepCard: React.FC<StepCardProps> = ({
+  icon,
+  title,
+  description,
+  benefits,
+  color,
+  iconBgColor,
+  dotColor,
+}) => {
+  const titleWords = title.split(" ");
+  const firstWord = titleWords[0];
+  const restOfTitle = titleWords.slice(1).join(" ");
+
+  return (
+    <div
+      className={cn(
+        "relative rounded-2xl border bg-card p-6 text-card-foreground transition-all duration-300 ease-in-out",
+        "hover:scale-105 hover:shadow-lg hover:border-primary/50 hover:bg-muted"
+      )}
+    >
+      {/* Icon */}
+      <div className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-lg", iconBgColor)}>
+        <div className={color}>
+          {icon}
+        </div>
+      </div>
+      {/* Title and Description */}
+      <h3 className="mb-2 text-xl font-semibold">
+        <span className={color}>{firstWord}</span>
+        {restOfTitle && <span> {restOfTitle}</span>}
+      </h3>
+      <p className="mb-6 text-muted-foreground">{description}</p>
+      {/* Benefits List */}
+      <ul className="space-y-3">
+        {benefits.map((benefit, index) => (
+          <li key={index} className="flex items-center gap-3">
+            <div className={cn("flex h-4 w-4 shrink-0 items-center justify-center rounded-full", iconBgColor)}>
+              <div className={cn("h-2 w-2 rounded-full", dotColor)}></div>
+            </div>
+            <span className="text-muted-foreground">{benefit}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+/**
+ * A responsive "How It Works" section that displays a 3-step process.
+ * It is styled with shadcn/ui theme variables to support light and dark modes.
+ */
+export const HowItWorks: React.FC<HowItWorksProps> = ({
+  className,
+  ...props
+}) => {
+  const stepsData = [
     {
-      number: "1",
+      icon: <Zap className="h-6 w-6" />,
       title: "Create Your Token",
-      description: "In just a few clicks, issue your symbolic support token. Simplified process, no technical skills required.",
-      color: "#7E22CE",
-      gradient: "from-violet-950 to-violet-900"
+      description:
+        "In just a few clicks, issue your symbolic support token. Simplified process, no technical skills required.",
+      benefits: [
+        "Smart token creation with customizable parameters",
+        "Automatic blockchain integration",
+        "Real-time token tracking and analytics",
+      ],
+      color: "text-violet-500",
+      iconBgColor: "bg-violet-500/20",
+      dotColor: "bg-violet-500",
     },
     {
-      number: "2",
+      icon: <Layers className="h-6 w-6" />,
       title: "Unite Community",
-      description: "Share your project and bring your supporters together. Discussion channels, voting, exclusive events.",
-      color: "#C026D3",
-      gradient: "from-fuchsia-950 to-fuchsia-900"
+      description:
+        "Share your project and bring your supporters together. Discussion channels, voting, exclusive events.",
+      benefits: [
+        "Engage with your community through discussions",
+        "Organize voting and decision-making",
+        "Access exclusive events and perks",
+      ],
+      color: "text-fuchsia-500",
+      iconBgColor: "bg-fuchsia-500/20",
+      dotColor: "bg-fuchsia-500",
     },
     {
-      number: "3",
+      icon: <Search className="h-6 w-6" />,
       title: "Generate Revenue",
-      description: "Transform engagement into value. Tokenization campaigns, premium subscriptions, secondary transactions.",
-      color: "#4338CA",
-      gradient: "from-indigo-950 to-indigo-900"
-    }
+      description:
+        "Transform engagement into value. Tokenization campaigns, premium subscriptions, secondary transactions.",
+      benefits: [
+        "Launch tokenization campaigns",
+        "Offer premium subscription tiers",
+        "Enable secondary market transactions",
+      ],
+      color: "text-indigo-500",
+      iconBgColor: "bg-indigo-500/20",
+      dotColor: "bg-indigo-500",
+    },
   ];
 
   return (
-    <section id="features" className="py-20 px-6 relative">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+    <section
+      id="how-it-works"
+      className={cn("w-full py-16 sm:py-24", className)}
+      {...props}
+    >
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="mx-auto mb-16 max-w-6xl text-center">
           <ScrollFloat
             animationDuration={1}
             ease="back.inOut(2)"
@@ -41,31 +141,49 @@ export function HowItWorks() {
             containerClassName="mb-4"
             textClassName="text-3xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
           >
-            How It Works
+            How it works
           </ScrollFloat>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Support the brands you believe in through decentralized tokenization and community engagement
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {steps.map((item, index) => (
-            <div key={index}>
-              <SpotlightCard 
-                className="h-full"
-                spotlightColor={`${item.color}40`}
+        {/* Step Indicators with Connecting Line */}
+        <div className="relative mx-auto mb-8 w-full max-w-6xl">
+          <div
+            aria-hidden="true"
+            className="absolute left-[16.6667%] top-1/2 h-0.5 w-[66.6667%] -translate-y-1/2 bg-border"
+          ></div>
+          {/* Use grid to align numbers with the card grid below */}
+          <div className="relative grid grid-cols-3">
+            {stepsData.map((_, index) => (
+              <div
+                key={index}
+                // Center the number within its grid column
+                className="flex h-8 w-8 items-center justify-center justify-self-center rounded-full bg-muted font-semibold text-foreground ring-4 ring-background"
               >
-                <div className="flex flex-col items-center justify-center text-center h-full min-h-[300px]">
-                  <div className="text-7xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent mb-6">
-                    {item.number}
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">{item.title}</h3>
-                  <p className="text-base text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </SpotlightCard>
-            </div>
+                {index + 1}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Steps Grid */}
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-3">
+          {stepsData.map((step, index) => (
+            <StepCard
+              key={index}
+              icon={step.icon}
+              title={step.title}
+              description={step.description}
+              benefits={step.benefits}
+              color={step.color}
+              iconBgColor={step.iconBgColor}
+              dotColor={step.dotColor}
+            />
           ))}
         </div>
       </div>
     </section>
   );
-}
+};
