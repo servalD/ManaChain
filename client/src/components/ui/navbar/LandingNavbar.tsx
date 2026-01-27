@@ -22,11 +22,9 @@ export function LandingNavbar() {
   const handleSignInClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     
-    // Check if user is already logged in
     const loggedInResult = await AuthService.isLogged();
     
     if (loggedInResult.errorCode === ServiceErrorCode.success && loggedInResult.result) {
-      // User is already logged in, redirect to appropriate dashboard
       const user = loggedInResult.result;
       const role = user.role;
       
@@ -37,11 +35,9 @@ export function LandingNavbar() {
       } else if (role === 'ADMIN') {
         router.push('/admin/dashboard');
       } else {
-        // Default to discover
         router.push('/discover');
       }
     } else {
-      // User is not logged in, go to login page
       router.push('/login');
     }
   };
@@ -177,35 +173,34 @@ export function LandingNavbar() {
               >
                 <User className="h-4 w-4" />
               </button>
-              
-                     {isMenuOpen && (
-                       <div className="absolute right-0 mt-2 w-40 bg-popover/95 backdrop-blur-md border border-border rounded-lg shadow-lg overflow-hidden z-50">
-                         <Link
-                           href="/login"
-                           className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
-                           onClick={(e) => {
-                             setIsMenuOpen(false);
-                             handleSignInClick(e);
-                           }}
-                         >
-                           Sign in
-                         </Link>
-                         <Link
-                           href="/register"
-                           className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
-                           onClick={() => setIsMenuOpen(false)}
-                         >
-                           Sign up
-                         </Link>
-                         <Link 
-                           href="/brand-application" 
-                           className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                           onClick={() => setIsMenuOpen(false)}
-                         >
-                           Apply as a Brand
-                         </Link>
-                       </div>
-                     )}
+              {isMenuOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-popover/95 backdrop-blur-md border border-border rounded-lg shadow-lg overflow-hidden z-50">
+                  <Link
+                    href="/login"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
+                    onClick={(e) => {
+                      setIsMenuOpen(false);
+                      handleSignInClick(e);
+                    }}
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign up
+                  </Link>
+                  <Link 
+                    href="/brand-application" 
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Apply as a Brand
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Theme Toggler */}
