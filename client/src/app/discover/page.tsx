@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
-import { DiscoverHeader, DiscoverContent } from "@/components/discover";
+import { DiscoverHeader, DiscoverContent, DiscoverContentRef } from "@/components/discover";
 import { InvestmentModal } from "@/components/ui/investment-modal";
+import { BrandDetailModal } from "@/components/discover/BrandDetailModal";
 import LikeService from "@/services/like.service";
 import BrandService from "@/services/brand.service";
 import PinataService from "@/services/pinata.service";
@@ -22,6 +23,10 @@ export default function DiscoverPage() {
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [detailModalBrand, setDetailModalBrand] = useState<Brand | null>(null);
+  const [imagePosition, setImagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
+  const discoverContentRef = useRef<DiscoverContentRef | null>(null);
 
   // Fetch brands from API
   useEffect(() => {
@@ -90,6 +95,18 @@ export default function DiscoverPage() {
   const handleCloseInvestmentModal = () => {
     setIsInvestmentModalOpen(false);
     setSelectedBrand(null);
+  };
+
+  const handleImageClick = (brand: Brand, position: { x: number; y: number; width: number; height: number }) => {
+    setDetailModalBrand(brand);
+    setImagePosition(position);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setDetailModalBrand(null);
+    setImagePosition(undefined);
   };
 
   const handleWalletConnected = async (address: string) => {
@@ -207,9 +224,11 @@ export default function DiscoverPage() {
             </div>
           ) : (
             <DiscoverContent
+              ref={discoverContentRef}
               brands={brands}
               onSwipeRight={handleSwipeRight}
               onSwipeLeft={handleSwipeLeft}
+              onImageClick={handleImageClick}
             />
           )}
         </div>
@@ -221,6 +240,22 @@ export default function DiscoverPage() {
         isOpen={isInvestmentModalOpen}
         onClose={handleCloseInvestmentModal}
         brand={selectedBrand}
+      />
+
+      {/* Brand Detail Modal */}
+      <BrandDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+        brand={detailModalBrand}
+        imagePosition={imagePosition}
+        onSwipeRight={handleSwipeRight}
+        onSwipeLeft={handleSwipeLeft}
+        onTriggerSwipeRight={() => {
+          discoverContentRef.current?.swipeRight();
+        }}
+        onTriggerSwipeLeft={() => {
+          discoverContentRef.current?.swipeLeft();
+        }}
       />
     </RoleProtectedRoute>
   );
