@@ -1,19 +1,50 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { User, Menu, X, Building2 } from "lucide-react";
+import AuthService from "@/services/auth.service";
+import { ServiceErrorCode } from "@/services/service.result";
 
 interface LandingNavbarProps {
   // No props needed - using static logo image
 }
 
 export function LandingNavbar() {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleSignInClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    
+    // Check if user is already logged in
+    const loggedInResult = await AuthService.isLogged();
+    
+    if (loggedInResult.errorCode === ServiceErrorCode.success && loggedInResult.result) {
+      // User is already logged in, redirect to appropriate dashboard
+      const user = loggedInResult.result;
+      const role = user.role;
+      
+      if (role === 'CLIENT') {
+        router.push('/discover');
+      } else if (role === 'BRANDUSER') {
+        router.push('/brand/dashboard');
+      } else if (role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        // Default to discover
+        router.push('/discover');
+      }
+    } else {
+      // User is not logged in, go to login page
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,7 +124,10 @@ export function LandingNavbar() {
                   <Link
                     href="/login"
                     className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={(e) => {
+                      setIsMenuOpen(false);
+                      handleSignInClick(e);
+                    }}
                   >
                     Sign in
                   </Link>
@@ -149,7 +183,10 @@ export function LandingNavbar() {
                          <Link
                            href="/login"
                            className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
-                           onClick={() => setIsMenuOpen(false)}
+                           onClick={(e) => {
+                             setIsMenuOpen(false);
+                             handleSignInClick(e);
+                           }}
                          >
                            Sign in
                          </Link>

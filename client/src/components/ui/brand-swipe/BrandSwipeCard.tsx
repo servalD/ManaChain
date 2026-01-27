@@ -24,9 +24,10 @@ export interface BrandSwipeCardProps {
   onSwipeRight?: (brand: Brand) => void;
   onSwipeLeft?: (brand: Brand) => void;
   onButtonClickRef?: React.MutableRefObject<{ swipeLeft: () => void; swipeRight: () => void } | null>;
+  onImageClick?: (brand: Brand, imagePosition: { x: number; y: number; width: number; height: number }) => void;
 }
 
-export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClickRef }: BrandSwipeCardProps) {
+export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClickRef, onImageClick }: BrandSwipeCardProps) {
   const [cards, setCards] = React.useState<Brand[]>([...brands]);
   const [dragDirections, setDragDirections] = React.useState<Record<number, string | null>>({});
   const swipeThreshold = 100;
@@ -233,8 +234,34 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
                     </div>
                   </div>
 
-                  {/* Description */}
-                  <p className="text-sm sm:text-base lg:text-lg text-gray-200 mb-4 sm:mb-5 lg:mb-6 line-clamp-2 lg:line-clamp-3">{brand.description}</p>
+                  {/* Description with See Details Button */}
+                  <div className="flex items-start justify-between gap-3 mb-4 sm:mb-5 lg:mb-6">
+                    <p className="text-sm sm:text-base lg:text-lg text-gray-200 flex-1">
+                      {brand.description && brand.description.length > 45
+                        ? `${brand.description.substring(0, 45)}...`
+                        : brand.description}
+                    </p>
+                    {isTopCard && onImageClick && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const cardElement = e.currentTarget.closest('[class*="absolute"]');
+                          if (cardElement) {
+                            const rect = (cardElement as HTMLElement).getBoundingClientRect();
+                            onImageClick(brand, {
+                              x: rect.left,
+                              y: rect.top,
+                              width: rect.width,
+                              height: rect.height,
+                            });
+                          }
+                        }}
+                        className="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/40 rounded-lg px-3 py-1.5 text-white font-medium text-xs sm:text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shrink-0"
+                      >
+                        See Details
+                      </button>
+                    )}
+                  </div>
 
                   {/* Token Info */}
                   {brand.hasToken ? (
