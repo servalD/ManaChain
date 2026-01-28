@@ -91,8 +91,18 @@ export function LandingNavbar() {
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
             <img src="/logo.png" alt="Mana Chain" className="w-12 h-12 rounded-full object-cover" />
-            <span className="text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-              Mana Chain
+            <span className="text-xl font-bold">
+              <span style={{ 
+                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Mana{' '}
+              </span>
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                Chain
+              </span>
             </span>
           </Link>
 
@@ -179,8 +189,18 @@ export function LandingNavbar() {
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
             <img src="/logo.png" alt="Mana Chain" className="w-10 h-10 rounded-full object-cover" />
-            <span className="text-lg font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-              Mana Chain
+            <span className="text-lg font-bold">
+              <span style={{ 
+                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Mana{' '}
+              </span>
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                Chain
+              </span>
             </span>
           </Link>
 
