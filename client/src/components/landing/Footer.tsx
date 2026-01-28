@@ -6,13 +6,18 @@ export function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-6 mb-6">
           <div>
-            <h3 className="text-lg font-bold mb-3" style={{ 
-              background: 'linear-gradient(to right, #FFD700, #FFC700)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              Mana Chain
+            <h3 className="text-lg font-bold mb-3">
+              <span style={{ 
+                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Mana{' '}
+              </span>
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                Chain
+              </span>
             </h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
               Redefining community engagement, one brand at a time.

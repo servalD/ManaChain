@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import { Rocket, Globe2, ChevronDown } from "lucide-react";
@@ -74,10 +75,12 @@ export function Hero() {
 
             {/* Buttons */}
             <div className={`flex flex-col sm:flex-row gap-3 transition-all duration-1000 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <Button variant="gradient" size="lg" className="rounded-full text-base px-8 py-6 font-semibold pointer-events-auto">
-                <Rocket className="mr-2 h-5 w-5" />
-                Create My Community
-              </Button>
+              <Link href="/brand-application" className="pointer-events-auto">
+                <Button variant="gradient" size="lg" className="rounded-full text-base px-8 py-6 font-semibold w-full sm:w-auto">
+                  <Rocket className="mr-2 h-5 w-5" />
+                  Create My Community
+                </Button>
+              </Link>
               <Button variant="gradientOutline" size="lg" className="rounded-full text-base px-8 py-6 font-semibold pointer-events-auto">
                 <Globe2 className="mr-2 h-5 w-5" />
                 Discover Projects
