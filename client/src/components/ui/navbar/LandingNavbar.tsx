@@ -42,6 +42,17 @@ export function LandingNavbar() {
     }
   };
 
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -74,7 +85,11 @@ export function LandingNavbar() {
         {/* Desktop Layout */}
         <div className="hidden lg:flex items-center justify-between">
           {/* Logo */}
-          <Link href="#hero" className="flex items-center gap-2">
+          <Link 
+            href="#hero" 
+            className="flex items-center gap-2"
+            onClick={(e) => handleSmoothScroll(e, 'hero')}
+          >
             <img src="/logo.png" alt="Mana Chain" className="w-12 h-12 rounded-full object-cover" />
             <span className="text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
@@ -86,18 +101,21 @@ export function LandingNavbar() {
             <Link 
               href="#hero" 
               className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
+              onClick={(e) => handleSmoothScroll(e, 'hero')}
             >
               Home
             </Link>
             <Link 
-              href="#features" 
+              href="#how-it-works" 
               className="text-sm font-medium text-foreground/80 hover:text-indigo-400 transition-colors"
+              onClick={(e) => handleSmoothScroll(e, 'how-it-works')}
             >
               How It Works
             </Link>
             <Link 
               href="#faq" 
               className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
+              onClick={(e) => handleSmoothScroll(e, 'faq')}
             >
               FAQ
             </Link>
@@ -155,7 +173,11 @@ export function LandingNavbar() {
         {/* Mobile Layout */}
         <div className="lg:hidden flex items-center justify-between">
           {/* Logo */}
-          <Link href="#hero" className="flex items-center gap-2">
+          <Link 
+            href="#hero" 
+            className="flex items-center gap-2"
+            onClick={(e) => handleSmoothScroll(e, 'hero')}
+          >
             <img src="/logo.png" alt="Mana Chain" className="w-10 h-10 rounded-full object-cover" />
             <span className="text-lg font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
               Mana Chain
@@ -230,21 +252,30 @@ export function LandingNavbar() {
               <Link 
                 href="#hero" 
                 className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'hero');
+                }}
               >
                 Home
               </Link>
               <Link 
-                href="#features" 
+                href="#how-it-works" 
                 className="text-sm font-medium text-foreground/80 hover:text-indigo-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'how-it-works');
+                }}
               >
                 How It Works
               </Link>
               <Link 
                 href="#faq" 
                 className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  handleSmoothScroll(e, 'faq');
+                }}
               >
                 FAQ
               </Link>
