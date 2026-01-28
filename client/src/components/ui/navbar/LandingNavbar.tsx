@@ -16,8 +16,29 @@ export function LandingNavbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode to avoid hydration mismatch
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+    };
+
+    // Initial check
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const handleSignInClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -87,10 +108,9 @@ export function LandingNavbar() {
           {/* Logo */}
           <Link 
             href="#hero" 
-            className="flex items-center gap-2"
+            className="flex items-center"
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
-            <img src="/logo.png" alt="Mana Chain" className="w-12 h-12 rounded-full object-cover" />
             <span className="text-xl font-bold">
               <span style={{ 
                 background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
@@ -98,8 +118,11 @@ export function LandingNavbar() {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
-                Mana{' '}
+                Mana
               </span>
+            </span>
+            <img src={logoSrc} alt="Mana Chain" className="w-12 h-12 rounded-full object-cover -mx-1" />
+            <span className="text-xl font-bold">
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
                 Chain
               </span>
@@ -185,10 +208,9 @@ export function LandingNavbar() {
           {/* Logo */}
           <Link 
             href="#hero" 
-            className="flex items-center gap-2"
+            className="flex items-center"
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
-            <img src="/logo.png" alt="Mana Chain" className="w-10 h-10 rounded-full object-cover" />
             <span className="text-lg font-bold">
               <span style={{ 
                 background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
@@ -196,8 +218,11 @@ export function LandingNavbar() {
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
-                Mana{' '}
+                Mana
               </span>
+            </span>
+            <img src={logoSrc} alt="Mana Chain" className="w-10 h-10 rounded-full object-cover -mx-1" />
+            <span className="text-lg font-bold">
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
                 Chain
               </span>

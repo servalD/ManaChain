@@ -1,20 +1,46 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 export function Footer() {
+  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode logo
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+    };
+
+    // Initial check
+    checkDarkMode();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <footer className="py-12 px-6 border-t border-border">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-6 mb-6">
           <div>
-            <h3 className="text-lg font-bold mb-3">
+            <h3 className="text-lg font-bold mb-3 flex items-center">
               <span style={{ 
                 background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
               }}>
-                Mana{' '}
+                Mana
               </span>
+              <img src={logoSrc} alt="Mana Chain" className="w-8 h-8 rounded-full object-cover -mx-1" />
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
                 Chain
               </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
@@ -66,6 +66,27 @@ export function Navbar({
   };
 
   const navItems = getNavItems();
+  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode to avoid hydration mismatch
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+    };
+
+    // Initial check
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-100 border-b border-border backdrop-blur-xl bg-background/80 dark:bg-background/60" style={{
@@ -74,14 +95,26 @@ export function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
+          <Link href="/" className="flex items-center group">
+            <span className="text-lg sm:text-xl font-bold">
+              <span style={{ 
+                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>
+                Mana
+              </span>
+            </span>
             <img 
-              src="/logo.png" 
+              src={logoSrc} 
               alt="Mana Chain" 
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover transform transition-transform group-hover:scale-110" 
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover transform transition-transform group-hover:scale-110 -mx-1" 
             />
-            <span className="text-lg sm:text-xl font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-              Mana Chain
+            <span className="text-lg sm:text-xl font-bold">
+              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                Chain
+              </span>
             </span>
           </Link>
 
