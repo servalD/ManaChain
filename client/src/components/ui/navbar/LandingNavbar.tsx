@@ -16,14 +16,14 @@ export function LandingNavbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode to avoid hydration mismatch
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode to avoid hydration mismatch
   const menuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
     };
 
     // Initial check
@@ -111,22 +111,11 @@ export function LandingNavbar() {
             className="flex items-center"
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
-            <span className="text-xl font-bold">
-              <span style={{ 
-                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Mana
-              </span>
-            </span>
-            <img src={logoSrc} alt="Mana Chain" className="w-12 h-12 rounded-full object-cover -mx-1" />
-            <span className="text-xl font-bold">
-              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Chain
-              </span>
-            </span>
+            <img
+              src={logoSrc}
+              alt="Mana Chain"
+              className="h-5 w-auto sm:h-6 object-contain"
+            />
           </Link>
 
           {/* Navigation Links - Centered */}

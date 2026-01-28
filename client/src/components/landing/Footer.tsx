@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 
 export function Footer() {
-  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode logo
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
 
   useEffect(() => {
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
     };
 
     // Initial check
@@ -32,18 +32,11 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-6 mb-6">
           <div>
             <h3 className="text-lg font-bold mb-3 flex items-center">
-              <span style={{ 
-                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Mana
-              </span>
-              <img src={logoSrc} alt="Mana Chain" className="w-8 h-8 rounded-full object-cover -mx-1" />
-              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Chain
-              </span>
+              <img
+                src={logoSrc}
+                alt="Mana Chain"
+                className="h-5 w-auto object-contain"
+              />
             </h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
               Redefining community engagement, one brand at a time.

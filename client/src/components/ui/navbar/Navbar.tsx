@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
@@ -66,15 +66,14 @@ export function Navbar({
   };
 
   const navItems = getNavItems();
-  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode to avoid hydration mismatch
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
 
   useEffect(() => {
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
     };
 
-    // Initial check
     checkDarkMode();
 
     const observer = new MutationObserver(checkDarkMode);
@@ -96,26 +95,11 @@ export function Navbar({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center group">
-            <span className="text-lg sm:text-xl font-bold">
-              <span style={{ 
-                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Mana
-              </span>
-            </span>
             <img 
               src={logoSrc} 
               alt="Mana Chain" 
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover transform transition-transform group-hover:scale-110 -mx-1" 
+              className="h-5 w-auto sm:h-6 object-contain transform transition-transform group-hover:scale-105" 
             />
-            <span className="text-lg sm:text-xl font-bold">
-              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Chain
-              </span>
-            </span>
           </Link>
 
           {/* Navigation Links - Desktop Only */}

@@ -8,14 +8,14 @@ import { Rocket, Globe2, ChevronDown } from "lucide-react";
 
 export function Hero() {
   const [mounted, setMounted] = useState(false);
-  const [logoSrc, setLogoSrc] = useState('/logo.png'); // Default to light mode logo
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
 
   useEffect(() => {
     setMounted(true);
     
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
-      setLogoSrc(isDark ? '/logo_white.png' : '/logo.png');
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
     };
 
     // Initial check
@@ -114,18 +114,11 @@ export function Hero() {
               {/* Brand Name */}
               <div>
                 <h3 className="text-5xl md:text-6xl font-bold mb-3 flex items-center">
-                  <span style={{
-                    background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text'
-                  }}>
-                    Mana
-                  </span>
-                  <img src={logoSrc} alt="Mana Chain" className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full object-cover -mx-1" />
-                  <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                    Chain
-                  </span>
+                  <img
+                    src={logoSrc}
+                    alt="Mana Chain"
+                    className="h-20 w-auto md:h-24 lg:h-28 object-contain"
+                  />
                 </h3>
               </div>
 
