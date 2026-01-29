@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import { Rocket, Globe2, ChevronDown } from "lucide-react";
+import AuthService from "@/services/auth.service";
+import { ServiceErrorCode } from "@/services/service.result";
 
 export function Hero() {
   const [mounted, setMounted] = useState(false);
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -32,6 +36,20 @@ export function Hero() {
       observer.disconnect();
     };
   }, []);
+
+  const handleDiscoverClick = async () => {
+    const loggedInResult = await AuthService.isLogged();
+
+    if (loggedInResult.errorCode === ServiceErrorCode.success && loggedInResult.result) {
+      const user = loggedInResult.result;
+      if (user.role === "CLIENT") {
+        router.push("/discover");
+        return;
+      }
+    }
+
+    router.push("/login");
+  };
 
   return (
     <section id="hero" className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-20 sm:pt-24">
@@ -101,7 +119,12 @@ export function Hero() {
                   Create My Community
                 </Button>
               </Link>
-              <Button variant="gradientOutline" size="lg" className="rounded-full text-base px-8 py-6 font-semibold pointer-events-auto">
+            <Button
+              variant="gradientOutline"
+              size="lg"
+              className="rounded-full text-base px-8 py-6 font-semibold pointer-events-auto"
+              onClick={handleDiscoverClick}
+            >
                 <Globe2 className="mr-2 h-5 w-5" />
                 Discover Projects
               </Button>
@@ -117,7 +140,7 @@ export function Hero() {
                   <img
                     src={logoSrc}
                     alt="Mana Chain"
-                    className="h-20 w-auto md:h-24 lg:h-28 object-contain"
+                    className="h-18 w-auto md:h-18 lg:h-12 object-contain"
                   />
                 </h3>
               </div>

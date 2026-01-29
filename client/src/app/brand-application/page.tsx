@@ -65,6 +65,7 @@ interface FormData {
 
 export default function BrandApplicationPage() {
   const router = useRouter();
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
   const [formData, setFormData] = useState<FormData>({
     contact_email: '',
     contact_first_name: '',
@@ -99,6 +100,26 @@ export default function BrandApplicationPage() {
       setInterests(fetchedInterests);
     };
     fetchInterests();
+  }, []);
+
+  // Detect dark mode for logo
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
+    };
+
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   // Load cached form data on mount (before initializing defaults)
@@ -347,8 +368,14 @@ export default function BrandApplicationPage() {
                 <span className="font-light">Brand </span>
                 <span className="font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Application</span>
               </h1>
-              <p className="text-muted-foreground">
-                Join the Mana Chain platform and create your community token
+              <p className="text-muted-foreground flex items-center gap-2">
+                Join the
+                <img
+                  src={logoSrc}
+                  alt="Mana Chain"
+                  className="h-3.5 w-auto object-contain"
+                />
+                platform and create your community token
               </p>
             </div>
           </div>

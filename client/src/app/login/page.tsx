@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
@@ -32,6 +32,26 @@ const sampleTestimonials: Testimonial[] = [
 export default function LoginPage() {
   const router = useRouter();
   const toasterRef = useRef<ToasterRef>(null);
+  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
+    };
+
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -125,9 +145,16 @@ export default function LoginPage() {
       </div>
       <SignInPage
         title={
-          <span className="font-light text-foreground tracking-tighter">
-            Welcome to <span className="font-bold bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Mana Chain</span>
-          </span>
+          <div className="flex flex-col items-center justify-center gap-3">
+            <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+              Welcome to
+            </span>
+            <img
+              src={logoSrc}
+              alt="Mana Chain"
+              className="h-8 w-auto sm:h-10 object-contain"
+            />
+          </div>
         }
         description="Sign in to access your community tokens and engage with your favorite brands"
         heroImageSrc="/event.png"
