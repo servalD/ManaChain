@@ -3,7 +3,7 @@ import supabase from '../config/supabase.config';
 import { ServiceResult, ServiceResponse, success, failure } from './service.result';
 import { User } from '../types/database.types';
 import { generateToken } from './jwt.service';
-import { sendVerificationEmail, sendWelcomeEmail } from './email.service';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from './email.service';
 import { getUserByEmail, createUser } from './user.service';
 import crypto from 'crypto';
 import { isValidEmail, isValidPassword } from '../utils/validation';
@@ -231,50 +231,141 @@ export const resendVerificationEmail = async (
 };
 
 /**
- * Change user password
+ * Change user password (authenticated user)
  */
 export const changePassword = async (
-  request: ChangePasswordRequest
+  userId: string,
+  newPassword: string
 ): Promise<ServiceResponse<void>> => {
   try {
-    // Get user
     const { data: user, error } = await supabase
       .from('user')
-      .select('password_hash')
-      .eq('id', request.userId)
-                .single();
+      .select('id, email, username')
+      .eq('id', userId)
+      .single();
 
     if (error || !user) {
       return failure('User not found');
     }
 
-    // Verify old password
-    const isOldPasswordValid = await SecurityUtils.comparePassword(
-      request.oldPassword,
-      user.password_hash
-    );
-    if (!isOldPasswordValid) {
-      return failure('Incorrect old password');
-    }
+    const newPasswordHash = await SecurityUtils.hashPassword(newPassword);
 
-    // Hash new password
-    const newPasswordHash = await SecurityUtils.hashPassword(request.newPassword);
-
-    // Update password
     const { error: updateError } = await supabase
       .from('user')
       .update({ password_hash: newPasswordHash })
-      .eq('id', request.userId);
+      .eq('id', userId);
 
     if (updateError) {
       console.error('Password update error:', updateError);
       return failure('Error changing password');
     }
 
+    try {
+      await sendPasswordChangedEmail(user.email, user.username);
+    } catch (emailError) {
+      console.error('Password changed email error:', emailError);
+    }
+
     return success(undefined);
   } catch (error) {
     console.error('Change password error:', error);
     return failure('Server error changing password');
+  }
+};
+
+/**
+ * Reset password with token (forgot password flow)
+ */
+export const resetPasswordWithToken = async (
+  resetToken: string,
+  newPassword: string
+): Promise<ServiceResponse<void>> => {
+  try {
+    const { data: user, error } = await supabase
+      .from('user')
+      .select('id, email, username, password_reset_token, password_reset_expires')
+      .eq('password_reset_token', resetToken)
+      .single();
+
+    if (error || !user) {
+      return failure('Invalid or expired reset link');
+    }
+
+    const expiresAt = user.password_reset_expires ? new Date(user.password_reset_expires) : null;
+    if (!expiresAt || expiresAt < new Date()) {
+      return failure('Invalid or expired reset link');
+    }
+
+    const newPasswordHash = await SecurityUtils.hashPassword(newPassword);
+
+    const { error: updateError } = await supabase
+      .from('user')
+      .update({
+        password_hash: newPasswordHash,
+        password_reset_token: null,
+        password_reset_expires: null,
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Password reset update error:', updateError);
+      return failure('Error resetting password');
+    }
+
+    try {
+      await sendPasswordChangedEmail(user.email, user.username);
+    } catch (emailError) {
+      console.error('Password changed email error:', emailError);
+    }
+
+    return success(undefined);
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return failure('Server error resetting password');
+  }
+};
+
+/**
+ * Request password reset (forgot password): generate token, save, send email
+ */
+export const requestPasswordReset = async (email: string): Promise<ServiceResponse<void>> => {
+  try {
+    const { data: user, error } = await supabase
+      .from('user')
+      .select('id, email, username')
+      .eq('email', email)
+      .single();
+
+    if (error || !user) {
+      return success(undefined);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+    const { error: updateError } = await supabase
+      .from('user')
+      .update({
+        password_reset_token: resetToken,
+        password_reset_expires: resetExpires.toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Password reset token update error:', updateError);
+      return success(undefined);
+    }
+
+    try {
+      await sendPasswordResetEmail(user.email, resetToken, user.username);
+    } catch (emailError) {
+      console.error('Password reset email error:', emailError);
+    }
+
+    return success(undefined);
+  } catch (error) {
+    console.error('Request password reset error:', error);
+    return success(undefined);
   }
 };
 

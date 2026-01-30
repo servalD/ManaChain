@@ -164,3 +164,54 @@ export const getBrandLikesController = async (req: Request, res: Response): Prom
     });
   }
 };
+
+/**
+ * DELETE /likes/:likeId
+ * Remove a like (user can only delete their own like)
+ */
+export const deleteLikeController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { likeId } = req.params;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+      });
+      return;
+    }
+
+    if (!likeId) {
+      res.status(400).json({
+        success: false,
+        message: 'Like ID is required',
+      });
+      return;
+    }
+
+    const result = await likeService.deleteLike({
+      userId,
+      likeId,
+    });
+
+    if (!result.success) {
+      res.status(400).json({
+        success: false,
+        message: result.error,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Like removed successfully',
+    });
+  } catch (error) {
+    console.error('Error in deleteLikeController:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};

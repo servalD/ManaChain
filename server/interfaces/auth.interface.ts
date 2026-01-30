@@ -23,8 +23,16 @@ export interface ResendVerificationRequest {
 
 export interface ChangePasswordRequest {
   userId: string;
-  oldPassword: string;
   newPassword: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
 }
 
 export interface AuthResponse {

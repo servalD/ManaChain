@@ -4,12 +4,22 @@ import { useEffect, useState } from "react";
 import { ILikeWithBrand } from "@/types/like.types";
 import LikeService from "@/services/like.service";
 import PinataService from "@/services/pinata.service";
-import { ExternalLink, MoreHorizontal } from "lucide-react";
+import { ExternalLink, MoreHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function UserLikes() {
   const [likes, setLikes] = useState<ILikeWithBrand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dislikingId, setDislikingId] = useState<string | null>(null);
+
+  const handleDislike = async (likeId: string) => {
+    setDislikingId(likeId);
+    const result = await LikeService.deleteLike(likeId);
+    setDislikingId(null);
+    if (result?.success) {
+      setLikes((prev) => prev.filter((l) => l.id !== likeId));
+    }
+  };
 
   useEffect(() => {
     const fetchLikes = async () => {
@@ -140,6 +150,23 @@ export function UserLikes() {
                       >
                         <MoreHorizontal className="h-3 w-3 mr-1" />
                         More Details
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        onClick={() => handleDislike(like.id)}
+                        disabled={dislikingId === like.id}
+                        aria-label="Remove from liked"
+                      >
+                        {dislikingId === like.id ? (
+                          <span className="inline-block w-4 h-4 border-2 border-red-500/50 border-t-red-500 rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <X className="h-3 w-3 mr-1" />
+                            Dislike
+                          </>
+                        )}
                       </Button>
                     </div>
                   </td>

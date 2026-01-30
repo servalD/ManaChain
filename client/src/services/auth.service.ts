@@ -418,9 +418,9 @@ export default class AuthService {
   }
 
   /**
-   * Change password
+   * Change password (authenticated user)
    */
-  static async changePassword(oldPassword: string, newPassword: string): Promise<boolean> {
+  static async changePassword(newPassword: string): Promise<boolean> {
     try {
       const token = localStorage.getItem("Token");
       if (!token) {
@@ -434,13 +434,8 @@ export default class AuthService {
 
       const res = await axios.post(
         `${ApiService.baseURL}/auth/change-password`,
-        {
-          old_password: oldPassword,
-          new_password: newPassword,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { new_password: newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.status === 200) {
@@ -468,6 +463,109 @@ export default class AuthService {
         });
       }
       return false;
+    }
+  }
+
+  /**
+   * Reset password with token (forgot password flow)
+   */
+  static async resetPassword(token: string, newPassword: string): Promise<boolean> {
+    try {
+      const res = await axios.post(
+        `${ApiService.baseURL}/auth/reset-password`,
+        { token, new_password: newPassword }
+      );
+
+      if (res.status === 200) {
+        toast({
+          title: "Password reset",
+          description: "Your password has been successfully updated. You can now log in.",
+          variant: "success",
+        });
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      if (err.response) {
+        const data = err.response.data;
+        toast({
+          title: "Reset failed",
+          description: data?.error || "Unable to reset password. The link may have expired.",
+          variant: "error",
+        });
+      } else {
+        toast({
+          title: "Connection error",
+          description: "Unable to reach the server",
+          variant: "error",
+        });
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Request password reset email (forgot password)
+   */
+  static async forgotPassword(email: string): Promise<boolean> {
+    try {
+      await axios.post(`${ApiService.baseURL}/auth/forgot-password`, { email });
+      toast({
+        title: "Check your email",
+        description: "If an account exists with this email, you will receive a password reset link.",
+        variant: "success",
+      });
+      return true;
+    } catch (err: any) {
+      toast({
+        title: "Check your email",
+        description: "If an account exists with this email, you will receive a password reset link.",
+        variant: "default",
+      });
+      return true;
+    }
+  }
+
+  /**
+   * Update current user profile (first_name, last_name, username, avatar_url)
+   */
+  static async updateProfile(updates: {
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+  }): Promise<IUser | null> {
+    try {
+      const token = AuthService.getToken();
+      if (!token) return null;
+
+      const response = await axios.put(
+        `${ApiService.baseURL}/users/me`,
+        updates,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data?.user) {
+        toast({
+          title: 'Profile updated',
+          description: 'Your profile has been saved.',
+          variant: 'success',
+        });
+        return response.data.user;
+      }
+      return null;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || 'Failed to update profile. Please try again.';
+      toast({
+        title: 'Error',
+        description: msg,
+        variant: 'error',
+      });
+      return null;
     }
   }
 

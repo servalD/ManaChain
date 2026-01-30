@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
@@ -16,6 +17,7 @@ import PinataService from "@/services/pinata.service";
 import { BrandFromAPI } from "@/types/brand.types";
 
 export default function DiscoverPage() {
+  const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
@@ -28,21 +30,23 @@ export default function DiscoverPage() {
   const [imagePosition, setImagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
   const discoverContentRef = useRef<DiscoverContentRef | null>(null);
 
-  // Fetch brands from API
+  // Fetch brands from API; use first media image as cover when available (not logo)
   useEffect(() => {
     const fetchBrands = async () => {
       setIsLoadingBrands(true);
       const response = await BrandService.getAllBrands(50, 0);
-      
+
       if (response) {
-        // Transform API brands to Brand format
-        const transformedBrands: Brand[] = response.brands.map((brand: BrandFromAPI) => {
-          // Get interests as industry string
+        const brandsFromApi = response.brands;
+        const mediaPerBrand = await Promise.all(
+          brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandMedia(b.id))
+        );
+
+        const transformedBrands: Brand[] = brandsFromApi.map((brand: BrandFromAPI, index: number) => {
           const industry = brand.brand_interest && brand.brand_interest.length > 0
             ? brand.brand_interest.map((bi: { interest: { id: string; label: string } }) => bi.interest.label).join(", ")
             : "General";
 
-          // Get token info (brand_token is an array, get first one or defaults)
           const token = brand.brand_token && brand.brand_token.length > 0 ? brand.brand_token[0] : null;
           const hasToken = !!token;
           const tokenSymbol = token?.symbol || "N/A";
@@ -50,27 +54,31 @@ export default function DiscoverPage() {
           const holders = token ? Math.floor(token.total_supply) : 0;
           const raised = token ? parseFloat(token.current_price) * token.total_supply : 0;
 
-          // Normalize IPFS URLs to ensure they have https:// protocol
           const normalizedLogo = brand.logo_url ? PinataService.normalizeIpfsUrl(brand.logo_url) : "";
-          
+          const media = mediaPerBrand[index];
+          const firstImage = media?.length
+            ? PinataService.normalizeIpfsUrl(media[0].image_url)
+            : null;
+          const coverImage = firstImage && firstImage !== normalizedLogo ? firstImage : normalizedLogo;
+
           return {
             id: brand.id,
             name: brand.name,
             logo: normalizedLogo,
-            coverImage: normalizedLogo,
+            coverImage,
             description: brand.description || "No description available.",
-            industry: industry,
-            tokenSymbol: tokenSymbol,
-            tokenPrice: tokenPrice,
-            holders: holders,
-            raised: raised,
-            hasToken: hasToken,
+            industry,
+            tokenSymbol,
+            tokenPrice,
+            holders,
+            raised,
+            hasToken,
           };
         });
-        
+
         setBrands(transformedBrands);
       }
-      
+
       setIsLoadingBrands(false);
     };
 
@@ -184,21 +192,18 @@ export default function DiscoverPage() {
   };
 
   const handleProfile = () => {
-    toast({
-      title: "Profile",
-      description: "Profile page coming soon!",
-      variant: "default",
-    });
+    router.push("/profile");
   };
 
   return (
     <RoleProtectedRoute allowedRoles={['CLIENT']}>
       <div className="min-h-screen bg-background">
         {/* Navbar */}
-        <Navbar 
-          currentPage="discover" 
+        <Navbar
+          currentPage="discover"
           isLoggedIn={true}
           userName={user?.username}
+          userAvatarUrl={user?.avatar_url}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

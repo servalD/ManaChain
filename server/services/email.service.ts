@@ -7,6 +7,8 @@ import { renderEmailTemplate } from './email-template.service';
 
 const EMAIL_FROM = process.env.FROM_EMAIL || process.env.EMAIL_FROM || 'noreply@mana-chain.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL;
+const EMAIL_LOGO_URL =`${API_URL}/assets/Logo_ManaChain_Noir.svg`;
 
 // SMTP configuration
 const SMTP_HOST = process.env.SMTP_HOST;
@@ -96,6 +98,7 @@ export const sendVerificationEmail = async (
     username,
     verificationUrl,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {
@@ -121,6 +124,7 @@ export const sendWelcomeEmail = async (
   const templateResult = await renderEmailTemplate('welcome', {
     username,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {
@@ -166,6 +170,31 @@ export const sendPasswordResetEmail = async (
 };
 
 /**
+ * Send password changed confirmation email
+ */
+export const sendPasswordChangedEmail = async (
+  toEmail: string,
+  username: string
+): Promise<void> => {
+  const templateResult = await renderEmailTemplate('password_changed', {
+    username,
+    logoUrl: EMAIL_LOGO_URL,
+  });
+
+  if (!templateResult.success || !templateResult.data) {
+    console.error('Failed to render password changed email template:', templateResult.error);
+    throw new Error('Failed to render email template');
+  }
+
+  await sendEmail({
+    to: toEmail,
+    subject: templateResult.data.subject,
+    html: templateResult.data.html,
+    text: templateResult.data.text,
+  });
+};
+
+/**
  * Send brand application notification to admin
  */
 export const sendBrandApplicationNotificationEmail = async (
@@ -186,6 +215,7 @@ export const sendBrandApplicationNotificationEmail = async (
     application_id: applicationData.id,
     review_url: reviewUrl,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {
@@ -216,6 +246,7 @@ export const sendBrandApplicationVerificationEmail = async (
     username: firstName,
     verificationUrl,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {
@@ -253,6 +284,7 @@ export const sendBrandApplicationApprovedEmail = async (
     password: credentials.password,
     loginUrl,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {
@@ -283,6 +315,7 @@ export const sendBrandApplicationRejectedEmail = async (
     rejection_reason: rejectionReason,
     application_url: applicationUrl,
     frontendUrl: FRONTEND_URL,
+    logoUrl: EMAIL_LOGO_URL,
   });
 
   if (!templateResult.success || !templateResult.data) {

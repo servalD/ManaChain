@@ -1,14 +1,16 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/lib/toast";
 import AuthService from "@/services/auth.service";
-import { useState } from "react";
 import { UserLikes, PortfolioValueChart, MyTokens, UpcomingEvents, ActivityTimeline } from "@/components/dashboard";
 
 export default function ClientDashboardPage() {
+  const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
@@ -76,20 +78,17 @@ export default function ClientDashboardPage() {
   };
 
   const handleProfile = () => {
-    toast({
-      title: "Profile",
-      description: "Profile page coming soon!",
-      variant: "default",
-    });
+    router.push("/profile");
   };
 
   return (
     <RoleProtectedRoute allowedRoles={['CLIENT']}>
       <div className="min-h-screen bg-background">
-        <Navbar 
-          currentPage="dashboard" 
+        <Navbar
+          currentPage="dashboard"
           isLoggedIn={true}
           userName={user?.username}
+          userAvatarUrl={user?.avatar_url}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

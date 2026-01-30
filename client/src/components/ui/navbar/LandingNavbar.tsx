@@ -194,28 +194,17 @@ export function LandingNavbar() {
 
         {/* Mobile Layout */}
         <div className="lg:hidden flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo - same as desktop: single logo image only */}
           <Link 
             href="#hero" 
             className="flex items-center"
             onClick={(e) => handleSmoothScroll(e, 'hero')}
           >
-            <span className="text-lg font-bold">
-              <span style={{ 
-                background: 'linear-gradient(to right, #FFD700, #FFC700, #FFD700)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Mana
-              </span>
-            </span>
-            <img src={logoSrc} alt="Mana Chain" className="w-10 h-10 rounded-full object-cover -mx-1" />
-            <span className="text-lg font-bold">
-              <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Chain
-              </span>
-            </span>
+            <img
+              src={logoSrc}
+              alt="Mana Chain"
+              className="h-5 w-auto sm:h-6 object-contain"
+            />
           </Link>
 
           {/* Right Side - Mobile Menu Button, User Menu & Theme Toggler */}

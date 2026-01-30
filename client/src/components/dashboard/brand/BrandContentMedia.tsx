@@ -272,7 +272,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
-                <p className="text-sm text-muted-foreground">Uploading to IPFS...</p>
+                <p className="text-sm text-muted-foreground">Uploading...</p>
               </div>
             ) : (
               <>

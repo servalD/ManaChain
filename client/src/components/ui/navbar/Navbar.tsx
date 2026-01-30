@@ -10,6 +10,7 @@ export interface NavbarProps {
   currentPage?: string;
   isLoggedIn?: boolean;
   userName?: string;
+  userAvatarUrl?: string | null;
   userRole?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
   onLogout?: () => void;
   onProfile?: () => void;
@@ -22,6 +23,7 @@ export function Navbar({
   currentPage = "discover", 
   isLoggedIn = false, 
   userName,
+  userAvatarUrl,
   userRole,
   onLogout,
   onProfile,
@@ -148,6 +150,7 @@ export function Navbar({
                 {/* User Menu */}
                 <UserMenu 
                   userName={userName || "User"}
+                  userAvatarUrl={userAvatarUrl}
                   onLogout={onLogout || (() => {})}
                   onProfile={onProfile}
                   onWalletConnected={onWalletConnected}

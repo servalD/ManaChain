@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { User, LogOut, UserCircle, ChevronDown, Wallet } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
+import PinataService from "@/services/pinata.service";
 
 interface UserMenuProps {
   userName: string;
+  userAvatarUrl?: string | null;
   onLogout: () => void;
   onProfile?: () => void;
   onWalletConnected?: (address: string) => void;
@@ -15,12 +18,14 @@ interface UserMenuProps {
 
 export function UserMenu({ 
   userName, 
+  userAvatarUrl,
   onLogout, 
   onProfile,
   onWalletConnected,
   onWalletDisconnected,
   shouldDisconnectWallet,
 }: UserMenuProps) {
+  const displayAvatarUrl = userAvatarUrl ? PinataService.normalizeIpfsUrl(userAvatarUrl) : null;
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +66,7 @@ export function UserMenu({
         className="flex items-center gap-2 p-2 rounded-xl bg-accent/50 border border-border hover:bg-accent transition-all group"
         title="User Menu"
       >
-        <User className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition-colors" />
+        <User className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition-colors shrink-0" />
         <ChevronDown
           className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -80,13 +85,26 @@ export function UserMenu({
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-border bg-linear-to-r from-violet-500/10 to-fuchsia-500/10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                <span className="text-foreground font-bold text-sm uppercase">
-                  {userName.charAt(0)}
+              {displayAvatarUrl ? (
+                <span className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 ring-2 ring-border">
+                  <Image
+                    src={displayAvatarUrl}
+                    alt={userName}
+                    fill
+                    className="object-cover"
+                    sizes="40px"
+                    unoptimized
+                  />
                 </span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{userName}</p>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
+                  <span className="text-foreground font-bold text-sm uppercase">
+                    {userName.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
                 <p className="text-xs text-muted-foreground">User Account</p>
               </div>
             </div>

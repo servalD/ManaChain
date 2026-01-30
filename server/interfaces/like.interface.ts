@@ -31,6 +31,14 @@ export interface GetBrandLikesRequest {
   brandId: string;
 }
 
+/**
+ * Request to delete a like (user can only delete their own like)
+ */
+export interface DeleteLikeRequest {
+  userId: string;
+  likeId: string;
+}
+
 // ============================================
 // RESPONSE TYPES
 // ============================================

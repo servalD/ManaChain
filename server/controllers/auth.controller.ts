@@ -6,7 +6,6 @@ import {
   LoginRequest,
   VerifyEmailRequest,
   ResendVerificationRequest,
-  ChangePasswordRequest,
 } from '../interfaces/auth.interface';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 
@@ -154,16 +153,15 @@ export const resendVerificationController = async (req: Request, res: Response):
  */
 export const changePasswordController = async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).userId;
-  const { old_password, new_password } = req.body;
+  const { new_password } = req.body;
 
-  if (!old_password || !new_password) {
+  if (!new_password) {
     res.status(400).json({
-      error: 'Old and new password required',
+      error: 'New password required',
     });
     return;
   }
 
-  // Validate new password strength
   const passwordValidation = isValidPassword(new_password);
   if (!passwordValidation.valid) {
     res.status(400).json({
@@ -172,13 +170,7 @@ export const changePasswordController = async (req: Request, res: Response): Pro
     return;
   }
 
-  const request: ChangePasswordRequest = {
-    userId,
-    oldPassword: old_password,
-    newPassword: new_password,
-  };
-
-  const result = await authService.changePassword(request);
+  const result = await authService.changePassword(userId, new_password);
 
   if (!result.success) {
     res.status(400).json({ error: result.error });
@@ -186,4 +178,62 @@ export const changePasswordController = async (req: Request, res: Response): Pro
   }
 
   res.json({ message: 'Password changed successfully' });
+};
+
+/**
+ * POST /auth/reset-password - Reset password with token (forgot password flow)
+ */
+export const resetPasswordController = async (req: Request, res: Response): Promise<void> => {
+  const { token, new_password } = req.body;
+
+  if (!token || !new_password) {
+    res.status(400).json({
+      error: 'Token and new password required',
+    });
+    return;
+  }
+
+  const passwordValidation = isValidPassword(new_password);
+  if (!passwordValidation.valid) {
+    res.status(400).json({
+      error: passwordValidation.error || 'Invalid password',
+    });
+    return;
+  }
+
+  const result = await authService.resetPasswordWithToken(token, new_password);
+
+  if (!result.success) {
+    res.status(400).json({ error: result.error });
+    return;
+  }
+
+  res.json({ message: 'Password reset successfully' });
+};
+
+/**
+ * POST /auth/forgot-password - Request password reset email
+ */
+export const forgotPasswordController = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({
+      error: 'Email required',
+    });
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    res.status(400).json({
+      error: 'Invalid email format',
+    });
+    return;
+  }
+
+  await authService.requestPasswordReset(email);
+
+  res.json({
+    message: 'If an account exists with this email, you will receive a password reset link.',
+  });
 };

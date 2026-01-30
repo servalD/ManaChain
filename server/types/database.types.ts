@@ -23,6 +23,8 @@ export interface Database {
           verified: boolean;
           email_verification_token: string | null;
           email_verification_expires: string | null;
+          password_reset_token: string | null;
+          password_reset_expires: string | null;
           is_brand: boolean;
           role: UserRole;
           last_login: string | null;
@@ -42,6 +44,8 @@ export interface Database {
           verified?: boolean;
           email_verification_token?: string | null;
           email_verification_expires?: string | null;
+          password_reset_token?: string | null;
+          password_reset_expires?: string | null;
           is_brand?: boolean;
           role?: UserRole;
           created_at?: string;
@@ -60,6 +64,8 @@ export interface Database {
           verified?: boolean;
           email_verification_token?: string | null;
           email_verification_expires?: string | null;
+          password_reset_token?: string | null;
+          password_reset_expires?: string | null;
           is_brand?: boolean;
           role?: UserRole;
           created_at?: string;
@@ -715,6 +721,6 @@ export type BrandMedia = Database['public']['Tables']['brand_media']['Row'];
 export type BrandMediaInsert = Database['public']['Tables']['brand_media']['Insert'];
 export type BrandMediaUpdate = Database['public']['Tables']['brand_media']['Update'];
 
-export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
+export type EmailTemplateType = 'verification' | 'welcome' | 'password_reset' | 'password_changed' | 'brand_application_notification' | 'brand_application_approved' | 'brand_application_rejected';
 
 export type TransactionType = 'purchase' | 'transfer' | 'reward' | 'initial_emission';

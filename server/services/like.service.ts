@@ -5,6 +5,7 @@ import {
   CreateLikeRequest,
   GetUserLikesRequest,
   GetBrandLikesRequest,
+  DeleteLikeRequest,
   LikeWithBrand,
   LikeWithUser,
 } from '../interfaces/like.interface';
@@ -184,6 +185,46 @@ export const getBrandLikes = async (
     return success(likes);
   } catch (error) {
     console.error('Error in getBrandLikes service:', error);
+    return failure('An unexpected error occurred');
+  }
+};
+
+/**
+ * Delete a like (user can only delete their own like)
+ */
+export const deleteLike = async (
+  request: DeleteLikeRequest
+): Promise<ServiceResponse<void>> => {
+  try {
+    const { userId, likeId } = request;
+
+    const { data: likeRow, error: fetchError } = await supabase
+      .from('brand_like')
+      .select('id, user_id')
+      .eq('id', likeId)
+      .single();
+
+    if (fetchError || !likeRow) {
+      return failure('Like not found');
+    }
+
+    if (likeRow.user_id !== userId) {
+      return failure('You can only remove your own like');
+    }
+
+    const { error: deleteError } = await supabase
+      .from('brand_like')
+      .delete()
+      .eq('id', likeId);
+
+    if (deleteError) {
+      console.error('Error deleting like:', deleteError);
+      return failure('Failed to remove like');
+    }
+
+    return success(undefined);
+  } catch (error) {
+    console.error('Error in deleteLike service:', error);
     return failure('An unexpected error occurred');
   }
 };

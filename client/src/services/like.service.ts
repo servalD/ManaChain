@@ -57,6 +57,44 @@ class LikeService {
   }
 
   /**
+   * Remove a like (dislike) - user can only remove their own like
+   */
+  async deleteLike(likeId: string): Promise<{ success: boolean; message?: string } | null> {
+    try {
+      const token = AuthService.getToken();
+      if (!token) {
+        return null;
+      }
+
+      const response = await axios.delete(`${API_URL}/likes/${likeId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        toast({
+          title: 'Like removed',
+          description: "You've removed this brand from your liked list.",
+          variant: 'success',
+        });
+        return { success: true };
+      }
+
+      return null;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to remove like. Please try again.';
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'error',
+      });
+      return null;
+    }
+  }
+
+  /**
    * Get current user's likes
    */
   async getUserLikes(): Promise<GetLikesResponse | null> {

@@ -41,14 +41,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .button {
         display: inline-block;
@@ -83,9 +80,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>Hello {{username}}! 👋</h2>
       <p>Thank you for signing up on Mana Chain, the platform where brands can build their community and raise funds through fractional tokens.</p>
       <p>To get started, please verify your email address by clicking the button below:</p>
@@ -161,14 +156,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .button {
         display: inline-block;
@@ -199,9 +191,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>Welcome {{username}}! 🎉</h2>
       <p>Your email has been successfully verified! You now have full access to all Mana Chain features.</p>
       
@@ -291,14 +281,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .button {
         display: inline-block;
@@ -333,9 +320,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>Password reset request</h2>
       <p>Hello {{username}},</p>
       <p>We received a request to reset the password for your Mana Chain account.</p>
@@ -376,6 +361,48 @@ The Mana Chain Team',
   description = EXCLUDED.description,
   updated_at = NOW();
 
+-- Template: password_changed (Confirmation after password change or reset)
+INSERT INTO email_template (template_type, subject, html_content, text_content, description) VALUES (
+  'password_changed',
+  'Your password was changed - Mana Chain',
+  '<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
+      .container { background-color: white; border-radius: 10px; padding: 40px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+      .logo img { max-width: 200px; height: auto; display: block; margin: 0 auto; }
+      .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5; color: #666; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
+      <h2>Password updated</h2>
+      <p>Hello {{username}},</p>
+      <p>Your Mana Chain account password was successfully changed. If you did not make this change, please contact support immediately.</p>
+      <div class="footer">
+        <p>Mana Chain - The future of brand engagement</p>
+      </div>
+    </div>
+  </body>
+</html>',
+  'Hello {{username}},
+
+Your Mana Chain account password was successfully changed. If you did not make this change, please contact support immediately.
+
+Best regards,
+The Mana Chain Team',
+  'Sent after user successfully changes or resets password.'
+) ON CONFLICT (template_type) DO UPDATE SET
+  subject = EXCLUDED.subject,
+  html_content = EXCLUDED.html_content,
+  text_content = EXCLUDED.text_content,
+  description = EXCLUDED.description,
+  updated_at = NOW();
+
 -- Template: brand_application_notification (Admin notification for new brand application)
 INSERT INTO email_template (template_type, subject, html_content, text_content, description) VALUES (
   'brand_application_notification',
@@ -405,14 +432,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .info-box {
         background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(168, 85, 247, 0.1));
@@ -450,9 +474,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>New Brand Application Received</h2>
       <p>A new brand has applied to join the Mana Chain platform.</p>
       
@@ -540,14 +562,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .credentials-box {
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
@@ -603,9 +622,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>Congratulations! Your application has been approved 🎉</h2>
       <p>We''re excited to welcome <strong>{{brand_name}}</strong> to the Mana Chain platform!</p>
       
@@ -712,14 +729,11 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
         text-align: center;
         margin-bottom: 30px;
       }
-      .logo h1 {
-        background: linear-gradient(to right, #7c3aed, #a855f7, #6366f1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-size: 32px;
-        margin: 0;
-        font-weight: 700;
+      .logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
       }
       .reason-box {
         background-color: #fef2f2;
@@ -757,9 +771,7 @@ INSERT INTO email_template (template_type, subject, html_content, text_content, 
   </head>
   <body>
     <div class="container">
-      <div class="logo">
-        <h1>⚡ Mana Chain</h1>
-      </div>
+      <div class="logo"><img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" /></div>
       <h2>Update on your application</h2>
       <p>Thank you for your interest in joining Mana Chain with <strong>{{brand_name}}</strong>.</p>
       

@@ -122,12 +122,7 @@ export default function LoginPage() {
   };
   
   const handleResetPassword = () => {
-    toasterRef.current?.show({
-      title: 'Check your email',
-      message: 'Password reset instructions have been sent to your email address.',
-      variant: 'success',
-      duration: 4000,
-    });
+    router.push('/forgot-password');
   };
 
   const handleCreateAccount = () => {

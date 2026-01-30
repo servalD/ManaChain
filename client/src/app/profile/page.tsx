@@ -1,0 +1,174 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
+import { Navbar } from "@/components/ui/navbar";
+import { useAuth } from "@/hooks/useAuth";
+import AuthService from "@/services/auth.service";
+import PinataService from "@/services/pinata.service";
+import {
+  ProfileAvatar,
+  ProfileInfoReadOnly,
+  ProfilePersonalInfo,
+  ProfilePassword,
+} from "@/components/profile";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const { user, refreshUser } = useAuth();
+  const [first_name, setFirst_name] = useState("");
+  const [last_name, setLast_name] = useState("");
+  const [username, setUsername] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFirst_name(user.first_name ?? "");
+      setLast_name(user.last_name ?? "");
+      setUsername(user.username ?? "");
+    }
+  }, [user]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    const updated = await AuthService.updateProfile({
+      first_name: first_name.trim() || undefined,
+      last_name: last_name.trim() || undefined,
+      username: username.trim() || undefined,
+    });
+    setIsSaving(false);
+    if (updated) {
+      await refreshUser();
+      setIsEditingProfile(false);
+    }
+  };
+
+  const handleAvatarUploadStart = () => {
+    setIsUploadingAvatar(true);
+  };
+
+  const handleAvatarUploadComplete = async (avatarUrl: string) => {
+    const oldAvatarUrl = user?.avatar_url ?? null;
+    const updated = await AuthService.updateProfile({ avatar_url: avatarUrl });
+    if (updated) {
+      await refreshUser();
+      // Unpin previous avatar from Pinata if it was an IPFS URL
+      if (
+        oldAvatarUrl &&
+        (PinataService.isIpfsUrl(oldAvatarUrl) ||
+          /^Qm[a-zA-Z0-9]{44,}$/.test(String(oldAvatarUrl).trim()))
+      ) {
+        await PinataService.deleteFile(oldAvatarUrl);
+      }
+    }
+    setIsUploadingAvatar(false);
+  };
+
+  const handleAvatarUploadError = () => {
+    setIsUploadingAvatar(false);
+  };
+
+  const handleChangePassword = () => {
+    router.push("/profile/change-password");
+  };
+
+  const handleLogout = async () => {
+    await AuthService.logout();
+  };
+
+  const handleProfile = () => {
+    router.push("/profile");
+  };
+
+  return (
+    <RoleProtectedRoute allowedRoles={["CLIENT", "BRANDUSER", "ADMIN"]}>
+      <div className="min-h-screen bg-background">
+        <Navbar
+          currentPage="profile"
+          isLoggedIn={true}
+          userName={user?.username}
+          userAvatarUrl={user?.avatar_url}
+          userRole={user?.role}
+          onLogout={handleLogout}
+          onProfile={handleProfile}
+        />
+
+        <div className="pt-30 sm:pt-30 pb-8 sm:pb-12 px-4 sm:px-6 md:px-8 w-full">
+          <div className="w-full max-w-7xl mx-auto space-y-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">
+                <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                  My Profile
+                </span>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage your account details and preferences
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <ProfileAvatar
+                user={user ?? null}
+                isUploading={isUploadingAvatar}
+                onUploadStart={handleAvatarUploadStart}
+                onUploadComplete={handleAvatarUploadComplete}
+                onUploadError={handleAvatarUploadError}
+              />
+
+              <div className="border-t border-border pt-6">
+                <ProfileInfoReadOnly user={user ?? null} />
+                <div className="mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingProfile((v) => !v)}
+                    className="gap-2"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    {isEditingProfile ? "Hide form" : "Edit my profile"}
+                  </Button>
+                </div>
+                <AnimatePresence>
+                  {isEditingProfile && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-6 mt-6 border-t border-border">
+                        <ProfilePersonalInfo
+                          first_name={first_name}
+                          last_name={last_name}
+                          username={username}
+                          isSaving={isSaving}
+                          onFirstNameChange={setFirst_name}
+                          onLastNameChange={setLast_name}
+                          onUsernameChange={setUsername}
+                          onSave={handleSaveProfile}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="border-t border-border pt-6">
+                <ProfilePassword onChangePasswordClick={handleChangePassword} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </RoleProtectedRoute>
+  );
+}

@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import routes from './routes';
 
@@ -6,6 +7,9 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+
+// Static assets (e.g. logo for emails) — served at /assets
+app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 
 // Health check
 app.get('/health', (req, res) => {

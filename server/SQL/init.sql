@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS "user" (
   verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expires TIMESTAMP WITH TIME ZONE,
+  password_reset_token TEXT,
+  password_reset_expires TIMESTAMP WITH TIME ZONE,
   is_brand BOOLEAN NOT NULL DEFAULT FALSE,
   role TEXT NOT NULL DEFAULT 'CLIENT',
   last_login TIMESTAMP WITH TIME ZONE,
@@ -28,6 +30,7 @@ CREATE TABLE IF NOT EXISTS "user" (
 CREATE INDEX idx_user_email ON "user"(email);
 CREATE INDEX idx_user_username ON "user"(username);
 CREATE INDEX idx_user_email_verification_token ON "user"(email_verification_token);
+CREATE INDEX idx_user_password_reset_token ON "user"(password_reset_token);
 CREATE INDEX idx_user_is_brand ON "user"(is_brand);
 CREATE INDEX idx_user_blockchain_address ON "user"(blockchain_address);
 CREATE INDEX idx_user_role ON "user"(role);
@@ -378,6 +381,8 @@ COMMENT ON COLUMN "user".age_range IS 'Age range of the user (required, values: 
 COMMENT ON COLUMN "user".verified IS 'Indicates if the user email has been verified';
 COMMENT ON COLUMN "user".email_verification_token IS 'Token for email verification';
 COMMENT ON COLUMN "user".email_verification_expires IS 'Expiration date of verification token';
+COMMENT ON COLUMN "user".password_reset_token IS 'Token for password reset (forgot password flow)';
+COMMENT ON COLUMN "user".password_reset_expires IS 'Expiration date of password reset token';
 COMMENT ON COLUMN "user".is_brand IS 'Indicates if the account is associated with a brand';
 COMMENT ON COLUMN "user".role IS 'User role: admin (platform administrators), client (regular users), branduser (users who own a brand)';
 COMMENT ON COLUMN brand.business_registration_number IS 'Business registration number (SIRET in France, EIN in USA, etc.)';
@@ -436,6 +441,7 @@ CREATE TABLE IF NOT EXISTS email_template (
     'verification',
     'welcome',
     'password_reset',
+    'password_changed',
     'brand_application_notification',
     'brand_application_approved',
     'brand_application_rejected'
@@ -453,9 +459,9 @@ CREATE TRIGGER update_email_template_updated_at
 
 -- Comments for documentation
 COMMENT ON TABLE email_template IS 'Email templates stored in database for dynamic email content';
-COMMENT ON COLUMN email_template.template_type IS 'Type of email template: verification, welcome, password_reset, brand_application_notification, brand_application_approved, brand_application_rejected';
+COMMENT ON COLUMN email_template.template_type IS 'Type of email template: verification, welcome, password_reset, password_changed, brand_application_notification, brand_application_approved, brand_application_rejected';
 COMMENT ON COLUMN email_template.subject IS 'Email subject line (can contain placeholders like {{username}})';
-COMMENT ON COLUMN email_template.html_content IS 'HTML content of the email (can contain placeholders like {{username}}, {{link}})';
+COMMENT ON COLUMN email_template.html_content IS 'HTML content of the email (can contain placeholders like {{username}}, {{link}}, {{logoUrl}})';
 COMMENT ON COLUMN email_template.text_content IS 'Plain text version of the email (optional, for email clients that do not support HTML)';
 COMMENT ON COLUMN email_template.description IS 'Description of when this template is used';
 
