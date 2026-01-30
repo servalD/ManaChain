@@ -32,6 +32,8 @@ export interface UpdateBrandRequest {
 export interface GetBrandsFilters {
   category?: string;
   search?: string;
+  /** Exclude brands with these IDs (e.g. already liked by current user) */
+  excludeBrandIds?: string[];
 }
 
 export interface GetBrandsRequest {

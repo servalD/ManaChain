@@ -266,7 +266,7 @@ export function BrandApplicationsTable() {
                               />
                             </div>
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                               <span className="text-sm font-bold text-violet-400">
                                 {app.brand_name.charAt(0)}
                               </span>
@@ -369,7 +369,7 @@ export function BrandApplicationsTable() {
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                     <span className="text-sm font-bold text-violet-400">
                       {selectedApplication.brand_name.charAt(0)}
                     </span>

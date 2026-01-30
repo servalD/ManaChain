@@ -20,6 +20,7 @@ import {
   getBrandMedia,
   deleteBrandMedia,
 } from '../services/brand-media.service';
+import * as likeService from '../services/like.service';
 import {
   CreateBrandRequest,
   UpdateBrandRequest,
@@ -169,6 +170,15 @@ export const getAllBrandsController = async (req: Request, res: Response): Promi
     const offset = parseInt(req.query.offset as string) || 0;
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
+    const userId = (req as any).userId;
+
+    let excludeBrandIds: string[] | undefined;
+    if (userId) {
+      const likesResult = await likeService.getUserLikes({ userId });
+      if (likesResult.success && likesResult.data?.length) {
+        excludeBrandIds = likesResult.data.map((like) => like.brand_id);
+      }
+    }
 
     const request: GetBrandsRequest = {
       limit,
@@ -176,6 +186,7 @@ export const getAllBrandsController = async (req: Request, res: Response): Promi
       filters: {
         category,
         search,
+        excludeBrandIds,
       },
     };
 

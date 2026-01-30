@@ -151,6 +151,10 @@ export const getAllBrands = async (
     if (filters?.search) {
       query = query.ilike('name', `%${filters.search}%`);
     }
+    if (filters?.excludeBrandIds?.length) {
+      const excludedList = filters.excludeBrandIds.map((id) => `"${id}"`).join(',');
+      query = query.not('id', 'in', `(${excludedList})`);
+    }
 
     // Pagination and sorting
     const { data, error, count } = await query

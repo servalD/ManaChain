@@ -129,7 +129,7 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
                 />
               </div>
             ) : (
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                 <span className="text-lg font-bold text-violet-400">
                   {getInitials(brandName)}
                 </span>
@@ -344,7 +344,7 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
               />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
               <span className="text-lg font-bold text-violet-400">
                 {getInitials(brandName)}
               </span>
