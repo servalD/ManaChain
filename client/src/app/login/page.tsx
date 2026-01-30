@@ -2,9 +2,11 @@
 
 import { useRef, useState, useEffect } from "react";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import AuthService from "@/services/auth.service";
+import { ApiService } from "@/services/api.service";
+import axios from "axios";
 import { isValidEmail } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
@@ -31,8 +33,55 @@ const sampleTestimonials: Testimonial[] = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toasterRef = useRef<ToasterRef>(null);
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+
+  // Handle Google OAuth callback: token + role in URL -> store token and redirect by role
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const role = searchParams.get("role");
+    const error = searchParams.get("error");
+
+    if (error) {
+      if (error === "use_password") {
+        toasterRef.current?.show({
+          title: "Use your password",
+          message: "This account uses email and password. Please sign in with your password.",
+          variant: "warning",
+          duration: 5000,
+        });
+      } else if (error === "access_denied") {
+        toasterRef.current?.show({
+          title: "Access denied",
+          message: "You declined the Google sign-in request.",
+          variant: "warning",
+          duration: 4000,
+        });
+      } else {
+        toasterRef.current?.show({
+          title: "Google sign-in failed",
+          message: "Something went wrong. Please try again or sign in with your password.",
+          variant: "error",
+          duration: 5000,
+        });
+      }
+      return;
+    }
+
+    if (token && role) {
+      localStorage.setItem("Token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      toasterRef.current?.show({
+        title: "Signed in",
+        message: "Welcome back!",
+        variant: "success",
+        duration: 2000,
+      });
+      const redirectPath = getRedirectPathByRole(role);
+      router.replace(redirectPath);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -106,19 +155,13 @@ export default function LoginPage() {
       case 'ADMIN':
         return '/admin/dashboard';
       default:
-        // Default to discover for backward compatibility
         return '/discover';
     }
   };
 
   const handleGoogleSignIn = () => {
-    console.log("Continue with Google clicked");
-    toasterRef.current?.show({
-      title: 'Coming Soon',
-      message: 'Google Sign In integration is currently in development.',
-      variant: 'warning',
-      duration: 3000,
-    });
+    const apiBase = ApiService.baseURL;
+    window.location.href = `${apiBase}/auth/google`;
   };
   
   const handleResetPassword = () => {

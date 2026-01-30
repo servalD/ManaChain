@@ -8,6 +8,8 @@ import {
   changePasswordController,
   resetPasswordController,
   forgotPasswordController,
+  googleAuthController,
+  googleCallbackController,
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -32,5 +34,11 @@ router.post('/reset-password', resetPasswordController);
 
 // POST /auth/forgot-password - Request password reset email
 router.post('/forgot-password', forgotPasswordController);
+
+// GET /auth/google - Redirect to Google OAuth consent screen
+router.get('/google', googleAuthController);
+
+// GET /auth/google/callback - Handle Google OAuth callback
+router.get('/google/callback', googleCallbackController);
 
 export default router;

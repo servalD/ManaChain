@@ -39,3 +39,10 @@ export interface AuthResponse {
   user: any;
   token: string | null;
 }
+
+/** Profile from Google OAuth userinfo */
+export interface GoogleProfile {
+  email: string;
+  given_name?: string | null;
+  family_name?: string | null;
+}

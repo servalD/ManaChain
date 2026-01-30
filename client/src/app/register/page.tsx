@@ -5,6 +5,7 @@ import { SignUpPage, Interest } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import AuthService from "@/services/auth.service";
+import { ApiService } from "@/services/api.service";
 import InterestsService from "@/services/interests.service";
 import { toast } from "@/lib/toast";
 import { isValidEmail, isValidPassword } from "@/utils/validation";
@@ -124,13 +125,8 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignUp = () => {
-    console.log("Google Sign Up clicked");
-    toasterRef.current?.show({
-      title: 'Coming Soon',
-      message: 'Google Sign Up integration is currently in development.',
-      variant: 'warning',
-      duration: 3000,
-    });
+    const apiBase = ApiService.baseURL;
+    window.location.href = `${apiBase}/auth/google`;
   };
 
   const handleSignIn = () => {

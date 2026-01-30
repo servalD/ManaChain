@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import axios from 'axios';
+import { OAuth2Client } from 'google-auth-library';
 import * as authService from '../services/auth.service';
 import { requireAuth } from '../middleware/auth.middleware';
 import {
@@ -8,6 +10,11 @@ import {
   ResendVerificationRequest,
 } from '../interfaces/auth.interface';
 import { isValidEmail, isValidPassword } from '../utils/validation';
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const API_URL = process.env.API_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 /**
  * POST /auth/register - Register a new user
@@ -236,4 +243,104 @@ export const forgotPasswordController = async (req: Request, res: Response): Pro
   res.json({
     message: 'If an account exists with this email, you will receive a password reset link.',
   });
+};
+
+/**
+ * GET /auth/google - Redirect user to Google OAuth consent screen
+ */
+export const googleAuthController = async (req: Request, res: Response): Promise<void> => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+    return;
+  }
+
+  const redirectUri = `${API_URL}/auth/google/callback`;
+  const oauth2Client = new OAuth2Client(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
+
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['email', 'profile'],
+    prompt: 'consent',
+  });
+
+  res.redirect(302, authUrl);
+};
+
+/**
+ * GET /auth/google/callback - Handle Google OAuth callback, exchange code, find/create user, redirect to front with token and role
+ */
+export const googleCallbackController = async (req: Request, res: Response): Promise<void> => {
+  const { code, error: oauthError } = req.query;
+
+  if (oauthError) {
+    res.redirect(`${FRONTEND_URL}/login?error=access_denied`);
+    return;
+  }
+
+  if (!code || typeof code !== 'string') {
+    res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+    return;
+  }
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+    return;
+  }
+
+  const redirectUri = `${API_URL}/auth/google/callback`;
+  const oauth2Client = new OAuth2Client(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    if (!tokens.access_token) {
+      res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+      return;
+    }
+
+    const userinfoRes = await axios.get<{ email?: string; given_name?: string; family_name?: string }>(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: `Bearer ${tokens.access_token}` } }
+    );
+    const userinfo = userinfoRes.data;
+
+    if (!userinfo.email) {
+      res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+      return;
+    }
+
+    const profile = {
+      email: userinfo.email,
+      given_name: userinfo.given_name ?? null,
+      family_name: userinfo.family_name ?? null,
+    };
+
+    const result = await authService.loginOrCreateFromGoogle(profile);
+
+    if (!result.success) {
+      if (result.error === 'use_password') {
+        res.redirect(`${FRONTEND_URL}/login?error=use_password`);
+        return;
+      }
+      res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+      return;
+    }
+
+    const { user, token } = result.data!;
+    const role = user.role ?? 'CLIENT';
+    const tokenStr = typeof token === 'string' ? token : '';
+    res.redirect(302, `${FRONTEND_URL}/login?token=${encodeURIComponent(tokenStr)}&role=${encodeURIComponent(role)}`);
+  } catch (err) {
+    console.error('Google OAuth callback error:', err);
+    res.redirect(`${FRONTEND_URL}/login?error=google_failed`);
+  }
 };

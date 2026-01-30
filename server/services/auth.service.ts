@@ -4,7 +4,7 @@ import { ServiceResult, ServiceResponse, success, failure } from './service.resu
 import { User } from '../types/database.types';
 import { generateToken } from './jwt.service';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from './email.service';
-import { getUserByEmail, createUser } from './user.service';
+import { getUserByEmail, getUserByUsername, createUser } from './user.service';
 import crypto from 'crypto';
 import { isValidEmail, isValidPassword } from '../utils/validation';
 import {
@@ -14,6 +14,7 @@ import {
   ResendVerificationRequest,
   ChangePasswordRequest,
   AuthResponse,
+  GoogleProfile,
 } from '../interfaces/auth.interface';
 import { CreateUserRequest } from '../interfaces/user.interface';
 
@@ -122,6 +123,86 @@ export const loginUser = async (
   } catch (error) {
     console.error('Login error:', error);
     return failure('Server error during login');
+  }
+};
+
+/**
+ * Login or create user from Google OAuth profile.
+ * - If user exists with this email and password_hash === 'oauth:google': return { user, token }.
+ * - If user exists but password_hash !== 'oauth:google': return failure('use_password').
+ * - If user does not exist: create user with password_hash 'oauth:google', verified true, then return { user, token }.
+ */
+export const loginOrCreateFromGoogle = async (
+  profile: GoogleProfile
+): Promise<ServiceResponse<AuthResponse>> => {
+  try {
+    if (!profile.email) {
+      return failure('Google profile missing email');
+    }
+
+    const userResult = await getUserByEmail(profile.email);
+
+    if (userResult.success && userResult.data) {
+      const user = userResult.data;
+      if (user.password_hash !== 'oauth:google') {
+        return failure('use_password');
+      }
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        isBrand: user.is_brand,
+        verified: user.verified,
+      });
+      return success({ user, token });
+    }
+
+    // User does not exist: create one
+    const baseUsername = profile.email
+      .split('@')[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'user';
+    const truncated = baseUsername.length > 30 ? baseUsername.substring(0, 30) : baseUsername;
+
+    let username = truncated;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      if (attempt > 0) {
+        username = truncated + '_' + crypto.randomBytes(3).toString('hex');
+      }
+      const usernameCheck = await getUserByUsername(username);
+      if (!usernameCheck.success) {
+        break;
+      }
+    }
+
+    const createUserRequest: CreateUserRequest = {
+      email: profile.email,
+      username,
+      first_name: profile.given_name?.trim() || 'User',
+      last_name: profile.family_name?.trim() || '',
+      password_hash: 'oauth:google',
+      age_range: '25-34',
+      verified: true,
+      is_brand: false,
+    };
+
+    const createResult = await createUser(createUserRequest);
+    if (!createResult.success || !createResult.data) {
+      return failure(createResult.error || 'Error creating user');
+    }
+
+    const user = createResult.data;
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      isBrand: user.is_brand,
+      verified: user.verified,
+    });
+    return success({ user, token });
+  } catch (error) {
+    console.error('loginOrCreateFromGoogle error:', error);
+    return failure('Server error during Google sign-in');
   }
 };
 
