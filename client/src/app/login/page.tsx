@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { Suspense, useRef, useState, useEffect } from "react";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
@@ -31,7 +31,15 @@ const sampleTestimonials: Testimonial[] = [
   },
 ];
 
-export default function LoginPage() {
+function LoginPageFallback() {
+  return (
+    <div className="bg-background relative min-h-screen flex items-center justify-center">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toasterRef = useRef<ToasterRef>(null);
@@ -203,5 +211,13 @@ export default function LoginPage() {
         onCreateAccount={handleCreateAccount}
       />
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginPageFallback />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
