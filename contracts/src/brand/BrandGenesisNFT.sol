@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.33;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {ERC721URIStorageUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import {ManaRoles} from "../constants/ManaRoles.sol";
 
 /**
  * @title BrandGenesisNFT
@@ -19,7 +20,6 @@ contract BrandGenesisNFT is
     ERC721Upgradeable,
     ERC721URIStorageUpgradeable
 {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /// @dev Image URL per token (direct link to the NFT image).
     mapping(uint256 => string) private _tokenImageURI;
@@ -51,8 +51,13 @@ contract BrandGenesisNFT is
         __AccessControl_init();
         __ERC721_init(name_, symbol_);
         __ERC721URIStorage_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
-        _grantRole(MINTER_ROLE, admin);
+        _grantRole(ManaRoles.getDefaultAdminRole(), admin);
+        _grantRole(ManaRoles.getMinterRole(), admin);
+    }
+
+    /// @notice Returns the MINTER_ROLE id (for use with hasRole, etc.). See ManaRoles.
+    function MINTER_ROLE() external pure returns (bytes32) {
+        return ManaRoles.getMinterRole();
     }
 
     /**
@@ -63,7 +68,7 @@ contract BrandGenesisNFT is
      * @param uri Optional token metadata URI (can be empty string).
      * @param imageUri Optional direct link to the NFT image (can be empty string).
      */
-    function mint(address to, uint256 tokenId, string calldata uri, string calldata imageUri) external onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 tokenId, string calldata uri, string calldata imageUri) external onlyRole(ManaRoles.getMinterRole()) {
         _mint(to, tokenId);
         if (bytes(uri).length > 0) {
             _setTokenURI(tokenId, uri);
@@ -81,7 +86,7 @@ contract BrandGenesisNFT is
      * @param uri Optional token URI.
      * @param imageUri Optional direct link to the NFT image.
      */
-    function safeMint(address to, uint256 tokenId, string calldata uri, string calldata imageUri) external onlyRole(MINTER_ROLE) {
+    function safeMint(address to, uint256 tokenId, string calldata uri, string calldata imageUri) external onlyRole(ManaRoles.getMinterRole()) {
         _safeMint(to, tokenId);
         if (bytes(uri).length > 0) {
             _setTokenURI(tokenId, uri);
@@ -106,11 +111,11 @@ contract BrandGenesisNFT is
      * @param tokenId Token ID.
      * @param imageUri Direct link to the image.
      */
-    function setTokenImageURI(uint256 tokenId, string calldata imageUri) external onlyRole(MINTER_ROLE) {
+    function setTokenImageURI(uint256 tokenId, string calldata imageUri) external onlyRole(ManaRoles.getMinterRole()) {
         _tokenImageURI[tokenId] = imageUri;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ManaRoles.getDefaultAdminRole()) {}
 
     function _baseURI() internal pure override returns (string memory) {
         return "";

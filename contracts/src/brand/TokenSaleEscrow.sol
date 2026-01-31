@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.33;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ITokenSaleEscrow} from "../interfaces/ITokenSaleEscrow.sol";
+import {BaseStablecoins} from "../constants/BaseStablecoins.sol";
 
 /**
  * @title TokenSaleEscrow
  * @author Mana Chain
- * @notice Primary sale of BrandSupportToken for USDC/USDT. Holds funds in escrow; brand claims on success; on cancel, token holders can claim refunds.
- * @dev Implements ITokenSaleEscrow so ManaAdmin can call cancelSaleByAdmin() to enable refunds.
+ * @notice Primary sale of BrandSupportToken in USDC only (Base). Holds funds in escrow; brand claims on success; on cancel, token holders can claim refunds.
+ * @dev Payment token must be the canonical USDC on Base (mainnet or Sepolia testnet). Implements ITokenSaleEscrow so ManaAdmin can call cancelSaleByAdmin().
  */
 contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
     using SafeERC20 for IERC20;
@@ -37,6 +38,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
     bool private _brandClaimed;
 
     error TokenSaleEscrowInvalidConfig();
+    error TokenSaleEscrowOnlyUSDC();
     error TokenSaleEscrowAlreadyClaimed();
     error TokenSaleEscrowNotOpen();
     error TokenSaleEscrowNotClosed();
@@ -57,7 +59,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
     /**
      * @notice Deploys the escrow. Caller must transfer totalForSale support tokens to this contract before sale is effective.
      * @param supportToken_ ERC-20 support token sold.
-     * @param paymentToken_ ERC-20 used for payment (e.g. USDC, USDT).
+     * @param paymentToken_ Must be the canonical USDC on Base (see BaseStablecoins).
      * @param brand_ Address that receives proceeds (minus fee) when sale is closed successfully.
      * @param manaAdmin_ ManaAdmin contract; only it can call cancelSaleByAdmin().
      * @param feeRecipient_ Address that receives platform fee.
@@ -83,6 +85,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
             address(supportToken_) == address(0) || address(paymentToken_) == address(0)
                 || brand_ == address(0) || manaAdmin_ == address(0) || feeRecipient_ == address(0)
         ) revert TokenSaleEscrowInvalidConfig();
+        if (address(paymentToken_) != BaseStablecoins.getUSDC()) revert TokenSaleEscrowOnlyUSDC();
         if (endTime_ <= startTime_ || totalForSale_ == 0 || feeBps_ > 10000) revert TokenSaleEscrowInvalidConfig();
 
         supportToken = supportToken_;

@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.33;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {ITokenSaleEscrow} from "../interfaces/ITokenSaleEscrow.sol";
+import {ManaRoles} from "../constants/ManaRoles.sol";
 
 /**
  * @title ManaAdmin
@@ -12,8 +13,7 @@ import {ITokenSaleEscrow} from "../interfaces/ITokenSaleEscrow.sol";
  *      Upgradeable via UUPS; only DEFAULT_ADMIN_ROLE can upgrade. OPERATOR_ROLE can manage brands and cancel sales but cannot upgrade.
  */
 contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
-    /// @dev Operator can whitelist, blacklist, set fees, cancel sales. Cannot upgrade or grant DEFAULT_ADMIN_ROLE.
-    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
+    /// @dev Operator can whitelist, blacklist, set fees, cancel sales. Cannot upgrade or grant DEFAULT_ADMIN_ROLE. See ManaRoles.
 
     /// @dev Fee in basis points (e.g. 500 = 5%). Applied to primary sales (support token, tickets).
     uint256 private _feePercentPrimary;
@@ -59,9 +59,14 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
     function initialize(address admin) external initializer {
         if (admin == address(0)) revert ManaAdminZeroAddress();
         __AccessControl_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(ManaRoles.getDefaultAdminRole(), admin);
         // Optionally grant OPERATOR_ROLE to admin so one address can do everything initially
-        _grantRole(OPERATOR_ROLE, admin);
+        _grantRole(ManaRoles.getOperatorRole(), admin);
+    }
+
+    /// @notice Returns the OPERATOR_ROLE id (for use with hasRole, etc.). See ManaRoles.
+    function OPERATOR_ROLE() external pure returns (bytes32) {
+        return ManaRoles.getOperatorRole();
     }
 
     // ---------- Whitelist / Blacklist ----------
@@ -72,7 +77,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @param brand Address identifying the brand (e.g. brand owner or delegated wallet).
      * @param allowed True to whitelist, false to remove from whitelist.
      */
-    function setBrandWhitelisted(address brand, bool allowed) external onlyRole(OPERATOR_ROLE) {
+    function setBrandWhitelisted(address brand, bool allowed) external onlyRole(ManaRoles.getOperatorRole()) {
         _whitelist[brand] = allowed;
         emit BrandWhitelisted(brand, allowed);
     }
@@ -83,7 +88,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @param brand Address identifying the brand.
      * @param banned True to blacklist, false to remove from blacklist.
      */
-    function setBrandBlacklisted(address brand, bool banned) external onlyRole(OPERATOR_ROLE) {
+    function setBrandBlacklisted(address brand, bool banned) external onlyRole(ManaRoles.getOperatorRole()) {
         _blacklist[brand] = banned;
         emit BrandBlacklisted(brand, banned);
     }
@@ -123,7 +128,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Fee is in basis points (e.g. 500 = 5%). Maximum 10000 (100%). Only OPERATOR_ROLE.
      * @param bps Fee in basis points (max 10000).
      */
-    function setFeePrimary(uint256 bps) external onlyRole(OPERATOR_ROLE) {
+    function setFeePrimary(uint256 bps) external onlyRole(ManaRoles.getOperatorRole()) {
         if (bps > 10000) revert ManaAdminFeeExceedsMax(bps);
         uint256 old = _feePercentPrimary;
         _feePercentPrimary = bps;
@@ -135,7 +140,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Fee is in basis points (e.g. 250 = 2.5%). Maximum 10000 (100%). Only OPERATOR_ROLE.
      * @param bps Fee in basis points (max 10000).
      */
-    function setFeeSecondary(uint256 bps) external onlyRole(OPERATOR_ROLE) {
+    function setFeeSecondary(uint256 bps) external onlyRole(ManaRoles.getOperatorRole()) {
         if (bps > 10000) revert ManaAdminFeeExceedsMax(bps);
         uint256 old = _feePercentSecondary;
         _feePercentSecondary = bps;
@@ -147,7 +152,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Only OPERATOR_ROLE. Reverts if recipient is zero address.
      * @param recipient Address that will receive fees from primary and secondary sales.
      */
-    function setFeeRecipient(address recipient) external onlyRole(OPERATOR_ROLE) {
+    function setFeeRecipient(address recipient) external onlyRole(ManaRoles.getOperatorRole()) {
         if (recipient == address(0)) revert ManaAdminZeroAddress();
         address old = _feeRecipient;
         _feeRecipient = recipient;
@@ -185,7 +190,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Only OPERATOR_ROLE. Calls {ITokenSaleEscrow.cancelSaleByAdmin} on the given escrow. The escrow must treat this contract (msg.sender) as the authorized admin. After cancellation, the brand cannot claim funds; holders can call refund on the escrow.
      * @param escrow The TokenSaleEscrow contract to cancel.
      */
-    function cancelTokenSale(ITokenSaleEscrow escrow) external onlyRole(OPERATOR_ROLE) {
+    function cancelTokenSale(ITokenSaleEscrow escrow) external onlyRole(ManaRoles.getOperatorRole()) {
         escrow.cancelSaleByAdmin();
         emit TokenSaleCancelled(address(escrow));
     }
@@ -196,5 +201,5 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Authorizes an upgrade of the proxy implementation. Only DEFAULT_ADMIN_ROLE can upgrade.
      * @param newImplementation Address of the new implementation contract (unused in check but required by interface).
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ManaRoles.getDefaultAdminRole()) {}
 }
