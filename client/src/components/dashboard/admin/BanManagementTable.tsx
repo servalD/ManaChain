@@ -262,7 +262,7 @@ export function BanManagementTable() {
                         {banType === 'users' ? (
                           <div className="flex items-center gap-3">
                             {(ban as UserBan).user_avatar ? (
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
+                              <div className="w-10 h-10 rounded-full bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
                                 <img
                                   src={PinataService.normalizeIpfsUrl((ban as UserBan).user_avatar!)}
                                   alt={(ban as UserBan).user_name}
@@ -274,7 +274,7 @@ export function BanManagementTable() {
                                 />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                                 <span className="text-sm font-bold text-violet-400">
                                   {(ban as UserBan).user_name.charAt(0).toUpperCase()}
                                 </span>
@@ -308,7 +308,7 @@ export function BanManagementTable() {
                                 />
                               </div>
                             ) : (
-                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                                 <span className="text-sm font-bold text-violet-400">
                                   {(ban as BrandBan).brand_name.charAt(0)}
                                 </span>
@@ -394,7 +394,7 @@ export function BanManagementTable() {
                 {banType === 'users' ? (
                   <div className="flex items-center gap-4">
                     {(selectedBan as UserBan).user_avatar ? (
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
+                      <div className="w-16 h-16 rounded-full bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
                         <img
                           src={PinataService.normalizeIpfsUrl((selectedBan as UserBan).user_avatar!)}
                           alt={(selectedBan as UserBan).user_name}
@@ -406,7 +406,7 @@ export function BanManagementTable() {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                      <div className="w-16 h-16 rounded-full bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                         <span className="text-xl font-bold text-violet-400">
                           {(selectedBan as UserBan).user_name.charAt(0).toUpperCase()}
                         </span>
@@ -441,7 +441,7 @@ export function BanManagementTable() {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
+                      <div className="w-16 h-16 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                         <span className="text-xl font-bold text-violet-400">
                           {(selectedBan as BrandBan).brand_name.charAt(0)}
                         </span>
