@@ -1,5 +1,9 @@
 # Token Endpoints
 
+> **Important:** In ManaChain, tokens are community tokens that represent symbolic support and engagement with a brand.  
+> They are **not** designed or presented as financial instruments, securities, or speculative assets.  
+> Any fields such as `current_price`, `total_value` or `purchase` refer to how contributions are accounted for within the platform and **do not** imply any promise of financial return.
+
 ## POST /api/tokens
 
 Create a token for a brand (requires brand account and verified email).

@@ -18,7 +18,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
   const handleInvest = () => {
     toast({
       title: "Coming Soon",
-      description: "Investment feature will be available soon!",
+      description: "Community support via tokens will be available soon. No financial returns are promised.",
       variant: "default",
     });
     onClose();
@@ -32,9 +32,9 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Invest in {brand.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Support {brand.name}</DialogTitle>
           <DialogDescription>
-            You've liked this brand! Would you like to invest and become part of their community?
+            You've liked this brand! Would you like to show your support and become part of their community with a badge?
           </DialogDescription>
         </DialogHeader>
 
@@ -69,7 +69,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 <span className="font-semibold">{brand.tokenSymbol}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Current Price</span>
+                <span className="text-sm text-muted-foreground">Reference Amount per Unit</span>
                 <span className="font-semibold">${brand.tokenPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -80,10 +80,10 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
           ) : (
             <div className="bg-accent/50 rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                This brand hasn't issued tokens yet
+                This brand hasn't issued a badge yet
               </p>
               <p className="text-xs text-muted-foreground">
-                Tokens will be available soon. Stay tuned!
+                Units will be available soon. Stay tuned!
               </p>
             </div>
           )}
@@ -96,7 +96,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 className="w-full bg-linear-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
                 size="lg"
               >
-                Invest Now
+                Support this Brand
               </Button>
             ) : (
               <Button
@@ -105,7 +105,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 size="lg"
                 disabled
               >
-                No Token Available Yet
+                No Badge Available Yet
               </Button>
             )}
             <div className="flex gap-3">
@@ -114,7 +114,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 variant="outline"
                 className="flex-1"
               >
-                Think about it
+                Support
               </Button>
               <Button
                 onClick={handleLater}

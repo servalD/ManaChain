@@ -10,6 +10,7 @@ export interface IUser {
   verified: boolean;
   is_brand: boolean;
   role?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
+  password_changed?: boolean;
   created_at: string;
   updated_at: string;
 }

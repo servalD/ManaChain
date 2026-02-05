@@ -91,7 +91,7 @@ export default function BrandApplicationPage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
   const [interests, setInterests] = useState<Interest[]>([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('GB'); // UK par défaut
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('US'); // +1 par défaut
 
   // Fetch interests on mount
   useEffect(() => {

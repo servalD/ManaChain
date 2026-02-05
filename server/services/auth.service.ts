@@ -333,7 +333,7 @@ export const changePassword = async (
 
     const { error: updateError } = await supabase
       .from('user')
-      .update({ password_hash: newPasswordHash })
+      .update({ password_hash: newPasswordHash, password_changed: true })
       .eq('id', userId);
 
     if (updateError) {

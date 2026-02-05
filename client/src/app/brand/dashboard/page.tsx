@@ -22,6 +22,16 @@ export default function BrandDashboardPage() {
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
   useEffect(() => {
+    if (user?.role === "BRANDUSER" && user?.password_changed === false) {
+      router.replace("/brand/change-password-required");
+      return;
+    }
+  }, [user, router]);
+
+  useEffect(() => {
+    if (user?.role === "BRANDUSER" && user?.password_changed === false) {
+      return;
+    }
     const fetchBrandData = async () => {
       setIsLoadingBrand(true);
       try {

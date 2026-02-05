@@ -27,7 +27,7 @@ const sampleTestimonials: Testimonial[] = [
     avatarSrc: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
     name: "David Martinez",
     handle: "@davidcreates",
-    text: "Community tokens changed everything for our brand. The engagement is unprecedented!"
+    text: "Community badges changed everything for our brand. The engagement is unprecedented!"
   },
 ];
 
@@ -143,8 +143,8 @@ function LoginPageContent() {
       const result = await AuthService.login(email, password);
 
       if (result && result.user) {
-        // Redirect based on user role
-        const redirectPath = getRedirectPathByRole(result.user.role);
+        // Redirect based on user role; brands with password_changed=false must set password first
+        const redirectPath = getRedirectPathByRole(result.user.role, result.user);
         setTimeout(() => {
           router.push(redirectPath);
         }, 1000);
@@ -154,12 +154,12 @@ function LoginPageContent() {
     }
   };
 
-  const getRedirectPathByRole = (role?: string): string => {
+  const getRedirectPathByRole = (role?: string, user?: { password_changed?: boolean }): string => {
     switch (role) {
       case 'CLIENT':
         return '/discover';
       case 'BRANDUSER':
-        return '/brand/dashboard';
+        return user?.password_changed === false ? '/brand/change-password-required' : '/brand/dashboard';
       case 'ADMIN':
         return '/admin/dashboard';
       default:
@@ -202,7 +202,7 @@ function LoginPageContent() {
             />
           </div>
         }
-        description="Sign in to access your community tokens and engage with your favorite brands"
+        description="Sign in to access your community badges and engage with your favorite brands"
         heroImageSrc="/event.png"
         testimonials={sampleTestimonials}
         onSignIn={handleSignIn}

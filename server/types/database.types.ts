@@ -27,6 +27,7 @@ export interface Database {
           password_reset_expires: string | null;
           is_brand: boolean;
           role: UserRole;
+          password_changed: boolean;
           last_login: string | null;
           created_at: string;
           updated_at: string;
@@ -68,6 +69,7 @@ export interface Database {
           password_reset_expires?: string | null;
           is_brand?: boolean;
           role?: UserRole;
+          password_changed?: boolean;
           created_at?: string;
           updated_at?: string;
         };

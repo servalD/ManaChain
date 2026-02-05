@@ -287,7 +287,7 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
                         No token available yet
                       </p>
                       <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                        This brand hasn't issued tokens yet
+                        This brand hasn't issued units yet
                       </p>
                     </div>
                   )}

@@ -163,7 +163,7 @@ export default function RegisterPage() {
             />
           </div>
         }
-        description="Create your account and discover community tokens from your favorite brands"
+        description="Create your account and discover community badges from your favorite brands"
         heroImageSrc="/event.png"
         interests={availableInterests}
         onSignUp={handleSignUp}

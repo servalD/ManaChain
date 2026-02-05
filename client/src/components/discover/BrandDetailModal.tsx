@@ -217,9 +217,9 @@ export function BrandDetailModal({
                   <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
                 </div>
               ) : (
-                <div className="flex flex-col max-h-[85vh] overflow-hidden">
+                <div className="flex flex-col max-h-[85vh] overflow-hidden min-h-0">
                   {/* ——— Mobile: single column (name, then photos, then content) ——— */}
-                  <div className="flex flex-col md:hidden">
+                  <div className="flex flex-col md:hidden min-h-0 flex-1">
                     {/* 1. Brand name + logo (top) */}
                     <div className="shrink-0 p-6 pb-4 border-b border-border">
                       <div className="flex items-center gap-4">
@@ -378,8 +378,11 @@ export function BrandDetailModal({
                       </div>
                     )}
 
-                    {/* 3. About + Token + Website (mobile scrollable) */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* 3. About + Badge + Website (mobile scrollable) */}
+                    <div
+                      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6 space-y-6 overscroll-contain touch-pan-y"
+                      style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+                    >
                     {/* About */}
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -390,10 +393,10 @@ export function BrandDetailModal({
                       </p>
                     </div>
 
-                    {/* Token Info */}
+                    {/* Badge Info */}
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-3">
-                        Token Information
+                        Badge Information
                       </h3>
                       {brand.hasToken ? (
                         <div className="p-4 bg-accent/50 rounded-lg border border-border">
@@ -452,9 +455,9 @@ export function BrandDetailModal({
                               />
                             </svg>
                             <div>
-                              <p className="font-medium">No token available</p>
+                              <p className="font-medium">No badge available</p>
                               <p className="text-sm">
-                                This brand hasn't issued tokens yet
+                                This brand hasn't issued badges yet
                               </p>
                             </div>
                           </div>
@@ -573,7 +576,7 @@ export function BrandDetailModal({
                         )}
                       </div>
                     </div>
-                    {/* Right: name + About + Token + Website + Gallery */}
+                    {/* Right: name + About + Badge + Website + Gallery */}
                     <div className="flex-1 overflow-y-auto flex flex-col min-w-0">
                       <div className="p-6 pb-4 border-b border-border shrink-0">
                         <div className="flex items-center gap-4">
@@ -679,9 +682,9 @@ export function BrandDetailModal({
                                   />
                                 </svg>
                                 <div>
-                                  <p className="font-medium">No token available</p>
+                                  <p className="font-medium">No badge available</p>
                                   <p className="text-sm">
-                                    This brand hasn&apos;t issued tokens yet
+                                    This brand hasn&apos;t issued badges yet
                                   </p>
                                 </div>
                               </div>

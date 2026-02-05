@@ -139,7 +139,7 @@ export function ContactInformation({
             >
               {COUNTRY_PHONE_CODES.map((country) => (
                 <option key={country.code} value={country.code}>
-                  {country.flag} {country.dialCode}
+                  {country.flag} {country.dialCode} {country.code}
                 </option>
               ))}
             </select>

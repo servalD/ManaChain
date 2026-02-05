@@ -147,9 +147,8 @@ export function Hero() {
 
               {/* Description */}
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                Issue a <span style={{ color: '#FFD700' }} className="font-semibold">community token</span>, 
-                raise funds in a <span className="text-violet-400 font-semibold">decentralized</span> way, 
-                and offer a new form of authentic engagement.
+                Get a <span style={{ color: '#FFD700' }} className="font-semibold">community badge</span>{" "}
+                to show your support and take part in a new form of <span className="text-fuchsia-400 font-semibold">authentic engagement</span> with the brands you care about.
               </p>
 
               {/* Decorative elements */}

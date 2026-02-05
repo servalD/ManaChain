@@ -216,7 +216,7 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
           <div>
             <h3 className="text-lg font-semibold mb-2">Create & Fractionalize Your NFT</h3>
             <p className="text-sm text-muted-foreground">
-              Create a unique NFT representing your brand and fractionalize it into tokens for your community.
+              Create a unique NFT representing your brand and fractionalize it into badges for your community.
             </p>
           </div>
 
@@ -280,7 +280,7 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
               
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Token Symbol</label>
+                  <label className="text-sm font-medium mb-2 block">Badge Symbol</label>
                   <input
                     type="text"
                     placeholder="BRAND"
@@ -353,7 +353,7 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
           <div>
             <h2 className="text-2xl font-bold mb-1">{brandName}</h2>
             <p className="text-sm text-muted-foreground">
-              Track your token holders and community engagement
+              Track your supports and community engagement
             </p>
           </div>
         </div>
@@ -479,13 +479,13 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
         </ResponsiveContainer>
       </div>
 
-      {/* Token Information */}
+      {/* Badge Information */}
       <div className="border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Token Symbol</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Badge Symbol</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">In Circulation</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Holders</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Base Price</th>

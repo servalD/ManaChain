@@ -46,6 +46,7 @@ export function Navbar({
         return [
           { label: "Discover", href: "/discover" },
           { label: "Dashboard", href: "/dashboard" },
+          { label: "Feed", href: "/feed" },
           { label: "Events", href: "/events" },
         ];
       case 'BRANDUSER':
@@ -186,6 +187,7 @@ export function Navbar({
           {navItems.map((item) => {
             const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
                             currentPage === "discover" && item.href.includes("/discover") ||
+                            currentPage === "feed" && item.href.includes("/feed") ||
                             currentPage === "events" && item.href.includes("/events") ||
                             currentPage === "brands" && item.href.includes("/brands") ||
                             (item.href === "/" && currentPage === "");

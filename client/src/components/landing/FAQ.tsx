@@ -9,24 +9,53 @@ export function FAQ() {
 
   const faqs = [
     {
-      question: "What is a community token?",
-      answer: "A community token is a fractionable digital representation of your brand or project. It allows your supporters to show their engagement and benefit from exclusive advantages, while helping you raise funds in an innovative way.",
+      question: "What is a community badge?",
+      answer:
+        "A community badge is a digital representation of a brand or project. You can hold units of a badge to show your level of engagement and benefit from exclusive advantages. It does not constitute an investment.",
       color: "#7E22CE"
     },
     {
-      question: "How can I create my token?",
-      answer: "Creation is simple and fast! Sign up, fill in your brand information, customize your token (name, symbol, supply), and launch your community in minutes. No technical skills required.",
+      question: "How can I create my community badge?",
+      answer:
+        "Creation is simple and fast! Sign up, fill in your brand information, customize your badge (name, symbol, supply), and launch your community in minutes. No technical skills required.",
       color: "#C026D3"
     },
     {
       question: "How do supporters benefit?",
-      answer: "Token holders access exclusive events, discounts, votes on brand decisions, and can even see the value of their tokens increase with your project's success. It's a win-win engagement!",
+      answer:
+        "Badge holders (those who hold units of a brand's badge) access exclusive events, discounts, and can take part in the life of the brand (for example through votes or community interactions). Badges do not promise any financial return nor are legally binding in any way: they are a way to recognize and structure engagement over time.",
       color: "#4338CA"
     },
     {
       question: "Is it secure?",
-      answer: "Absolutely! We use blockchain technology to ensure security, transparency and traceability of all transactions. Your tokens and funds are protected by audited smart contracts.",
+      answer:
+        "Absolutely! We use blockchain technology to ensure security, transparency and traceability of all transactions. Your badge units and funds are protected by audited smart contracts.",
       color: "#D946EF"
+    },
+    {
+      question: "Is ManaChain a financial investment platform?",
+      answer:
+        "No. ManaChain is not an investment platform and community badges are not designed or presented as financial instruments or securities. They do not promise any financial return and are meant to structure symbolic, long-term engagement between brands and their communities.",
+      color: "#7E22CE"
+    },
+
+    {
+      question: "Do I need technical knowledge to use ManaChain?",
+      answer:
+        "No. The experience is designed for everyday users, not experts. You don’t need to understand blockchain, wallets, or how it works under the hood. You simply browse brands, support the ones you care about, and access the benefits defined by each brand.",
+      color: "#4338CA"
+    },
+    {
+      question: "Can I stop supporting a brand later?",
+      answer:
+        "Yes. You remain free to stop engaging with a brand at any time. Depending on how each project is configured, you may still hold your badge units or transfer them. In all cases, there is no obligation to continue using the platform or to maintain a specific level of support.",
+      color: "#7E22CE"
+    },
+    {
+      question: "Who can join ManaChain as a brand?",
+      answer:
+        "ManaChain is open to brands and projects at different stages of maturity, including those with low visibility or just starting out. The goal is to help them meet relevant audiences, structure their communities, and turn diffuse interest into a clear, long-term engagement path.",
+      color: "#C026D3"
     }
   ];
 

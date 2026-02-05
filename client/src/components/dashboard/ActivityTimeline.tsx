@@ -111,14 +111,14 @@ export function ActivityTimeline() {
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-fuchsia-500" />
-            <span className="text-sm text-muted-foreground">Tokens</span>
+            <span className="text-sm text-muted-foreground">Supports</span>
           </div>
           <div className="text-2xl font-bold">{totalTokens}</div>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-muted-foreground">Events</span>
+            <span className="text-sm text-muted-foreground">Events Attended</span>
           </div>
           <div className="text-2xl font-bold">{totalEvents}</div>
         </div>
@@ -155,7 +155,7 @@ export function ActivityTimeline() {
                   fontWeight: 600,
                 }}
                 formatter={(value: number | undefined, name: string | undefined) => {
-                  const label = name === "likes" ? "Likes" : name === "tokens" ? "Tokens" : "Events";
+                  const label = name === "likes" ? "Likes" : name === "tokens" ? "Supports" : "Events Attended";
                   return [value ?? 0, label];
                 }}
               />
@@ -163,7 +163,7 @@ export function ActivityTimeline() {
                 wrapperStyle={{ paddingTop: "20px" }}
                 iconType="line"
                 formatter={(value: string) => {
-                  return value === "likes" ? "Likes" : value === "tokens" ? "Tokens" : "Events";
+                  return value === "likes" ? "Likes" : value === "tokens" ? "Supports" : "Events Attended";
                 }}
               />
               <Line 

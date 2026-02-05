@@ -71,17 +71,17 @@ The `SQL/init.sql` file contains the complete database schema. Execute it in Sup
 
 ### Tokens
 
-- `POST /api/tokens` - Create a token (authenticated, brand, verified)
-- `GET /api/tokens/:id` - Token details
-- `GET /api/tokens/brand/:brandId` - Brand's token
-- `PUT /api/tokens/:id/price` - Update price (authenticated, brand, owner)
-- `GET /api/tokens/:id/holders` - List holders
-- `GET /api/tokens/:id/balance` - My balance for this token (authenticated)
-- `POST /api/tokens/:id/transfer` - Transfer tokens (authenticated, verified)
-- `POST /api/tokens/:id/purchase` - Purchase tokens (authenticated, verified)
-- `GET /api/tokens/:id/transactions` - Transaction history
-- `GET /api/tokens/my/transactions` - My transactions (authenticated)
-- `GET /api/tokens/my/portfolio` - My portfolio (authenticated)
+- `POST /api/tokens` - Create a community token (authenticated, brand, verified)
+- `GET /api/tokens/:id` - Community token details
+- `GET /api/tokens/brand/:brandId` - Brand's community token
+- `PUT /api/tokens/:id/price` - Update reference amount / unit value (authenticated, brand, owner)
+- `GET /api/tokens/:id/holders` - List holders (supporters)
+- `GET /api/tokens/:id/balance` - My balance for this community token (authenticated)
+- `POST /api/tokens/:id/transfer` - Transfer community tokens between users (authenticated, verified)
+- `POST /api/tokens/:id/purchase` - Acquire community tokens as a form of support (authenticated, verified)
+- `GET /api/tokens/:id/transactions` - Community token transaction history
+- `GET /api/tokens/my/transactions` - My community token transactions (authenticated)
+- `GET /api/tokens/my/portfolio` - My community token holdings (authenticated)
 
 ## 🔐 Authentication
 

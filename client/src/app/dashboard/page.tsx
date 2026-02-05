@@ -108,7 +108,7 @@ export default function ClientDashboardPage() {
             {/* Portfolio Value Chart */}
             <PortfolioValueChart />
 
-            {/* User Likes and My Tokens Section */}
+            {/* User Likes and My Badges Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <UserLikes />
               <MyTokens />

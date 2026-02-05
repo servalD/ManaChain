@@ -80,42 +80,42 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
 }) => {
   const stepsData = [
     {
-      icon: <Zap className="h-6 w-6" />,
-      title: "Create Your Token",
+      icon: <Search className="h-6 w-6" />,
+      title: "Discover Brands",
       description:
-        "In just a few clicks, issue your symbolic support token. Simplified process, no technical skills required.",
+        "Swipe through brands and discover projects that match your interests. Simple, intuitive, and fun.",
       benefits: [
-        "Smart token creation with customizable parameters",
-        "Automatic blockchain integration",
-        "Real-time token tracking and analytics",
+        "Personalized recommendations based on your preferences",
+        "Discover emerging brands and creators",
+        "Explore at your own pace",
       ],
       color: "text-violet-500",
       iconBgColor: "bg-violet-500/20",
       dotColor: "bg-violet-500",
     },
     {
-      icon: <Layers className="h-6 w-6" />,
-      title: "Unite Community",
+      icon: <Zap className="h-6 w-6" />,
+      title: "Get Your Badge",
       description:
-        "Share your project and bring your supporters together. Discussion channels, voting, exclusive events.",
+        "Support the brands you care about and get units of their community badge. Simple, no technical skills required.",
       benefits: [
-        "Engage with your community through discussions",
-        "Organize voting and decision-making",
-        "Access exclusive events and perks",
+        "Show your support with badge units",
+        "Join the community of supporters",
+        "Track your engagement over time",
       ],
       color: "text-fuchsia-500",
       iconBgColor: "bg-fuchsia-500/20",
       dotColor: "bg-fuchsia-500",
     },
     {
-      icon: <Search className="h-6 w-6" />,
-      title: "Generate Revenue",
+      icon: <Layers className="h-6 w-6" />,
+      title: "Enjoy Benefits",
       description:
-        "Transform engagement into value. Tokenization campaigns, premium subscriptions, secondary transactions.",
+        "Access exclusive events, perks, and take part in the life of the brands you support.",
       benefits: [
-        "Launch tokenization campaigns",
-        "Offer premium subscription tiers",
-        "Enable secondary market transactions",
+        "Access exclusive events and experiences",
+        "Get discounts and perks from your brands",
+        "Participate in decisions and shape the community",
       ],
       color: "text-indigo-500",
       iconBgColor: "bg-indigo-500/20",
@@ -144,7 +144,7 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
             How it works
           </ScrollFloat>
           <p className="mt-4 text-lg text-muted-foreground">
-            Support the brands you believe in through decentralized tokenization and community engagement
+            Support the brands you believe in through community badges and engagement
           </p>
         </div>
 

@@ -19,6 +19,3 @@ SET html_content = REPLACE(
   '<img src="{{logoUrl}}" alt="Mana Chain" style="max-width: 200px; height: auto; display: block; margin: 0 auto;" />'
 )
 WHERE html_content LIKE '%<h1>Mana Chain</h1>%';
-
--- After running this, re-send an email to test. If the DB still had old content,
--- the templates now have <img src="{{logoUrl}}" ...> and logoUrl is replaced at send time.

@@ -670,6 +670,7 @@ export const approveBrandApplication = async (
         is_brand: true,
         role: 'BRANDUSER',
         verified: true, // Pre-verified
+        password_changed: false, // Force password change on first login
       })
       .select()
       .single();

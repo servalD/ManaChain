@@ -76,9 +76,9 @@ export function PortfolioValueChart() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold mb-1">Portfolio Value</h2>
+            <h2 className="text-2xl font-bold mb-1">Community Support Over Time</h2>
             <p className="text-sm text-muted-foreground">
-              Track your token portfolio performance
+              See how your overall community support evolves, without any financial or speculative dimension
             </p>
           </div>
           
@@ -86,7 +86,7 @@ export function PortfolioValueChart() {
           <div className="flex items-end gap-4">
             <div>
               <div className="text-3xl font-bold text-foreground">
-                ${currentValue.toLocaleString()}
+                {currentValue.toLocaleString()}
               </div>
               <div className={cn(
                 "flex items-center gap-1 text-sm font-medium",
@@ -146,7 +146,7 @@ export function PortfolioValueChart() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `${value}`}
               />
               <Tooltip
                 contentStyle={{
@@ -159,7 +159,10 @@ export function PortfolioValueChart() {
                   color: "hsl(var(--foreground))",
                   fontWeight: 600,
                 }}
-                formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString()}`, "Value"]}
+                formatter={(value: number | undefined) => [
+                  (value ?? 0).toLocaleString(),
+                  "Support score",
+                ]}
               />
               <Area
                 type="monotone"

@@ -14,9 +14,17 @@ const inputClassName =
 export interface ChangePasswordFormProps {
   /** When set, form is in "reset password" mode (from email link). When null, "change password" (from profile, user is authenticated). */
   resetToken: string | null;
+  /** Custom redirect path after successful password change. Defaults to /profile for change flow, /login for reset flow. */
+  redirectTo?: string;
+  /** Custom title for the form (e.g. for first-login required flow). */
+  title?: string;
+  /** Custom description for the form. */
+  description?: string;
+  /** Hide the back link (e.g. when password change is required before accessing dashboard). */
+  hideBackLink?: boolean;
 }
 
-export function ChangePasswordForm({ resetToken }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ resetToken, redirectTo, title, description, hideBackLink }: ChangePasswordFormProps) {
   const router = useRouter();
   const isResetFlow = !!resetToken;
 
@@ -51,10 +59,10 @@ export function ChangePasswordForm({ resetToken }: ChangePasswordFormProps) {
     try {
       if (isResetFlow && resetToken) {
         const ok = await AuthService.resetPassword(resetToken, newPassword);
-        if (ok) router.push("/login");
+        if (ok) router.push(redirectTo ?? "/login");
       } else {
         const ok = await AuthService.changePassword(newPassword);
-        if (ok) router.push("/profile");
+        if (ok) router.push(redirectTo ?? "/profile");
       }
     } finally {
       setIsSubmitting(false);
@@ -67,13 +75,13 @@ export function ChangePasswordForm({ resetToken }: ChangePasswordFormProps) {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">
             <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-              {isResetFlow ? "Reset password" : "Change password"}
+              {title ?? (isResetFlow ? "Reset password" : "Change password")}
             </span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {isResetFlow
+            {description ?? (isResetFlow
               ? "Enter your new password below."
-              : "Update your password. You will need to sign in again with the new password if you change it."}
+              : "Update your password. You will need to sign in again with the new password if you change it.")}
           </p>
         </div>
 
@@ -138,13 +146,15 @@ export function ChangePasswordForm({ resetToken }: ChangePasswordFormProps) {
               <Lock className="w-4 h-4" />
               {isSubmitting ? "Updating…" : isResetFlow ? "Reset password" : "Update password"}
             </Button>
-            <Link
-              href={isResetFlow ? "/login" : "/profile"}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {isResetFlow ? "Back to login" : "Back to profile"}
-            </Link>
+            {!hideBackLink && (
+              <Link
+                href={redirectTo ?? (isResetFlow ? "/login" : "/profile")}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {redirectTo ? "Back to dashboard" : (isResetFlow ? "Back to login" : "Back to profile")}
+              </Link>
+            )}
           </div>
         </form>
       </div>
