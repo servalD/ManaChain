@@ -18,13 +18,16 @@ interface IManaAdmin {
  * @title BrandFactory
  * @author Mana Chain
  * @notice Deploys the fractionalizable NFT module (Genesis NFT + Vault + Support Token) for whitelisted brands only.
- * @dev Uses ManaAdmin.isBrandAllowed(brand); only the brand address can deploy its own module.
+ * @dev Uses ManaAdmin.isBrandAllowed(brand); only the brand address can deploy its own module. One module per brand.
  */
 contract BrandFactory {
     IManaAdmin public immutable manaAdmin;
     address public immutable genesisNFTImplementation;
     address public immutable vaultImplementation;
     address public immutable tokenImplementation;
+
+    /// @dev brand => true if deployBrandModule was already called for this brand.
+    mapping(address => bool) private _hasDeployed;
 
     event BrandModuleDeployed(
         address indexed brand,
@@ -36,6 +39,7 @@ contract BrandFactory {
     error BrandFactoryBrandNotAllowed();
     error BrandFactoryOnlyBrand();
     error BrandFactoryZeroAddress();
+    error BrandFactoryAlreadyDeployed();
 
     /**
      * @notice Sets ManaAdmin and implementation addresses. Implementations must be deployed and initialized (disabled) beforehand.
@@ -62,9 +66,8 @@ contract BrandFactory {
     }
 
     /**
-     * @notice Deploys the full brand module (Genesis NFT, Vault, Support Token) for a whitelisted brand.
-     * @dev Only callable by the brand; ManaAdmin must have the brand whitelisted and not blacklisted.
-     *      Genesis NFT admin/MINTER is set to the brand so they can mint their Genesis NFT.
+     * @notice Deploys the full brand module (Genesis NFT, Vault, Support Token) for a whitelisted brand. One per brand.
+     * @dev Only callable by the brand; ManaAdmin must have the brand whitelisted. Reverts if this brand already deployed.
      * @param brand Address of the brand (must equal msg.sender).
      * @param nftName Genesis NFT collection name.
      * @param nftSymbol Genesis NFT collection symbol.
@@ -87,6 +90,8 @@ contract BrandFactory {
     ) external returns (address genesisNFT, address vault, address supportToken) {
         if (msg.sender != brand) revert BrandFactoryOnlyBrand();
         if (!manaAdmin.isBrandAllowed(brand)) revert BrandFactoryBrandNotAllowed();
+        if (_hasDeployed[brand]) revert BrandFactoryAlreadyDeployed();
+        _hasDeployed[brand] = true;
 
         // 1) Deploy Genesis NFT proxy (brand is admin + minter)
         bytes memory genesisData = abi.encodeCall(BrandGenesisNFT.initialize, (nftName, nftSymbol, brand));
@@ -107,5 +112,10 @@ contract BrandFactory {
         FractionalVault(vault).setSupportToken(BrandSupportToken(supportToken));
 
         emit BrandModuleDeployed(brand, genesisNFT, vault, supportToken);
+    }
+
+    /// @notice Returns true if the brand has already deployed its module (one per brand).
+    function hasDeployed(address brand) external view returns (bool) {
+        return _hasDeployed[brand];
     }
 }
