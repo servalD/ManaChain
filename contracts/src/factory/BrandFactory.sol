@@ -98,8 +98,8 @@ contract BrandFactory {
         ERC1967Proxy genesisProxy = new ERC1967Proxy(genesisNFTImplementation, genesisData);
         genesisNFT = address(genesisProxy);
 
-        // 2) Deploy Vault proxy (brand is owner)
-        bytes memory vaultData = abi.encodeCall(FractionalVault.initialize, (brand));
+        // 2) Deploy Vault proxy (factory is owner temporarily)
+        bytes memory vaultData = abi.encodeCall(FractionalVault.initialize, (address(this)));
         ERC1967Proxy vaultProxy = new ERC1967Proxy(vaultImplementation, vaultData);
         vault = address(vaultProxy);
 
@@ -110,6 +110,9 @@ contract BrandFactory {
 
         // 4) Link token to vault
         FractionalVault(vault).setSupportToken(BrandSupportToken(supportToken));
+
+        // 5) Transfer vault ownership to brand
+        FractionalVault(vault).transferOwnership(brand);
 
         emit BrandModuleDeployed(brand, genesisNFT, vault, supportToken);
     }
