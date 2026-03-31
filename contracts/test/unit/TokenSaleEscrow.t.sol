@@ -6,6 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {TokenSaleEscrow} from "../../src/brand/TokenSaleEscrow.sol";
 import {BrandSupportToken} from "../../src/brand/BrandSupportToken.sol";
 import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenSaleEscrowTest is Test {
     TokenSaleEscrow public escrow;
@@ -39,7 +40,7 @@ contract TokenSaleEscrowTest is Test {
         BrandSupportToken tokenImpl = new BrandSupportToken();
         bytes memory tokenData = abi.encodeCall(
             BrandSupportToken.initialize,
-            ("Brand Support", "BST", brand, "", TOTAL_FOR_SALE)
+            ("Brand Support", "BST", brand, "", TOTAL_FOR_SALE * 2)
         );
         ERC1967Proxy tokenProxy = new ERC1967Proxy(address(tokenImpl), tokenData);
         supportToken = BrandSupportToken(address(tokenProxy));
@@ -156,18 +157,18 @@ contract TokenSaleEscrowTest is Test {
         assertEq(uint256(escrow.getState()), uint256(TokenSaleEscrow.State.Closed));
     }
 
-    /// @dev H-3 SECURITY: anyone can call endSale after endTime — documents current behavior
-    function test_endSale_anyoneAfterEndTime_currentBehavior() public {
+    /// @dev H-3 SECURITY: TDD Test — Must revert if caller is not brand
+    function test_endSale_anyoneAfterEndTime() public {
         vm.warp(endTime + 1);
         vm.prank(alice); // Not the brand
-        escrow.endSale(); // Should succeed (current behavior — H-3 vulnerability)
-        assertEq(uint256(escrow.getState()), uint256(TokenSaleEscrow.State.Closed));
+        vm.expectRevert(); // Expect revert. Currently doesn't, so test fails!
+        escrow.endSale();
     }
 
     /// @dev H-3: after anyone calls endSale, admin can no longer cancel the sale
-    function test_endSale_blocksAdminCancel() public {
+    function test_endSale_blockAdminCancel() public {
         vm.warp(endTime + 1);
-        vm.prank(alice);
+        vm.prank(brand);
         escrow.endSale();
 
         vm.prank(manaAdmin);
@@ -295,17 +296,40 @@ contract TokenSaleEscrowTest is Test {
         escrow.claimRefund(0);
     }
 
-    /// @dev C-1 SECURITY: drain scenario — if escrow has less USDC than promised refunds, transfer will fail
-    function test_claimRefund_drainScenario_currentBehavior() public {
-        // Alice buys 100 tokens
+    /// @dev C-1 SECURITY: TDD Test — Alice must be able to claim her refund successfully
+    function test_claimRefund_fullDrain() public {
+        // Alice buys 100 tokens, Escrow has 500 USDC
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
         escrow.buy(100);
         vm.stopPrank();
 
-        // Bob buys 100 tokens
-        vm.startPrank(bob);
+        // Admin cancels sale
+        vm.prank(manaAdmin);
+        escrow.cancelSaleByAdmin();
+
+        // Brand uses 100 extra tokens (minted outside sale) to drain refunds
+        vm.prank(brand);
+        supportToken.mint(brand, 100);
+
+        vm.startPrank(brand);
+        supportToken.approve(address(escrow), 100);
+        vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowOnlyBrand.selector);
+        escrow.claimRefund(100);
+        vm.stopPrank();
+
+        // Alice tries to refund her valid 100 tokens
+        vm.startPrank(alice);
+        supportToken.approve(address(escrow), 100);
+        escrow.claimRefund(100); // Should succeed! Will currently REVERT (test fails) because contract is drained
+        vm.stopPrank();
+    }
+
+    /// @dev C-1 SECURITY: doubleRefund fails because tokens are reclaimed by contract
+    function test_claimRefund_doubleRefund() public {
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
         escrow.buy(100);
         vm.stopPrank();
@@ -313,16 +337,62 @@ contract TokenSaleEscrowTest is Test {
         vm.prank(manaAdmin);
         escrow.cancelSaleByAdmin();
 
-        // Alice claims refund (drains USDC)
         vm.startPrank(alice);
         supportToken.approve(address(escrow), 100);
         escrow.claimRefund(100);
+
+        // Try second refund without tokens
+        vm.expectRevert(); // safeTransferFrom fails
+        escrow.claimRefund(100);
+        vm.stopPrank();
+    }
+
+    /// @dev C-1 SECURITY: proRata refund logic - transferred tokens refund correct owner
+    function test_claimRefund_proRata() public {
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
+        usdc.approve(address(escrow), 500e6);
+        escrow.buy(100);
+        
+        // Alice transfers half to Bob
+        supportToken.transfer(bob, 50);
         vm.stopPrank();
 
-        // Alice tries to claim again with more support tokens — would succeed without fix (C-1)
-        // because there's still USDC (from bob's purchase) in the contract
-        // This test documents that there's no tracking of who already claimed
-        assertEq(usdc.balanceOf(address(escrow)), 500e6); // Bob's USDC still there
-        assertEq(supportToken.balanceOf(alice), 0);
+        vm.prank(manaAdmin);
+        escrow.cancelSaleByAdmin();
+
+        // Bob claims 50
+        uint256 bobBalBefore = usdc.balanceOf(bob);
+        vm.startPrank(bob);
+        supportToken.approve(address(escrow), 50);
+        escrow.claimRefund(50);
+        vm.stopPrank();
+        assertEq(usdc.balanceOf(bob) - bobBalBefore, 250e6); // Half refund
+    }
+
+    /// @dev M-2 SECURITY: buy without deposit
+    function test_buy_withoutDeposit() public {
+        // Deploy a new escrow without sending support tokens
+        TokenSaleEscrow badEscrow = new TokenSaleEscrow(
+            IERC20(address(supportToken)),
+            IERC20(address(usdc)),
+            brand,
+            manaAdmin,
+            feeRecipient,
+            PRICE,
+            100,
+            startTime,
+            endTime,
+            500
+        );
+
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
+        usdc.approve(address(badEscrow), 500e6);
+        
+        // Buy fails because contract has no support tokens to transfer
+        vm.expectRevert(); // safeTransfer fails
+        badEscrow.buy(100);
+        vm.stopPrank();
     }
 }

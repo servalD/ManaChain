@@ -5,6 +5,14 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ManaAdmin} from "../../src/access/ManaAdmin.sol";
 import {ManaRoles} from "../../src/constants/ManaRoles.sol";
+import {ITokenSaleEscrow} from "../../src/interfaces/ITokenSaleEscrow.sol";
+
+contract MockValidEscrow is ITokenSaleEscrow {
+    function cancelSaleByAdmin() external {}
+    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+        return interfaceId == type(ITokenSaleEscrow).interfaceId || interfaceId == 0x01ffc9a7;
+    }
+}
 
 contract ManaAdminTest is Test {
     ManaAdmin public admin;
@@ -125,6 +133,27 @@ contract ManaAdminTest is Test {
         vm.prank(alice);
         vm.expectRevert();
         admin.setFeePrimary(100);
+    }
+
+    // ─── cancelTokenSale ──────────────────────────────────────────
+
+    /// @dev M-1 SECURITY: TDD Test — Must revert if escrow is unknown
+    function test_cancelTokenSale_unknownEscrow() public {
+        address maliciousEscrow = makeAddr("maliciousEscrow");
+        
+        vm.mockCall(maliciousEscrow, abi.encodeWithSelector(ITokenSaleEscrow.cancelSaleByAdmin.selector), "");
+
+        vm.prank(operator);
+        vm.expectRevert(); // Needs to revert! Currently doesn't, so test fails.
+        admin.cancelTokenSale(ITokenSaleEscrow(maliciousEscrow));
+    }
+
+    /// @dev M-1 SECURITY: Valid scenario documentation
+    function test_cancelTokenSale_validEscrow() public {
+        MockValidEscrow validEscrow = new MockValidEscrow();
+
+        vm.prank(operator);
+        admin.cancelTokenSale(ITokenSaleEscrow(address(validEscrow)));
     }
 
     // ─── UUPS Upgrade ─────────────────────────────────────────────

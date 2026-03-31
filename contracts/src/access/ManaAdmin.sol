@@ -4,6 +4,7 @@ pragma solidity ^0.8.33;
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {ERC165Checker} from "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import {ITokenSaleEscrow} from "../interfaces/ITokenSaleEscrow.sol";
 import {ManaRoles} from "../constants/ManaRoles.sol";
 
@@ -42,6 +43,7 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
 
     error ManaAdminZeroAddress();
     error ManaAdminFeeExceedsMax(uint256 bps);
+    error ManaAdminUnknownEscrow();
 
     /**
      * @dev Disables initializers so the implementation contract cannot be initialized (only the proxy can call {initialize}).
@@ -191,6 +193,9 @@ contract ManaAdmin is Initializable, AccessControlUpgradeable, UUPSUpgradeable {
      * @param escrow The TokenSaleEscrow contract to cancel.
      */
     function cancelTokenSale(ITokenSaleEscrow escrow) external onlyRole(ManaRoles.getOperatorRole()) {
+        if (!ERC165Checker.supportsInterface(address(escrow), type(ITokenSaleEscrow).interfaceId)) {
+            revert ManaAdminUnknownEscrow();
+        }
         escrow.cancelSaleByAdmin();
         emit TokenSaleCancelled(address(escrow));
     }

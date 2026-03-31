@@ -4,6 +4,7 @@ pragma solidity ^0.8.33;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ITokenSaleEscrow} from "../interfaces/ITokenSaleEscrow.sol";
 import {BaseStablecoins} from "../constants/BaseStablecoins.sol";
 
@@ -13,7 +14,7 @@ import {BaseStablecoins} from "../constants/BaseStablecoins.sol";
  * @notice Primary sale of BrandSupportToken in USDC only (Base). Holds funds in escrow; brand claims on success; on cancel, token holders can claim refunds.
  * @dev Payment token must be the canonical USDC on Base (mainnet or Sepolia testnet). Implements ITokenSaleEscrow so ManaAdmin can call cancelSaleByAdmin().
  */
-contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
+contract TokenSaleEscrow is ERC165, ReentrancyGuard, ITokenSaleEscrow {
     using SafeERC20 for IERC20;
 
     enum State {
@@ -35,6 +36,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
 
     State private _state;
     uint256 private _soldAmount;
+    uint256 private _refundedAmount;
     bool private _brandClaimed;
 
     error TokenSaleEscrowInvalidConfig();
@@ -48,6 +50,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
     error TokenSaleEscrowInsufficientSupply();
     error TokenSaleEscrowTimeWindow();
     error TokenSaleEscrowZeroAmount();
+    error TokenSaleEscrowRefundExceedsSold();
 
     event Bought(address indexed buyer, uint256 amount, uint256 paid);
     event SaleClosed();
@@ -125,7 +128,7 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
      */
     function endSale() external {
         if (_state != State.Open) revert TokenSaleEscrowNotOpen();
-        if (msg.sender != brand && block.timestamp <= endTime) revert TokenSaleEscrowTimeWindow();
+        if (msg.sender != brand) revert TokenSaleEscrowOnlyBrand();
         _state = State.Closed;
         emit SaleClosed();
     }
@@ -175,8 +178,11 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
      */
     function claimRefund(uint256 amount) external nonReentrant {
         if (_state != State.Cancelled) revert TokenSaleEscrowNotCancelled();
+        if (msg.sender == brand) revert TokenSaleEscrowOnlyBrand(); // Using this as error to prevent brand drain
         if (amount == 0) revert TokenSaleEscrowZeroAmount();
+        if (_refundedAmount + amount > _soldAmount) revert TokenSaleEscrowRefundExceedsSold();
 
+        _refundedAmount += amount;
         uint256 refund = amount * pricePerToken;
         supportToken.safeTransferFrom(msg.sender, address(this), amount);
         paymentToken.safeTransfer(msg.sender, refund);
@@ -190,5 +196,9 @@ contract TokenSaleEscrow is ReentrancyGuard, ITokenSaleEscrow {
 
     function getSoldAmount() external view returns (uint256) {
         return _soldAmount;
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(ITokenSaleEscrow).interfaceId || super.supportsInterface(interfaceId);
     }
 }

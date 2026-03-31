@@ -131,12 +131,25 @@ contract FractionalVaultTest is Test {
         vault.burnSupport(alice, 50e18);
     }
 
-    /// @dev C-2 SECURITY: vault burns without approval from `from` — documents the current (unfixed) behavior.
-    function test_burnSupport_noApprovalNeeded_currentBehavior() public {
+    /// @dev C-2 SECURITY: TDD Test — Must revert if no approval is given
+    function test_burnSupport_withoutApproval() public {
         vm.prank(brandOwner);
         vault.mintSupport(alice, 100e18);
 
-        // Owner burns alice's tokens without alice's approval — current behavior (C-2 faille)
+        // Owner burns alice's tokens without alice's approval -> MUST REVERT
+        vm.prank(brandOwner);
+        vm.expectRevert(); // Expect revert. Currently fails the test since contract is vulnerable!
+        vault.burnSupport(alice, 100e18);
+    }
+
+    /// @dev Documenting standard functionality (even though approval isn't actually required yet)
+    function test_burnSupport_withApproval() public {
+        vm.prank(brandOwner);
+        vault.mintSupport(alice, 100e18);
+
+        vm.prank(alice);
+        token.approve(address(vault), 100e18);
+
         vm.prank(brandOwner);
         vault.burnSupport(alice, 100e18);
         assertEq(token.balanceOf(alice), 0);

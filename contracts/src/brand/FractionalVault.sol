@@ -101,7 +101,12 @@ contract FractionalVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      */
     function burnSupport(address from, uint256 amount) external onlyOwner {
         if (address(_supportToken) == address(0)) revert FractionalVaultTokenNotSet();
-        _supportToken.burn(from, amount);
+        if (from != msg.sender) {
+            _supportToken.transferFrom(from, address(this), amount);
+            _supportToken.burn(address(this), amount);
+        } else {
+            _supportToken.burn(from, amount);
+        }
         emit SupportBurned(from, amount);
     }
 

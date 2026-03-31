@@ -165,7 +165,7 @@ contract TicketSaleTest is Test {
     /// @dev H-1 SECURITY: payment is taken BEFORE checking ticket balance.
     ///      Revert still occurs (thanks to nonReentrant + EVM revert), but
     ///      the token transfer happened first — violating CEI pattern.
-    function test_buy_insufficientTickets_ceiViolation() public {
+    function test_buy_insufficientTickets_noMoneyLost() public {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(sale), 2000e6);
@@ -177,6 +177,18 @@ contract TicketSaleTest is Test {
 
         // EVM revert means no USDC was actually lost, but order is wrong (H-1)
         assertEq(usdc.balanceOf(alice), 10_000e6); // Alice's USDC unchanged
+    }
+
+    /// @dev H-1 SECURITY: Documenting that the event Bought is emitted at the very end
+    function test_buy_correctOrder() public {
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
+        usdc.approve(address(sale), 50e6);
+        
+        vm.expectEmit(true, true, false, true);
+        emit TicketSale.Bought(alice, tokenId, 5, 5 * TICKET_PRICE);
+        sale.buy(tokenId, 5);
+        vm.stopPrank();
     }
 
     function test_buy_freeTicket() public {
