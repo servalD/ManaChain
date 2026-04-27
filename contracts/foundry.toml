@@ -15,9 +15,11 @@ fs_permissions = [{ access = "read-write", path = "./config/" }]
 [rpc_endpoints]
 base          = "https://mainnet.base.org"
 base_sepolia  = "https://sepolia.base.org"
+avalanche     = "https://api.avax.network/ext/bc/C/rpc"
+fuji          = "https://api.avax-test.network/ext/bc/C/rpc"
 
 [etherscan]
 base         = { key = "${ETHERSCAN_API_KEY}", url = "https://api.basescan.org/api" }
 base_sepolia = { key = "${ETHERSCAN_API_KEY}", url = "https://api-sepolia.basescan.org/api" }
-
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+avalanche = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=43114" }
+fuji = { key = "${ETHERSCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=43113" }

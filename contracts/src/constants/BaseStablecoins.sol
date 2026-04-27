@@ -12,14 +12,14 @@ library BaseStablecoins {
     address internal constant USDC_BASE_MAINNET = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
 
     /// @dev USDC on Base Sepolia Testnet
-    address internal constant USDC_BASE_TESTNET = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
+    address internal constant USDC_BASE_TESTNET = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
 
     error BaseStablecoinsUnsupportedChain();
 
     /// @dev Base Mainnet chain ID
-    uint256 internal constant CHAIN_ID_BASE_MAINNET = 8453;
+    uint256 internal constant CHAIN_ID_BASE_MAINNET = 43113;
     /// @dev Base Sepolia Testnet chain ID
-    uint256 internal constant CHAIN_ID_BASE_SEPOLIA = 84532;
+    uint256 internal constant CHAIN_ID_BASE_SEPOLIA = 43113;
 
     /**
      * @notice Returns the USDC address for the current chain.

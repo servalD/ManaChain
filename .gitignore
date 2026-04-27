@@ -5,3 +5,4 @@
 /contracts/out
 **/dist
 **/next-env.d.ts
+/contracts/broadcast

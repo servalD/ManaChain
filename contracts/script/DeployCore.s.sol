@@ -10,6 +10,7 @@ import {BrandSupportToken} from "../src/brand/BrandSupportToken.sol";
 import {EventTickets} from "../src/events/EventTickets.sol";
 import {BrandFactory, IManaAdmin as IBrandAdmin} from "../src/factory/BrandFactory.sol";
 import {EventFactory, IManaAdmin as IEventAdmin} from "../src/factory/EventFactory.sol";
+import {ManaRoles} from "../src/constants/ManaRoles.sol";
 import {DeployConfig} from "./helpers/DeployConfig.sol";
 
 /**
@@ -33,18 +34,28 @@ contract DeployCore is DeployConfig {
 
         vm.startBroadcast();
 
-        // ManaAdmin — implementation then UUPS proxy
+        // Initialize with the broadcaster so fee setters work in this same transaction batch.
+        // Roles are transferred to cfg.addr below if it differs from the broadcaster.
+        address broadcaster = msg.sender;
+
         ManaAdmin manaAdminImpl = new ManaAdmin();
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(manaAdminImpl),
-            abi.encodeCall(ManaAdmin.initialize, (cfg.addr))
+            abi.encodeCall(ManaAdmin.initialize, (broadcaster))
         );
         ManaAdmin manaAdmin = ManaAdmin(address(proxy));
 
-        // Configure fees (broadcaster must hold OPERATOR_ROLE, granted to cfg.addr on init)
         manaAdmin.setFeePrimary(cfg.feePrimaryBps);
         manaAdmin.setFeeSecondary(cfg.feeSecondaryBps);
         manaAdmin.setFeeRecipient(cfg.feeRecipient);
+
+        // Transfer admin control to the intended admin if different from the broadcaster
+        if (cfg.addr != broadcaster) {
+            manaAdmin.grantRole(ManaRoles.getDefaultAdminRole(), cfg.addr);
+            manaAdmin.grantRole(ManaRoles.getOperatorRole(), cfg.addr);
+            manaAdmin.renounceRole(ManaRoles.getDefaultAdminRole(), broadcaster);
+            manaAdmin.renounceRole(ManaRoles.getOperatorRole(), broadcaster);
+        }
 
         // UUPS implementations — constructors call _disableInitializers()
         BrandGenesisNFT genesisNFTImpl  = new BrandGenesisNFT();
