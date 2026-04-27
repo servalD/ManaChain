@@ -1,0 +1,47 @@
+{
+  "admin": {
+    "address": "0x0000000000000000000000000000000000000000",
+    "feeRecipient": "0x0000000000000000000000000000000000000000",
+    "feePrimaryBps": 500,
+    "feeSecondaryBps": 250
+  },
+  "brand": {
+    "address": "0x0000000000000000000000000000000000000000",
+    "nftName": "My Brand Genesis",
+    "nftSymbol": "MBG",
+    "tokenName": "My Brand Token",
+    "tokenSymbol": "MBT",
+    "tokenImageUri": "",
+    "totalSupplyCap": "0"
+  },
+  "event": {
+    "uri": "https://api.example.com/event/{id}.json"
+  },
+  "tokenSale": {
+    "pricePerToken": "1000000",
+    "totalForSale": "1000000000000000000000",
+    "startTime": 1700000000,
+    "endTime": 1700086400
+  },
+  "ticketSale": {
+    "startTime": 1700000000,
+    "endTime": 1700086400,
+    "freeEvent": false
+  },
+  "deployed": {
+    "manaAdminImpl": "0x0000000000000000000000000000000000000000",
+    "manaAdminProxy": "0x0000000000000000000000000000000000000000",
+    "genesisNFTImpl": "0x0000000000000000000000000000000000000000",
+    "vaultImpl": "0x0000000000000000000000000000000000000000",
+    "supportTokenImpl": "0x0000000000000000000000000000000000000000",
+    "eventTicketsImpl": "0x0000000000000000000000000000000000000000",
+    "brandFactory": "0x0000000000000000000000000000000000000000",
+    "eventFactory": "0x0000000000000000000000000000000000000000",
+    "genesisNFT": "0x0000000000000000000000000000000000000000",
+    "vault": "0x0000000000000000000000000000000000000000",
+    "supportToken": "0x0000000000000000000000000000000000000000",
+    "eventTickets": "0x0000000000000000000000000000000000000000",
+    "tokenSaleEscrow": "0x0000000000000000000000000000000000000000",
+    "ticketSale": "0x0000000000000000000000000000000000000000"
+  }
+}
