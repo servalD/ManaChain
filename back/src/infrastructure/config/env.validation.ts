@@ -23,6 +23,21 @@ export const envSchema = z.object({
   // nouveau back valide les jetons déjà émis (bascule strangler sans re-login).
   APP_JWT_SECRET: z.string().min(16),
   APP_JWT_EXPIRES_IN: z.string().default('7d'),
+
+  // URLs front / API (liens emails, redirections OAuth).
+  FRONTEND_URL: z.string().default('http://localhost:3000'),
+  API_URL: z.string().default('http://localhost:3001/api'),
+
+  // SMTP (emails transactionnels). Si non configuré → mode simulation (log).
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().default('noreply@mana-chain.com'),
+
+  // Google OAuth. Si absent → l'endpoint /auth/google renvoie une erreur claire.
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

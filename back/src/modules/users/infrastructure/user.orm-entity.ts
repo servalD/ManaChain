@@ -56,6 +56,18 @@ export class UserOrmEntity {
   @Column({ type: 'boolean', default: true })
   passwordChanged: boolean;
 
+  @Column({ type: 'text', nullable: true })
+  emailVerificationToken: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  emailVerificationExpires: Date | null;
+
+  @Column({ type: 'text', nullable: true })
+  passwordResetToken: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  passwordResetExpires: Date | null;
+
   @Column({ type: 'timestamptz', nullable: true })
   lastLogin: Date | null;
 

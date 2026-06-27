@@ -1,18 +1,37 @@
 import { randomUUID } from 'node:crypto';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
-import { UpdateUserFields, UserRepository } from '../domain/user.repository';
+import {
+  CreateGoogleUserParams,
+  CreateLocalUserParams,
+  OAUTH_GOOGLE_PASSWORD_SENTINEL,
+  UpdateUserFields,
+  UserCredentials,
+  UserRepository,
+  UserWithTokenExpiry,
+} from '../domain/user.repository';
 import { UserNotFoundError } from '../domain/user.errors';
+
+interface TokenEntry {
+  token: string;
+  expiresAt: Date | null;
+}
 
 /**
  * Fake {@link UserRepository} en mémoire pour les tests unitaires (use-cases) et
  * les overrides e2e. Aucune dépendance externe : tests rapides et déterministes.
+ * Les secrets (hash, tokens) sont stockés à part, hors du modèle {@link User}.
  */
 export class InMemoryUserRepository extends UserRepository {
   private readonly users = new Map<string, User>();
+  private readonly passwordHashes = new Map<string, string>();
+  private readonly emailVerify = new Map<string, TokenEntry>();
+  private readonly passwordReset = new Map<string, TokenEntry>();
 
   /** Helper de test : précharge un user (champs optionnels par défaut). */
-  seed(partial: Partial<User> & { id?: string } = {}): User {
+  seed(
+    partial: Partial<User> & { id?: string; passwordHash?: string } = {},
+  ): User {
     const now = new Date();
     const user = new User(
       partial.id ?? randomUUID(),
@@ -31,8 +50,13 @@ export class InMemoryUserRepository extends UserRepository {
       partial.updatedAt ?? now,
     );
     this.users.set(user.id, user);
+    if (partial.passwordHash !== undefined) {
+      this.passwordHashes.set(user.id, partial.passwordHash);
+    }
     return user;
   }
+
+  // --- Profil ---
 
   findById(id: string): Promise<User | null> {
     return Promise.resolve(this.users.get(id) ?? null);
@@ -55,52 +79,162 @@ export class InMemoryUserRepository extends UserRepository {
   }
 
   updateProfile(id: string, fields: UpdateUserFields): Promise<User> {
-    const existing = this.users.get(id);
-    if (!existing) {
-      throw new UserNotFoundError(id);
-    }
-    const updated = new User(
-      existing.id,
-      existing.email,
-      fields.username ?? existing.username,
-      fields.firstName ?? existing.firstName,
-      fields.lastName ?? existing.lastName,
-      existing.ageRange,
-      fields.avatarUrl !== undefined ? fields.avatarUrl : existing.avatarUrl,
-      existing.blockchainAddress,
-      existing.verified,
-      existing.isBrand,
-      existing.role,
-      existing.lastLogin,
-      existing.createdAt,
-      new Date(),
+    return Promise.resolve(
+      this.cloneWith(id, {
+        username: fields.username,
+        firstName: fields.firstName,
+        lastName: fields.lastName,
+        avatarUrl: fields.avatarUrl,
+      }),
     );
-    this.users.set(id, updated);
-    return Promise.resolve(updated);
   }
 
   updateBlockchainAddress(id: string, address: string): Promise<User> {
-    const existing = this.users.get(id);
-    if (!existing) {
+    return Promise.resolve(this.cloneWith(id, { blockchainAddress: address }));
+  }
+
+  // --- Auth ---
+
+  findByEmail(email: string): Promise<User | null> {
+    const found = [...this.users.values()].find((u) => u.email === email);
+    return Promise.resolve(found ?? null);
+  }
+
+  findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
+    const user = [...this.users.values()].find((u) => u.email === email);
+    if (!user) return Promise.resolve(null);
+    return Promise.resolve({
+      user,
+      passwordHash: this.passwordHashes.get(user.id) ?? '',
+    });
+  }
+
+  createLocal(params: CreateLocalUserParams): Promise<User> {
+    const user = this.seed({
+      email: params.email,
+      username: params.username,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      ageRange: params.ageRange,
+      verified: false,
+      role: Role.CLIENT,
+      passwordHash: params.passwordHash,
+    });
+    this.emailVerify.set(user.id, {
+      token: params.emailVerificationToken,
+      expiresAt: params.emailVerificationExpires,
+    });
+    return Promise.resolve(user);
+  }
+
+  createGoogle(params: CreateGoogleUserParams): Promise<User> {
+    const user = this.seed({
+      email: params.email,
+      username: params.username,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      verified: true,
+      role: Role.CLIENT,
+      passwordHash: OAUTH_GOOGLE_PASSWORD_SENTINEL,
+    });
+    return Promise.resolve(user);
+  }
+
+  findByEmailVerificationToken(
+    token: string,
+  ): Promise<UserWithTokenExpiry | null> {
+    return Promise.resolve(this.findByToken(this.emailVerify, token));
+  }
+
+  setEmailVerificationToken(
+    id: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    this.emailVerify.set(id, { token, expiresAt });
+    return Promise.resolve();
+  }
+
+  markEmailVerified(id: string): Promise<User> {
+    const user = this.cloneWith(id, { verified: true });
+    this.emailVerify.delete(id);
+    return Promise.resolve(user);
+  }
+
+  findByPasswordResetToken(token: string): Promise<UserWithTokenExpiry | null> {
+    return Promise.resolve(this.findByToken(this.passwordReset, token));
+  }
+
+  setPasswordResetToken(
+    id: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    this.passwordReset.set(id, { token, expiresAt });
+    return Promise.resolve();
+  }
+
+  updatePassword(id: string, passwordHash: string): Promise<User> {
+    if (!this.users.has(id)) {
+      throw new UserNotFoundError(id);
+    }
+    this.passwordHashes.set(id, passwordHash);
+    this.passwordReset.delete(id);
+    return Promise.resolve(this.users.get(id)!);
+  }
+
+  // --- Helpers ---
+
+  private findByToken(
+    store: Map<string, TokenEntry>,
+    token: string,
+  ): UserWithTokenExpiry | null {
+    for (const [userId, entry] of store.entries()) {
+      if (entry.token === token) {
+        const user = this.users.get(userId);
+        if (user) return { user, expiresAt: entry.expiresAt };
+      }
+    }
+    return null;
+  }
+
+  private cloneWith(
+    id: string,
+    changes: Partial<
+      Pick<
+        User,
+        | 'username'
+        | 'firstName'
+        | 'lastName'
+        | 'avatarUrl'
+        | 'blockchainAddress'
+        | 'verified'
+      >
+    >,
+  ): User {
+    const e = this.users.get(id);
+    if (!e) {
       throw new UserNotFoundError(id);
     }
     const updated = new User(
-      existing.id,
-      existing.email,
-      existing.username,
-      existing.firstName,
-      existing.lastName,
-      existing.ageRange,
-      existing.avatarUrl,
-      address,
-      existing.verified,
-      existing.isBrand,
-      existing.role,
-      existing.lastLogin,
-      existing.createdAt,
+      e.id,
+      e.email,
+      changes.username ?? e.username,
+      changes.firstName ?? e.firstName,
+      changes.lastName ?? e.lastName,
+      e.ageRange,
+      changes.avatarUrl !== undefined ? changes.avatarUrl : e.avatarUrl,
+      changes.blockchainAddress !== undefined
+        ? changes.blockchainAddress
+        : e.blockchainAddress,
+      changes.verified ?? e.verified,
+      e.isBrand,
+      e.role,
+      e.lastLogin,
+      e.createdAt,
       new Date(),
     );
     this.users.set(id, updated);
-    return Promise.resolve(updated);
+    return updated;
   }
 }
