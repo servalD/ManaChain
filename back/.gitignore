@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+dist
+coverage
+
+# Env (secrets) — garder uniquement les *.example
+.env
+.env.*
+!.env.example
+!.env.dev.example
+!.env.test.example
+
+# Logs / OS
+*.log
+.DS_Store

@@ -1,0 +1,23 @@
+# PostgreSQL éphémère pour les tests e2e. Utilise tmpfs (en mémoire, sans
+# persistance) et un port isolé (5433) pour cohabiter avec la base de dev.
+#
+#   docker compose -f back/docker/docker-compose.test.yml up -d
+#   pnpm --dir back test:e2e
+#   docker compose -f back/docker/docker-compose.test.yml down
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: manachain_db_test
+    environment:
+      POSTGRES_DB: manachain_test
+      POSTGRES_USER: manachain_test
+      POSTGRES_PASSWORD: manachain_test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U manachain_test -d manachain_test']
+      interval: 2s
+      timeout: 3s
+      retries: 15

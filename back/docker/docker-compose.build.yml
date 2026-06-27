@@ -1,0 +1,9 @@
+# Construit l'image de production du back en local (réutilisable en CI).
+#   BACK_IMAGE=... docker compose -f back/docker/docker-compose.build.yml build
+services:
+  back:
+    image: ${BACK_IMAGE:-ghcr.io/your-org/manachain-back:latest}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: runner
