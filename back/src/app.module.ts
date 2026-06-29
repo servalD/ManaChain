@@ -9,6 +9,7 @@ import { AuthGuard } from './shared/guards/auth.guard';
 import { RolesGuard } from './shared/guards/roles.guard';
 import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
 import { HealthController } from './health.controller';
+import { LikesModule } from './modules/likes/likes.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { HealthController } from './health.controller';
     DatabaseModule,
     UsersModule,
     AuthModule,
+    LikesModule,
   ],
   controllers: [HealthController],
   providers: [

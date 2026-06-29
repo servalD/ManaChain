@@ -3,6 +3,7 @@ import { config as loadEnv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
+import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
 
 // DataSource autonome utilisé UNIQUEMENT par la CLI TypeORM (migration:generate
 // / run / revert). L'app, elle, passe par DatabaseModule. Garder les deux alignés.
@@ -15,7 +16,7 @@ export default new DataSource({
   database: process.env.DATABASE_NAME ?? 'manachain',
   username: process.env.DATABASE_USER ?? 'postgres',
   password: process.env.DATABASE_PASSWORD ?? 'postgres',
-  entities: [UserOrmEntity],
+  entities: [UserOrmEntity, BrandLikeOrmEntity],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,

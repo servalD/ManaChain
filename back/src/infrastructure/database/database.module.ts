@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Env } from '../config/env.validation';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
+import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -26,7 +27,7 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
         database: config.get('DATABASE_NAME', { infer: true }),
         username: config.get('DATABASE_USER', { infer: true }),
         password: config.get('DATABASE_PASSWORD', { infer: true }),
-        entities: [UserOrmEntity],
+        entities: [UserOrmEntity, BrandLikeOrmEntity],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),
         // Le schéma est la propriété des migrations, jamais auto-synchronisé.
