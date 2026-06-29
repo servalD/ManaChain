@@ -8,6 +8,9 @@ import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-lik
 import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from '../../modules/brands/infrastructure/brand-application.orm-entity';
 import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-media.orm-entity';
+import { BrandTokenOrmEntity } from '../../modules/tokens/infrastructure/brand-token.orm-entity';
+import { TokenHolderOrmEntity } from '../../modules/tokens/infrastructure/token-holder.orm-entity';
+import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/token-transaction.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -36,6 +39,9 @@ import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-m
           BrandOrmEntity,
           BrandApplicationOrmEntity,
           BrandMediaOrmEntity,
+          BrandTokenOrmEntity,
+          TokenHolderOrmEntity,
+          TokenTransactionOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),

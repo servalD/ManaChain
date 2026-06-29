@@ -11,6 +11,7 @@ import { DomainExceptionFilter } from './shared/filters/domain-exception.filter'
 import { HealthController } from './health.controller';
 import { LikesModule } from './modules/likes/likes.module';
 import { BrandsModule } from './modules/brands/brands.module';
+import { TokensModule } from './modules/tokens/tokens.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BrandsModule } from './modules/brands/brands.module';
     AuthModule,
     LikesModule,
     BrandsModule,
+    TokensModule,
   ],
   controllers: [HealthController],
   providers: [

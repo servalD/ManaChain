@@ -7,6 +7,9 @@ import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-lik
 import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from '../../modules/brands/infrastructure/brand-application.orm-entity';
 import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-media.orm-entity';
+import { BrandTokenOrmEntity } from '../../modules/tokens/infrastructure/brand-token.orm-entity';
+import { TokenHolderOrmEntity } from '../../modules/tokens/infrastructure/token-holder.orm-entity';
+import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/token-transaction.orm-entity';
 
 // DataSource autonome utilisé UNIQUEMENT par la CLI TypeORM (migration:generate
 // / run / revert). L'app, elle, passe par DatabaseModule. Garder les deux alignés.
@@ -25,6 +28,9 @@ export default new DataSource({
     BrandOrmEntity,
     BrandApplicationOrmEntity,
     BrandMediaOrmEntity,
+    BrandTokenOrmEntity,
+    TokenHolderOrmEntity,
+    TokenTransactionOrmEntity,
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   namingStrategy: new SnakeNamingStrategy(),
