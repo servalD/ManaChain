@@ -10,6 +10,7 @@ import { RolesGuard } from './shared/guards/roles.guard';
 import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
 import { HealthController } from './health.controller';
 import { LikesModule } from './modules/likes/likes.module';
+import { BrandsModule } from './modules/brands/brands.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { LikesModule } from './modules/likes/likes.module';
     UsersModule,
     AuthModule,
     LikesModule,
+    BrandsModule,
   ],
   controllers: [HealthController],
   providers: [

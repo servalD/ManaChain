@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from '../users/users.module';
+import { EmailModule } from '../../infrastructure/email/email.module';
 import { AuthController } from './presentation/auth.controller';
 // Ports
 import { PasswordHasher } from './application/ports/password-hasher.port';
@@ -30,7 +31,7 @@ import { GoogleCallbackUseCase } from './application/use-cases/google-callback.u
  * lie chaque port à son adapter, et expose `AuthenticateBearerUseCase` au guard global.
  */
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, EmailModule],
   controllers: [AuthController],
   providers: [
     // Ports → adapters
@@ -51,6 +52,8 @@ import { GoogleCallbackUseCase } from './application/use-cases/google-callback.u
     GoogleLoginUseCase,
     GoogleCallbackUseCase,
   ],
-  exports: [AuthenticateBearerUseCase],
+  // PasswordHasher + SecureTokenGenerator réutilisés par le module brands
+  // (création du compte BRANDUSER, token de vérification de candidature).
+  exports: [AuthenticateBearerUseCase, PasswordHasher, SecureTokenGenerator],
 })
 export class AuthModule {}

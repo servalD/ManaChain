@@ -45,6 +45,19 @@ export interface CreateGoogleUserParams {
   lastName: string;
 }
 
+/**
+ * Données pour créer un compte BRANDUSER à l'approbation d'une candidature :
+ * pré-vérifié, `is_brand=true`, `password_changed=false` (changement forcé au
+ * 1er login).
+ */
+export interface CreateBrandUserParams {
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  passwordHash: string;
+}
+
 /** Résultat d'une recherche par token (vérif email / reset), avec l'expiration. */
 export interface UserWithTokenExpiry {
   user: User;
@@ -93,4 +106,12 @@ export abstract class UserRepository {
   ): Promise<void>;
   /** Remplace le hash, force `password_changed=true` et purge le token de reset. */
   abstract updatePassword(id: string, passwordHash: string): Promise<User>;
+
+  // --- Brands (jalon 3) ---
+  /** Positionne le flag `is_brand` (création/suppression d'une marque). */
+  abstract setBrandFlag(id: string, isBrand: boolean): Promise<void>;
+  /** Crée le compte BRANDUSER lié à une candidature approuvée. */
+  abstract createBrandUser(params: CreateBrandUserParams): Promise<User>;
+  /** Emails de tous les utilisateurs ADMIN (notification de candidature). */
+  abstract findAdminEmails(): Promise<string[]>;
 }

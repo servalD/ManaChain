@@ -5,6 +5,9 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Env } from '../config/env.validation';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
 import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
+import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
+import { BrandApplicationOrmEntity } from '../../modules/brands/infrastructure/brand-application.orm-entity';
+import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-media.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -27,7 +30,13 @@ import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-lik
         database: config.get('DATABASE_NAME', { infer: true }),
         username: config.get('DATABASE_USER', { infer: true }),
         password: config.get('DATABASE_PASSWORD', { infer: true }),
-        entities: [UserOrmEntity, BrandLikeOrmEntity],
+        entities: [
+          UserOrmEntity,
+          BrandLikeOrmEntity,
+          BrandOrmEntity,
+          BrandApplicationOrmEntity,
+          BrandMediaOrmEntity,
+        ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),
         // Le schéma est la propriété des migrations, jamais auto-synchronisé.

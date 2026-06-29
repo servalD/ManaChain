@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
 import {
+  CreateBrandUserParams,
   CreateGoogleUserParams,
   CreateLocalUserParams,
   OAUTH_GOOGLE_PASSWORD_SENTINEL,
@@ -181,6 +182,35 @@ export class InMemoryUserRepository extends UserRepository {
     this.passwordHashes.set(id, passwordHash);
     this.passwordReset.delete(id);
     return Promise.resolve(this.users.get(id)!);
+  }
+
+  // --- Brands ---
+
+  setBrandFlag(): Promise<void> {
+    // Le flag is_brand n'est pas modélisé dans le fake (non pertinent pour les tests).
+    return Promise.resolve();
+  }
+
+  createBrandUser(params: CreateBrandUserParams): Promise<User> {
+    const user = this.seed({
+      email: params.email,
+      username: params.username,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      verified: true,
+      isBrand: true,
+      role: Role.BRANDUSER,
+      passwordHash: params.passwordHash,
+    });
+    return Promise.resolve(user);
+  }
+
+  findAdminEmails(): Promise<string[]> {
+    return Promise.resolve(
+      [...this.users.values()]
+        .filter((u) => u.role === Role.ADMIN)
+        .map((u) => u.email),
+    );
   }
 
   // --- Helpers ---

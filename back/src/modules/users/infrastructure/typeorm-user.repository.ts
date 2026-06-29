@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
 import {
+  CreateBrandUserParams,
   CreateGoogleUserParams,
   CreateLocalUserParams,
   OAUTH_GOOGLE_PASSWORD_SENTINEL,
@@ -196,6 +197,37 @@ export class TypeOrmUserRepository extends UserRepository {
       },
     );
     return this.getOrThrow(id);
+  }
+
+  // --- Brands ---
+
+  async setBrandFlag(id: string, isBrand: boolean): Promise<void> {
+    await this.repository.update({ id }, { isBrand });
+  }
+
+  async createBrandUser(params: CreateBrandUserParams): Promise<User> {
+    const created = this.repository.create({
+      email: params.email,
+      username: params.username,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      passwordHash: params.passwordHash,
+      ageRange: '18-24',
+      verified: true,
+      isBrand: true,
+      role: Role.BRANDUSER,
+      passwordChanged: false,
+    });
+    const saved = await this.repository.save(created);
+    return this.toDomain(saved);
+  }
+
+  async findAdminEmails(): Promise<string[]> {
+    const admins = await this.repository.find({
+      where: { role: Role.ADMIN },
+      select: { email: true },
+    });
+    return admins.map((a) => a.email);
   }
 
   // --- Helpers ---
