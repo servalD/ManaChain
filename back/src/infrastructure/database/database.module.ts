@@ -1,8 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Env } from '../config/env.validation';
+import { TransactionRunner } from '../../shared/application/transaction-runner';
+import { DatabaseContext } from './database-context';
+import { TypeOrmTransactionRunner } from './typeorm-transaction-runner';
 import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entity';
 import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
 import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
@@ -20,7 +23,11 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
  *
  * Les entités sont enregistrées au fil des modules migrés ; ajouter ici la
  * nouvelle ORM entity à chaque module (et dans `typeorm.config.ts`).
+ *
+ * `@Global` : expose `DatabaseContext` (contexte transactionnel ambiant) et le
+ * port `TransactionRunner` à toute l'application sans réimport.
  */
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -52,5 +59,10 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
       }),
     }),
   ],
+  providers: [
+    DatabaseContext,
+    { provide: TransactionRunner, useClass: TypeOrmTransactionRunner },
+  ],
+  exports: [DatabaseContext, TransactionRunner],
 })
 export class DatabaseModule {}

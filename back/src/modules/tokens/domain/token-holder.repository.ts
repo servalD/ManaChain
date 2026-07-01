@@ -11,6 +11,14 @@ export interface PortfolioEntry {
 export abstract class TokenHolderRepository {
   /** Solde d'un user pour un token (0 s'il n'est pas détenteur). */
   abstract getBalance(userId: string, tokenId: string): Promise<number>;
+  /**
+   * Comme {@link getBalance}, mais pose un verrou pessimiste sur la ligne (anti
+   * lost-update). À utiliser dans une transaction avant un débit/crédit.
+   */
+  abstract getBalanceForUpdate(
+    userId: string,
+    tokenId: string,
+  ): Promise<number>;
   /** Crée ou met à jour le solde (valeur absolue). */
   abstract setBalance(
     userId: string,

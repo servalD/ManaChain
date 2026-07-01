@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { TokenTransaction } from '../domain/token-transaction';
 import {
   RecordTransactionParams,
@@ -11,11 +11,12 @@ import { TokenTransactionOrmEntity } from './token-transaction.orm-entity';
 /** Adapter TypeORM du port {@link TokenTransactionRepository}. */
 @Injectable()
 export class TypeOrmTokenTransactionRepository extends TokenTransactionRepository {
-  constructor(
-    @InjectRepository(TokenTransactionOrmEntity)
-    private readonly repository: Repository<TokenTransactionOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<TokenTransactionOrmEntity> {
+    return this.db.getRepository(TokenTransactionOrmEntity);
   }
 
   async record(params: RecordTransactionParams): Promise<void> {
@@ -26,6 +27,8 @@ export class TypeOrmTokenTransactionRepository extends TokenTransactionRepositor
         toUserId: params.toUserId,
         amount: String(params.amount),
         transactionType: params.transactionType,
+        pricePerToken:
+          params.pricePerToken != null ? String(params.pricePerToken) : null,
       }),
     );
   }
@@ -74,6 +77,7 @@ export class TypeOrmTokenTransactionRepository extends TokenTransactionRepositor
       e.toUserId,
       Number(e.amount),
       e.transactionType,
+      e.pricePerToken != null ? Number(e.pricePerToken) : null,
       e.createdAt,
     );
   }

@@ -41,7 +41,8 @@ export class InMemoryBrandRepository extends BrandRepository {
   }
 
   list(params: ListBrandsParams): Promise<{ brands: Brand[]; total: number }> {
-    const all = [...this.brands.values()];
+    const excluded = new Set(params.excludeBrandIds ?? []);
+    const all = [...this.brands.values()].filter((b) => !excluded.has(b.id));
     return Promise.resolve({
       brands: all.slice(params.offset, params.offset + params.limit),
       total: all.length,

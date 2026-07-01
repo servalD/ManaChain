@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { BrandApplication } from '../domain/brand-application';
 import {
   ApplicationWithExpiry,
@@ -20,11 +20,12 @@ const ACTIVE_STATUSES = ['pending', 'approved', 'needs_review'];
 /** Adapter TypeORM du port {@link BrandApplicationRepository}. */
 @Injectable()
 export class TypeOrmBrandApplicationRepository extends BrandApplicationRepository {
-  constructor(
-    @InjectRepository(BrandApplicationOrmEntity)
-    private readonly repository: Repository<BrandApplicationOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<BrandApplicationOrmEntity> {
+    return this.db.getRepository(BrandApplicationOrmEntity);
   }
 
   async isRegistrationNumberTaken(num: string): Promise<boolean> {

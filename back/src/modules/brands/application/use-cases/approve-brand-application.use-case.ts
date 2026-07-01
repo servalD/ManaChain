@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 import { PasswordHasher } from '../../../auth/application/ports/password-hasher.port';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { BrandApplicationRepository } from '../../domain/brand-application.repository';
@@ -21,9 +22,9 @@ export interface ApproveResult {
  * la marque (avec ses interests), marque la candidature approuvée, et envoie les
  * identifiants par email.
  *
- * NB : l'opération n'est pas transactionnelle entre repos (pas de rollback
- * automatique en cas d'échec partiel) — à renforcer avec une transaction
- * lorsque les modules concernés partageront un DataSource.
+ * Compte + marque + statut candidature sont écrits ATOMIQUEMENT ({@link
+ * TransactionRunner}) : un échec partiel (ex. nom de marque déjà pris) annule
+ * tout, sans laisser de compte orphelin. L'email est envoyé APRÈS le commit.
  */
 @Injectable()
 export class ApproveBrandApplicationUseCase {
@@ -34,6 +35,7 @@ export class ApproveBrandApplicationUseCase {
     private readonly passwordHasher: PasswordHasher,
     private readonly passwordGenerator: TemporaryPasswordGenerator,
     private readonly mailer: BrandApplicationMailer,
+    private readonly tx: TransactionRunner,
   ) {}
 
   async execute(
@@ -56,34 +58,38 @@ export class ApproveBrandApplicationUseCase {
     const passwordHash = await this.passwordHasher.hash(temporaryPassword);
     const username = await this.uniqueUsername(application.brandName);
 
-    const user = await this.userRepository.createBrandUser({
-      email: application.contactEmail,
-      username,
-      firstName: application.contactFirstName,
-      lastName: application.contactLastName,
-      passwordHash,
+    const result = await this.tx.run(async () => {
+      const user = await this.userRepository.createBrandUser({
+        email: application.contactEmail,
+        username,
+        firstName: application.contactFirstName,
+        lastName: application.contactLastName,
+        passwordHash,
+      });
+
+      const interestIds =
+        await this.applicationRepository.findInterestIds(applicationId);
+
+      const brand = await this.brandRepository.create({
+        ownerId: user.id,
+        name: application.brandName,
+        description: application.description,
+        logoUrl: application.logoUrl,
+        websiteUrl: application.websiteUrl,
+        businessRegistrationNumber: application.businessRegistrationNumber,
+        country: application.country,
+        headquartersStreet: application.headquartersStreet,
+        headquartersCity: application.headquartersCity,
+        headquartersZipCode: application.headquartersZipCode,
+        headquartersAddressComplement:
+          application.headquartersAddressComplement,
+        socialMedias: application.socialMediaLinks,
+        interestIds,
+      });
+
+      await this.applicationRepository.approve(applicationId, adminUserId);
+      return { userId: user.id, brandId: brand.id };
     });
-
-    const interestIds =
-      await this.applicationRepository.findInterestIds(applicationId);
-
-    const brand = await this.brandRepository.create({
-      ownerId: user.id,
-      name: application.brandName,
-      description: application.description,
-      logoUrl: application.logoUrl,
-      websiteUrl: application.websiteUrl,
-      businessRegistrationNumber: application.businessRegistrationNumber,
-      country: application.country,
-      headquartersStreet: application.headquartersStreet,
-      headquartersCity: application.headquartersCity,
-      headquartersZipCode: application.headquartersZipCode,
-      headquartersAddressComplement: application.headquartersAddressComplement,
-      socialMedias: application.socialMediaLinks,
-      interestIds,
-    });
-
-    await this.applicationRepository.approve(applicationId, adminUserId);
 
     try {
       await this.mailer.sendApproved(
@@ -96,7 +102,7 @@ export class ApproveBrandApplicationUseCase {
       /* email non bloquant */
     }
 
-    return { userId: user.id, brandId: brand.id };
+    return result;
   }
 
   /** Normalise le nom de marque en username unique (suffixe incrémental si pris). */

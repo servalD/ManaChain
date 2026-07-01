@@ -27,6 +27,10 @@ export class TokenTransactionOrmEntity {
   @Column({ type: 'text' })
   transactionType: TokenTransactionType;
 
+  /** Prix unitaire à l'achat (null hors `purchase`). */
+  @Column({ type: 'decimal', precision: 20, scale: 8, nullable: true })
+  pricePerToken: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 }

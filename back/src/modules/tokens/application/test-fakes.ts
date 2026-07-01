@@ -13,6 +13,14 @@ import {
 } from '../domain/token-transaction.repository';
 import { BrandLookup } from '../domain/brand-lookup';
 import { BlockchainGateway } from '../domain/blockchain-gateway';
+import { TransactionRunner } from '../../../shared/application/transaction-runner';
+
+/** Exécute le bloc sans vraie transaction (les fakes in-memory suffisent). */
+export class FakeTransactionRunner extends TransactionRunner {
+  run<T>(work: () => Promise<T>): Promise<T> {
+    return work();
+  }
+}
 
 export class InMemoryTokenRepository extends TokenRepository {
   private readonly tokens = new Map<string, Token>();
@@ -94,6 +102,9 @@ export class InMemoryTokenHolderRepository extends TokenHolderRepository {
   }
   getBalance(userId: string, tokenId: string): Promise<number> {
     return Promise.resolve(this.balances.get(this.key(userId, tokenId)) ?? 0);
+  }
+  getBalanceForUpdate(userId: string, tokenId: string): Promise<number> {
+    return this.getBalance(userId, tokenId);
   }
   setBalance(userId: string, tokenId: string, balance: number): Promise<void> {
     this.balances.set(this.key(userId, tokenId), balance);

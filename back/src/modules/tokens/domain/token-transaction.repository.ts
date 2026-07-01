@@ -6,6 +6,8 @@ export interface RecordTransactionParams {
   toUserId: string;
   amount: number;
   transactionType: TokenTransactionType;
+  /** Prix unitaire à l'achat ; null hors `purchase`. */
+  pricePerToken?: number | null;
 }
 
 /** Repository PORT de la table `token_transaction`. */

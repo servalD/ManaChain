@@ -1,34 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { BrandRepository } from '../../domain/brand.repository';
 import { BrandNotFoundError } from '../../domain/brand.errors';
+import {
+  BrandTokenStats,
+  BrandTokenStatsReader,
+} from '../../domain/brand-token-stats.reader';
 
-export interface BrandStats {
-  tokenHolders: number;
-  totalRaised: string;
-  tokenSymbol: string | null;
-  tokenPrice: string | null;
-}
+export type BrandStats = BrandTokenStats;
 
 /**
- * Statistiques d'une marque. **Stub jalon brands** : les vraies valeurs
- * dépendent du module `tokens` (brand_token / token_holder / token_transaction)
- * non encore migré → renvoie des zéros une fois la marque confirmée existante.
- * À rebrancher au jalon `tokens`.
+ * Statistiques d'une marque (token, détenteurs, montant levé). Vérifie l'existence
+ * de la marque puis délègue la lecture des tables `tokens` au
+ * {@link BrandTokenStatsReader} (module `brands` découplé du module `tokens`).
  */
 @Injectable()
 export class GetBrandStatsUseCase {
-  constructor(private readonly brandRepository: BrandRepository) {}
+  constructor(
+    private readonly brandRepository: BrandRepository,
+    private readonly statsReader: BrandTokenStatsReader,
+  ) {}
 
   async execute(brandId: string): Promise<BrandStats> {
     const brand = await this.brandRepository.findById(brandId);
     if (!brand) {
       throw new BrandNotFoundError();
     }
-    return {
-      tokenHolders: 0,
-      totalRaised: '0',
-      tokenSymbol: null,
-      tokenPrice: null,
-    };
+    return this.statsReader.getStatsByBrand(brandId);
   }
 }

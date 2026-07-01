@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../../users/domain/user';
+import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 import { TokenRepository } from '../../domain/token.repository';
 import { TokenHolderRepository } from '../../domain/token-holder.repository';
 import { TokenTransactionRepository } from '../../domain/token-transaction.repository';
@@ -13,7 +14,9 @@ import {
 
 /**
  * Achat (émission primaire) de tokens : crédite le solde de l'acheteur et
- * augmente le total supply (off-chain). Hook {@link BlockchainGateway} après coup.
+ * augmente le total supply (off-chain). Crédit + supply + transaction sont
+ * ATOMIQUES ({@link TransactionRunner}), le solde acheteur verrouillé. Hook
+ * {@link BlockchainGateway} APRÈS le commit.
  */
 @Injectable()
 export class PurchaseTokensUseCase {
@@ -22,6 +25,7 @@ export class PurchaseTokensUseCase {
     private readonly holderRepository: TokenHolderRepository,
     private readonly transactionRepository: TokenTransactionRepository,
     private readonly blockchain: BlockchainGateway,
+    private readonly tx: TransactionRunner,
   ) {}
 
   async execute(
@@ -43,23 +47,25 @@ export class PurchaseTokensUseCase {
       throw new TokenNotFoundError();
     }
 
-    const current = await this.holderRepository.getBalance(
-      requester.id,
-      tokenId,
-    );
-    await this.holderRepository.setBalance(
-      requester.id,
-      tokenId,
-      current + amount,
-    );
-    await this.tokenRepository.increaseSupply(tokenId, amount);
-
-    await this.transactionRepository.record({
-      tokenId,
-      fromUserId: null,
-      toUserId: requester.id,
-      amount,
-      transactionType: 'purchase',
+    await this.tx.run(async () => {
+      const current = await this.holderRepository.getBalanceForUpdate(
+        requester.id,
+        tokenId,
+      );
+      await this.holderRepository.setBalance(
+        requester.id,
+        tokenId,
+        current + amount,
+      );
+      await this.tokenRepository.increaseSupply(tokenId, amount);
+      await this.transactionRepository.record({
+        tokenId,
+        fromUserId: null,
+        toUserId: requester.id,
+        amount,
+        transactionType: 'purchase',
+        pricePerToken: Number(pricePerToken),
+      });
     });
 
     await this.blockchain.onTokensPurchased(tokenId, requester.id, amount);

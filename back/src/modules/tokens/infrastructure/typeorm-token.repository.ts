@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Token } from '../domain/token';
 import { CreateTokenParams, TokenRepository } from '../domain/token.repository';
 import { TokenNotFoundError } from '../domain/token.errors';
@@ -9,11 +9,12 @@ import { BrandTokenOrmEntity } from './brand-token.orm-entity';
 /** Adapter TypeORM du port {@link TokenRepository}. Convertit les décimaux pg. */
 @Injectable()
 export class TypeOrmTokenRepository extends TokenRepository {
-  constructor(
-    @InjectRepository(BrandTokenOrmEntity)
-    private readonly repository: Repository<BrandTokenOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<BrandTokenOrmEntity> {
+    return this.db.getRepository(BrandTokenOrmEntity);
   }
 
   async findById(id: string): Promise<Token | null> {

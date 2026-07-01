@@ -14,6 +14,8 @@ import { BrandMediaRepository } from './domain/brand-media.repository';
 import { InterestChecker } from './domain/interest-checker';
 import { BrandApplicationMailer } from './domain/brand-application-mailer.port';
 import { TemporaryPasswordGenerator } from './domain/temporary-password-generator';
+import { BrandTokenStatsReader } from './domain/brand-token-stats.reader';
+import { BrandBanReader } from './domain/brand-ban.reader';
 // Adapters
 import { TypeOrmBrandRepository } from './infrastructure/typeorm-brand.repository';
 import { TypeOrmBrandApplicationRepository } from './infrastructure/typeorm-brand-application.repository';
@@ -21,11 +23,14 @@ import { TypeOrmBrandMediaRepository } from './infrastructure/typeorm-brand-medi
 import { TypeOrmInterestChecker } from './infrastructure/typeorm-interest-checker';
 import { TemplatedBrandApplicationMailer } from './infrastructure/email/templated-brand-application-mailer';
 import { SecureTemporaryPasswordGenerator } from './infrastructure/secure-temporary-password.generator';
+import { TypeOrmBrandTokenStatsReader } from './infrastructure/typeorm-brand-token-stats.reader';
+import { TypeOrmBrandBanReader } from './infrastructure/typeorm-brand-ban.reader';
 // Use-cases
 import { CreateBrandUseCase } from './application/use-cases/create-brand.use-case';
 import { GetBrandUseCase } from './application/use-cases/get-brand.use-case';
 import { GetBrandByUserUseCase } from './application/use-cases/get-brand-by-user.use-case';
 import { ListBrandsUseCase } from './application/use-cases/list-brands.use-case';
+import { ListActiveBrandsUseCase } from './application/use-cases/list-active-brands.use-case';
 import { UpdateBrandUseCase } from './application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from './application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from './application/use-cases/get-brand-stats.use-case';
@@ -75,10 +80,13 @@ import { BrandsController } from './presentation/brands.controller';
       provide: TemporaryPasswordGenerator,
       useClass: SecureTemporaryPasswordGenerator,
     },
+    { provide: BrandTokenStatsReader, useClass: TypeOrmBrandTokenStatsReader },
+    { provide: BrandBanReader, useClass: TypeOrmBrandBanReader },
     CreateBrandUseCase,
     GetBrandUseCase,
     GetBrandByUserUseCase,
     ListBrandsUseCase,
+    ListActiveBrandsUseCase,
     UpdateBrandUseCase,
     DeleteBrandUseCase,
     GetBrandStatsUseCase,
@@ -92,5 +100,8 @@ import { BrandsController } from './presentation/brands.controller';
     ApproveBrandApplicationUseCase,
     RejectBrandApplicationUseCase,
   ],
+  // Exporté pour les modules `likes` et `tokens` (délégation de leurs ports de
+  // lecture marque au vrai repository, fin du SQL dupliqué).
+  exports: [BrandRepository],
 })
 export class BrandsModule {}

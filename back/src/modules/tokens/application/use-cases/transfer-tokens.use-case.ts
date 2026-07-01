@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../../users/domain/user';
+import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 import { TokenRepository } from '../../domain/token.repository';
 import { TokenHolderRepository } from '../../domain/token-holder.repository';
 import { TokenTransactionRepository } from '../../domain/token-transaction.repository';
@@ -14,8 +15,9 @@ import {
 
 /**
  * Transfère des tokens entre utilisateurs (off-chain : débit/crédit en base).
- * Le hook {@link BlockchainGateway} est appelé après le mouvement (no-op pour
- * l'instant). NB : non transactionnel — à renforcer ultérieurement.
+ * Débit + crédit + écriture de la transaction sont ATOMIQUES ({@link
+ * TransactionRunner}) ; le solde émetteur est verrouillé (anti lost-update). Le
+ * hook {@link BlockchainGateway} est appelé APRÈS le commit.
  */
 @Injectable()
 export class TransferTokensUseCase {
@@ -24,6 +26,7 @@ export class TransferTokensUseCase {
     private readonly holderRepository: TokenHolderRepository,
     private readonly transactionRepository: TokenTransactionRepository,
     private readonly blockchain: BlockchainGateway,
+    private readonly tx: TransactionRunner,
   ) {}
 
   async execute(
@@ -45,35 +48,35 @@ export class TransferTokensUseCase {
       throw new TokenNotFoundError();
     }
 
-    const senderBalance = await this.holderRepository.getBalance(
-      requester.id,
-      tokenId,
-    );
-    if (senderBalance < amount) {
-      throw new InsufficientBalanceError();
-    }
-
-    const receiverBalance = await this.holderRepository.getBalance(
-      toUserId,
-      tokenId,
-    );
-    await this.holderRepository.setBalance(
-      requester.id,
-      tokenId,
-      senderBalance - amount,
-    );
-    await this.holderRepository.setBalance(
-      toUserId,
-      tokenId,
-      receiverBalance + amount,
-    );
-
-    await this.transactionRepository.record({
-      tokenId,
-      fromUserId: requester.id,
-      toUserId,
-      amount,
-      transactionType: 'transfer',
+    await this.tx.run(async () => {
+      const senderBalance = await this.holderRepository.getBalanceForUpdate(
+        requester.id,
+        tokenId,
+      );
+      if (senderBalance < amount) {
+        throw new InsufficientBalanceError();
+      }
+      const receiverBalance = await this.holderRepository.getBalanceForUpdate(
+        toUserId,
+        tokenId,
+      );
+      await this.holderRepository.setBalance(
+        requester.id,
+        tokenId,
+        senderBalance - amount,
+      );
+      await this.holderRepository.setBalance(
+        toUserId,
+        tokenId,
+        receiverBalance + amount,
+      );
+      await this.transactionRepository.record({
+        tokenId,
+        fromUserId: requester.id,
+        toUserId,
+        amount,
+        transactionType: 'transfer',
+      });
     });
 
     await this.blockchain.onTokensTransferred(

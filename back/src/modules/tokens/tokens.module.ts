@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BrandsModule } from '../brands/brands.module';
 import { BrandTokenOrmEntity } from './infrastructure/brand-token.orm-entity';
 import { TokenHolderOrmEntity } from './infrastructure/token-holder.orm-entity';
 import { TokenTransactionOrmEntity } from './infrastructure/token-transaction.orm-entity';
@@ -41,6 +42,7 @@ import { TokensController } from './presentation/tokens.controller';
       TokenHolderOrmEntity,
       TokenTransactionOrmEntity,
     ]),
+    BrandsModule,
   ],
   controllers: [TokensController],
   providers: [

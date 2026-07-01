@@ -3,7 +3,8 @@ export type TokenTransactionType =
 
 /**
  * Mouvement de tokens (table `token_transaction`). `fromUserId` est null pour
- * les émissions/achats primaires. (Le schéma ne stocke pas de prix unitaire.)
+ * les émissions/achats primaires. `pricePerToken` est renseigné pour les achats
+ * (prix unitaire au moment de l'opération), null sinon.
  */
 export class TokenTransaction {
   constructor(
@@ -13,6 +14,7 @@ export class TokenTransaction {
     public readonly toUserId: string,
     public readonly amount: number,
     public readonly transactionType: TokenTransactionType,
+    public readonly pricePerToken: number | null,
     public readonly createdAt: Date,
   ) {}
 }

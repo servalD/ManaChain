@@ -29,6 +29,7 @@ export class TokenTransactionResponse {
   @ApiProperty({ format: 'uuid' }) toUserId: string;
   @ApiProperty() amount: number;
   @ApiProperty() transactionType: string;
+  @ApiProperty({ type: Number, nullable: true }) pricePerToken: number | null;
   @ApiProperty({ format: 'date-time' }) createdAt: string;
 }
 
@@ -64,6 +65,7 @@ export const toTransactionResponse = (
   toUserId: t.toUserId,
   amount: t.amount,
   transactionType: t.transactionType,
+  pricePerToken: t.pricePerToken,
   createdAt: t.createdAt.toISOString(),
 });
 

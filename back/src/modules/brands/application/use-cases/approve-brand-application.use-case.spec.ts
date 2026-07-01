@@ -9,6 +9,7 @@ import {
 import {
   FakeBrandApplicationMailer,
   FakeTemporaryPasswordGenerator,
+  FakeTransactionRunner,
 } from '../test-fakes';
 import { ApproveBrandApplicationUseCase } from './approve-brand-application.use-case';
 
@@ -31,6 +32,7 @@ describe('ApproveBrandApplicationUseCase', () => {
       new FakePasswordHasher(),
       new FakeTemporaryPasswordGenerator(),
       mailer,
+      new FakeTransactionRunner(),
     );
   });
 

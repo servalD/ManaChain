@@ -38,10 +38,14 @@ persistée dans le volume `postgres_dev_data`.
 
 ```bash
 docker compose -f back/docker/docker-compose.test.yml up -d
-cp back/.env.test.example back/.env.test
 pnpm --dir back test:e2e
 docker compose -f back/docker/docker-compose.test.yml down
 ```
+
+`test/setup-e2e.ts` fournit déjà les défauts ciblant ce service (base
+`manachain_test` sur `:5433`) ; un `back/.env.test` reste optionnel pour
+surcharger. Les specs (`test/*.e2e-spec.ts`) démarrent l'app complète, jouent les
+migrations sur un schéma vierge (drop + run), et exercent la vraie DB via HTTP.
 
 ## Build de l'image de prod
 

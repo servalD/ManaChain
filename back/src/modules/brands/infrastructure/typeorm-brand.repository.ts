@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Brand, InterestRef } from '../domain/brand';
 import {
   BrandRepository,
@@ -20,11 +20,12 @@ interface InterestRow {
 /** Adapter TypeORM du port {@link BrandRepository}. Liens interests gérés en SQL. */
 @Injectable()
 export class TypeOrmBrandRepository extends BrandRepository {
-  constructor(
-    @InjectRepository(BrandOrmEntity)
-    private readonly repository: Repository<BrandOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<BrandOrmEntity> {
+    return this.db.getRepository(BrandOrmEntity);
   }
 
   existsByOwner(ownerId: string): Promise<boolean> {

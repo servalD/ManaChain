@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
 import {
@@ -22,11 +22,12 @@ import { UserOrmEntity } from './user.orm-entity';
  */
 @Injectable()
 export class TypeOrmUserRepository extends UserRepository {
-  constructor(
-    @InjectRepository(UserOrmEntity)
-    private readonly repository: Repository<UserOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<UserOrmEntity> {
+    return this.db.getRepository(UserOrmEntity);
   }
 
   // --- Profil ---

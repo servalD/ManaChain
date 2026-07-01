@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Token } from '../domain/token';
 import { TokenHolder } from '../domain/token-holder';
 import {
@@ -13,17 +13,32 @@ import { BrandTokenOrmEntity } from './brand-token.orm-entity';
 /** Adapter TypeORM du port {@link TokenHolderRepository}. */
 @Injectable()
 export class TypeOrmTokenHolderRepository extends TokenHolderRepository {
-  constructor(
-    @InjectRepository(TokenHolderOrmEntity)
-    private readonly repository: Repository<TokenHolderOrmEntity>,
-  ) {
+  constructor(private readonly db: DatabaseContext) {
     super();
+  }
+
+  private get repository(): Repository<TokenHolderOrmEntity> {
+    return this.db.getRepository(TokenHolderOrmEntity);
   }
 
   async getBalance(userId: string, tokenId: string): Promise<number> {
     const entity = await this.repository.findOne({
       where: { userId, tokenId },
     });
+    return entity ? Number(entity.balance) : 0;
+  }
+
+  async getBalanceForUpdate(userId: string, tokenId: string): Promise<number> {
+    // Verrou pessimiste (SELECT … FOR UPDATE) : sérialise les débits concurrents.
+    // À n'appeler que DANS une transaction (TypeORM l'exige pour les locks).
+    const entity = await this.repository
+      .createQueryBuilder('h')
+      .setLock('pessimistic_write')
+      .where('h.user_id = :userId AND h.token_id = :tokenId', {
+        userId,
+        tokenId,
+      })
+      .getOne();
     return entity ? Number(entity.balance) : 0;
   }
 

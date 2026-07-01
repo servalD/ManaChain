@@ -6,6 +6,7 @@ import {
 } from '../../domain/token.errors';
 import {
   FakeBlockchainGateway,
+  FakeTransactionRunner,
   InMemoryTokenHolderRepository,
   InMemoryTokenRepository,
   InMemoryTokenTransactionRepository,
@@ -27,7 +28,13 @@ describe('TransferTokensUseCase', () => {
     txs = new InMemoryTokenTransactionRepository();
     chain = new FakeBlockchainGateway();
     users = new InMemoryUserRepository();
-    useCase = new TransferTokensUseCase(tokens, holders, txs, chain);
+    useCase = new TransferTokensUseCase(
+      tokens,
+      holders,
+      txs,
+      chain,
+      new FakeTransactionRunner(),
+    );
     tokenId = tokens.seed().id;
   });
 

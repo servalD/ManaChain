@@ -2,6 +2,7 @@ import { InMemoryUserRepository } from '../../../users/infrastructure/in-memory-
 import { AccountNotVerifiedError } from '../../domain/token.errors';
 import {
   FakeBlockchainGateway,
+  FakeTransactionRunner,
   InMemoryTokenHolderRepository,
   InMemoryTokenRepository,
   InMemoryTokenTransactionRepository,
@@ -23,7 +24,13 @@ describe('PurchaseTokensUseCase', () => {
     txs = new InMemoryTokenTransactionRepository();
     chain = new FakeBlockchainGateway();
     users = new InMemoryUserRepository();
-    useCase = new PurchaseTokensUseCase(tokens, holders, txs, chain);
+    useCase = new PurchaseTokensUseCase(
+      tokens,
+      holders,
+      txs,
+      chain,
+      new FakeTransactionRunner(),
+    );
     tokenId = tokens.seed().id;
   });
 
@@ -35,6 +42,7 @@ describe('PurchaseTokensUseCase', () => {
     await expect(holders.getBalance('buyer', tokenId)).resolves.toBe(50);
     expect(txs.recorded[0].transactionType).toBe('purchase');
     expect(txs.recorded[0].fromUserId).toBeNull();
+    expect(txs.recorded[0].pricePerToken).toBe(1);
     expect(chain.purchases).toHaveLength(1);
   });
 

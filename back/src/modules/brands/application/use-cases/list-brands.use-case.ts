@@ -7,8 +7,8 @@ import {
 
 /**
  * Liste paginée des marques (public) avec filtres search / interestId /
- * excludeBrandIds. Utilisé aussi par l'endpoint admin "active" (les bans seront
- * branchés au jalon dédié — stub pour l'instant).
+ * excludeBrandIds. La liste admin des marques actives passe par
+ * {@link ListActiveBrandsUseCase} (exclusion des bans).
  */
 @Injectable()
 export class ListBrandsUseCase {

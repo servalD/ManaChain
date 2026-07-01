@@ -28,6 +28,7 @@ import { CreateBrandUseCase } from '../application/use-cases/create-brand.use-ca
 import { GetBrandUseCase } from '../application/use-cases/get-brand.use-case';
 import { GetBrandByUserUseCase } from '../application/use-cases/get-brand-by-user.use-case';
 import { ListBrandsUseCase } from '../application/use-cases/list-brands.use-case';
+import { ListActiveBrandsUseCase } from '../application/use-cases/list-active-brands.use-case';
 import { UpdateBrandUseCase } from '../application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from '../application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from '../application/use-cases/get-brand-stats.use-case';
@@ -55,6 +56,7 @@ export class BrandsController {
     private readonly getBrand: GetBrandUseCase,
     private readonly getBrandByUser: GetBrandByUserUseCase,
     private readonly listBrands: ListBrandsUseCase,
+    private readonly listActiveBrands: ListActiveBrandsUseCase,
     private readonly updateBrand: UpdateBrandUseCase,
     private readonly deleteBrand: DeleteBrandUseCase,
     private readonly getBrandStats: GetBrandStatsUseCase,
@@ -98,7 +100,7 @@ export class BrandsController {
   async listActive(
     @Query() query: ListBrandsQuery,
   ): Promise<PaginatedBrandsResponse> {
-    const { brands, total } = await this.listBrands.execute(query);
+    const { brands, total } = await this.listActiveBrands.execute(query);
     return { brands: brands.map(toBrandResponse), total };
   }
 
