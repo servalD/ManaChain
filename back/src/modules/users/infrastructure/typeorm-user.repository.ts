@@ -7,6 +7,7 @@ import {
   CreateBrandUserParams,
   CreateGoogleUserParams,
   CreateLocalUserParams,
+  ListUsersParams,
   OAUTH_GOOGLE_PASSWORD_SENTINEL,
   UpdateUserFields,
   UserCredentials,
@@ -37,11 +38,25 @@ export class TypeOrmUserRepository extends UserRepository {
     return entity ? this.toDomain(entity) : null;
   }
 
-  async findAll(): Promise<User[]> {
-    const entities = await this.repository.find({
-      order: { createdAt: 'DESC' },
-    });
-    return entities.map((entity) => this.toDomain(entity));
+  async list(
+    params: ListUsersParams,
+  ): Promise<{ users: User[]; total: number }> {
+    const qb = this.repository.createQueryBuilder('u');
+    if (params.search) {
+      qb.andWhere(
+        `(u.username ILIKE :s OR u.email ILIKE :s
+          OR u.first_name ILIKE :s OR u.last_name ILIKE :s
+          OR u.id::text ILIKE :s)`,
+        { s: `%${params.search}%` },
+      );
+    }
+    if (params.role) {
+      qb.andWhere('u.role = :role', { role: params.role });
+    }
+    qb.orderBy('u.created_at', 'DESC').skip(params.offset).take(params.limit);
+
+    const [entities, total] = await qb.getManyAndCount();
+    return { users: entities.map((entity) => this.toDomain(entity)), total };
   }
 
   async findByUsername(username: string): Promise<User | null> {
@@ -229,6 +244,24 @@ export class TypeOrmUserRepository extends UserRepository {
       select: { email: true },
     });
     return admins.map((a) => a.email);
+  }
+
+  // --- Interests ---
+
+  async getInterestIds(userId: string): Promise<string[]> {
+    const rows = await this.repository.manager.query<{ interest_id: string }[]>(
+      `SELECT interest_id FROM user_interest WHERE user_id = $1`,
+      [userId],
+    );
+    return rows.map((r) => r.interest_id);
+  }
+
+  async setInterestIds(userId: string, interestIds: string[]): Promise<void> {
+    await this.repository.manager.query(
+      `DELETE FROM user_interest WHERE user_id = $1`,
+      [userId],
+    );
+    await this.linkInterests(userId, interestIds);
   }
 
   // --- Helpers ---

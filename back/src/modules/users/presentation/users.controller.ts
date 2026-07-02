@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put } from '@nestjs/common';
+import { Body, Controller, Get, Put, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOkResponse,
@@ -12,9 +12,17 @@ import { User } from '../domain/user';
 import { GetAllUsersUseCase } from '../application/use-cases/get-all-users.use-case';
 import { UpdateUserUseCase } from '../application/use-cases/update-user.use-case';
 import { UpdateBlockchainAddressUseCase } from '../application/use-cases/update-blockchain-address.use-case';
+import { GetMyInterestsUseCase } from '../application/use-cases/get-my-interests.use-case';
+import { UpdateMyInterestsUseCase } from '../application/use-cases/update-my-interests.use-case';
 import { UpdateUserRequest } from '../application/dto/update-user.request';
 import { UpdateBlockchainAddressRequest } from '../application/dto/update-blockchain-address.request';
-import { toUserResponse, UserResponse } from './user.presenter';
+import { UpdateInterestsRequest } from '../application/dto/update-interests.request';
+import { ListUsersQuery } from '../application/dto/list-users.query';
+import {
+  PaginatedUsersResponse,
+  toUserResponse,
+  UserResponse,
+} from './user.presenter';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -24,6 +32,8 @@ export class UsersController {
     private readonly getAllUsers: GetAllUsersUseCase,
     private readonly updateUser: UpdateUserUseCase,
     private readonly updateBlockchainAddress: UpdateBlockchainAddressUseCase,
+    private readonly getMyInterests: GetMyInterestsUseCase,
+    private readonly updateMyInterests: UpdateMyInterestsUseCase,
   ) {}
 
   /** Profil de l'utilisateur authentifié courant. */
@@ -61,13 +71,35 @@ export class UsersController {
     return toUserResponse(updated);
   }
 
-  /** Liste tous les utilisateurs — admin uniquement. */
+  /** Centres d'intérêt de l'utilisateur courant. */
+  @Get('me/interests')
+  @ApiOperation({ summary: 'Lister ses centres d’intérêt' })
+  async myInterests(
+    @CurrentUser() user: User,
+  ): Promise<{ interestIds: string[] }> {
+    return { interestIds: await this.getMyInterests.execute(user.id) };
+  }
+
+  /** Remplace les centres d'intérêt de l'utilisateur courant. */
+  @Put('me/interests')
+  @ApiOperation({ summary: 'Mettre à jour ses centres d’intérêt' })
+  async updateMyInterestsEndpoint(
+    @CurrentUser() user: User,
+    @Body() body: UpdateInterestsRequest,
+  ): Promise<{ interestIds: string[] }> {
+    await this.updateMyInterests.execute(user.id, body.interestIds);
+    return { interestIds: body.interestIds };
+  }
+
+  /** Liste paginée des utilisateurs — admin uniquement. */
   @Get()
   @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Lister tous les utilisateurs (admin)' })
-  @ApiOkResponse({ type: UserResponse, isArray: true })
-  async findAll(): Promise<UserResponse[]> {
-    const users = await this.getAllUsers.execute();
-    return users.map(toUserResponse);
+  @ApiOperation({ summary: 'Lister les utilisateurs (admin)' })
+  @ApiOkResponse({ type: PaginatedUsersResponse })
+  async findAll(
+    @Query() query: ListUsersQuery,
+  ): Promise<PaginatedUsersResponse> {
+    const { users, total } = await this.getAllUsers.execute(query);
+    return { users: users.map(toUserResponse), total };
   }
 }

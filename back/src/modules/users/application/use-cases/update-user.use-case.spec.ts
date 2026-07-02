@@ -51,4 +51,12 @@ describe('UpdateUserUseCase', () => {
 
     expect(updated.lastName).toBe('After');
   });
+
+  it('updates the age range', async () => {
+    const user = repository.seed({ ageRange: '18-24' });
+
+    const updated = await useCase.execute(user.id, { ageRange: '25-34' });
+
+    expect(updated.ageRange).toBe('25-34');
+  });
 });

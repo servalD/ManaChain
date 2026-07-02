@@ -6,6 +6,8 @@ import { UserRepository } from './domain/user.repository';
 import { GetAllUsersUseCase } from './application/use-cases/get-all-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { UpdateBlockchainAddressUseCase } from './application/use-cases/update-blockchain-address.use-case';
+import { GetMyInterestsUseCase } from './application/use-cases/get-my-interests.use-case';
+import { UpdateMyInterestsUseCase } from './application/use-cases/update-my-interests.use-case';
 import { UsersController } from './presentation/users.controller';
 
 @Module({
@@ -17,6 +19,8 @@ import { UsersController } from './presentation/users.controller';
     GetAllUsersUseCase,
     UpdateUserUseCase,
     UpdateBlockchainAddressUseCase,
+    GetMyInterestsUseCase,
+    UpdateMyInterestsUseCase,
   ],
   // UserRepository est consommé par le module auth (guard global).
   exports: [UserRepository],

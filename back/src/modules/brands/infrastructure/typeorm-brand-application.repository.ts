@@ -117,9 +117,10 @@ export class TypeOrmBrandApplicationRepository extends BrandApplicationRepositor
       qb.andWhere('a.status = :status', { status: params.status });
     }
     if (params.search) {
-      qb.andWhere('(a.contact_email ILIKE :s OR a.brand_name ILIKE :s)', {
-        s: `%${params.search}%`,
-      });
+      qb.andWhere(
+        '(a.contact_email ILIKE :s OR a.brand_name ILIKE :s OR a.id::text ILIKE :s)',
+        { s: `%${params.search}%` },
+      );
     }
     qb.orderBy('a.created_at', 'DESC').skip(params.offset).take(params.limit);
 

@@ -10,7 +10,11 @@ class BrandService {
   /**
    * Get all brands with pagination
    */
-  async getAllBrands(limit: number = 50, offset: number = 0): Promise<GetBrandsResponse | null> {
+  async getAllBrands(
+    limit: number = 50,
+    offset: number = 0,
+    excludeBrandIds?: string[]
+  ): Promise<GetBrandsResponse | null> {
     try {
       const token = AuthService.getToken();
       const headers: Record<string, string> = {};
@@ -19,12 +23,17 @@ class BrandService {
         headers.Authorization = `Bearer ${token}`;
       }
 
+      // Nest attend des clés répétées (`excludeBrandIds=a&excludeBrandIds=b`),
+      // pas le format `excludeBrandIds[]=` qu'axios produit par défaut pour un
+      // tableau : on construit la query string nous-mêmes.
+      const params = new URLSearchParams();
+      params.set("limit", String(limit));
+      params.set("offset", String(offset));
+      excludeBrandIds?.forEach((id) => params.append("excludeBrandIds", id));
+
       const response = await axios.get<GetBrandsResponse>(
         `${ApiService.baseURL}/brands`,
-        {
-          params: { limit, offset },
-          headers,
-        }
+        { params, headers }
       );
 
       return response.data;

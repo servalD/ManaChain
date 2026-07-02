@@ -4,6 +4,7 @@ import { Brand } from '../../domain/brand';
 import { BrandRepository } from '../../domain/brand.repository';
 import { InterestChecker } from '../../domain/interest-checker';
 import {
+  AccountNotVerifiedError,
   BrandNameTakenError,
   InvalidInterestSelectionError,
   UserAlreadyHasBrandError,
@@ -36,7 +37,14 @@ export class CreateBrandUseCase {
     private readonly interestChecker: InterestChecker,
   ) {}
 
-  async execute(ownerId: string, input: CreateBrandInput): Promise<Brand> {
+  async execute(
+    ownerId: string,
+    verified: boolean,
+    input: CreateBrandInput,
+  ): Promise<Brand> {
+    if (!verified) {
+      throw new AccountNotVerifiedError();
+    }
     if (input.interestIds.length < 1 || input.interestIds.length > 2) {
       throw new InvalidInterestSelectionError(
         'Select between 1 and 2 interests',

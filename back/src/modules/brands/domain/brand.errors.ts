@@ -31,6 +31,12 @@ export class NotBrandOwnerError extends ForbiddenDomainException {
   }
 }
 
+export class AccountNotVerifiedError extends ForbiddenDomainException {
+  constructor() {
+    super('Please verify your email before creating a brand');
+  }
+}
+
 // --- Médias ---
 
 export class MediaNotFoundError extends NotFoundDomainException {

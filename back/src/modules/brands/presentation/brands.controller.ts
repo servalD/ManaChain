@@ -75,7 +75,7 @@ export class BrandsController {
     @CurrentUser() user: User,
     @Body() body: CreateBrandRequest,
   ): Promise<BrandResponse> {
-    const brand = await this.createBrand.execute(user.id, body);
+    const brand = await this.createBrand.execute(user.id, user.verified, body);
     return toBrandResponse(brand);
   }
 

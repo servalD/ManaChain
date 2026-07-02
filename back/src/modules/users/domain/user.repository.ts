@@ -1,3 +1,4 @@
+import { Role } from '../../../shared/enums/role.enum';
 import { User } from './user';
 
 /**
@@ -12,6 +13,7 @@ export interface UpdateUserFields {
   lastName?: string;
   username?: string;
   avatarUrl?: string | null;
+  ageRange?: string;
 }
 
 /**
@@ -58,6 +60,14 @@ export interface CreateBrandUserParams {
   passwordHash: string;
 }
 
+/** Filtres de la liste admin des utilisateurs. */
+export interface ListUsersParams {
+  limit: number;
+  offset: number;
+  search?: string;
+  role?: Role;
+}
+
 /** Résultat d'une recherche par token (vérif email / reset), avec l'expiration. */
 export interface UserWithTokenExpiry {
   user: User;
@@ -72,7 +82,10 @@ export interface UserWithTokenExpiry {
 export abstract class UserRepository {
   // --- Profil (jalon 1) ---
   abstract findById(id: string): Promise<User | null>;
-  abstract findAll(): Promise<User[]>;
+  /** Liste paginée pour l'admin (recherche username/email/prénom/nom, filtre rôle). */
+  abstract list(
+    params: ListUsersParams,
+  ): Promise<{ users: User[]; total: number }>;
   abstract findByUsername(username: string): Promise<User | null>;
   abstract findByBlockchainAddress(address: string): Promise<User | null>;
   abstract updateProfile(id: string, fields: UpdateUserFields): Promise<User>;
@@ -114,4 +127,9 @@ export abstract class UserRepository {
   abstract createBrandUser(params: CreateBrandUserParams): Promise<User>;
   /** Emails de tous les utilisateurs ADMIN (notification de candidature). */
   abstract findAdminEmails(): Promise<string[]>;
+
+  // --- Interests ---
+  abstract getInterestIds(userId: string): Promise<string[]>;
+  /** Remplace intégralement les centres d'intérêt de l'utilisateur. */
+  abstract setInterestIds(userId: string, interestIds: string[]): Promise<void>;
 }

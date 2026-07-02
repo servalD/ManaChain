@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { AGE_RANGES } from '../../domain/age-ranges';
 
 export class UpdateUserRequest {
   @ApiPropertyOptional({ example: 'Ada' })
@@ -25,4 +32,9 @@ export class UpdateUserRequest {
   @IsOptional()
   @IsString()
   avatarUrl?: string | null;
+
+  @ApiPropertyOptional({ enum: AGE_RANGES, example: '25-34' })
+  @IsOptional()
+  @IsIn(AGE_RANGES)
+  ageRange?: string;
 }

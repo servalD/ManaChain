@@ -5,6 +5,7 @@ import {
   CreateBrandUserParams,
   CreateGoogleUserParams,
   CreateLocalUserParams,
+  ListUsersParams,
   OAUTH_GOOGLE_PASSWORD_SENTINEL,
   UpdateUserFields,
   UserCredentials,
@@ -28,6 +29,7 @@ export class InMemoryUserRepository extends UserRepository {
   private readonly passwordHashes = new Map<string, string>();
   private readonly emailVerify = new Map<string, TokenEntry>();
   private readonly passwordReset = new Map<string, TokenEntry>();
+  private readonly interests = new Map<string, string[]>();
 
   /** Helper de test : précharge un user (champs optionnels par défaut). */
   seed(
@@ -64,8 +66,25 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve(this.users.get(id) ?? null);
   }
 
-  findAll(): Promise<User[]> {
-    return Promise.resolve([...this.users.values()]);
+  list(params: ListUsersParams): Promise<{ users: User[]; total: number }> {
+    let all = [...this.users.values()];
+    if (params.role) {
+      all = all.filter((u) => u.role === params.role);
+    }
+    if (params.search) {
+      const s = params.search.toLowerCase();
+      all = all.filter(
+        (u) =>
+          u.username.toLowerCase().includes(s) ||
+          u.email.toLowerCase().includes(s) ||
+          u.firstName.toLowerCase().includes(s) ||
+          u.lastName.toLowerCase().includes(s) ||
+          u.id.toLowerCase().includes(s),
+      );
+    }
+    const total = all.length;
+    const users = all.slice(params.offset, params.offset + params.limit);
+    return Promise.resolve({ users, total });
   }
 
   findByUsername(username: string): Promise<User | null> {
@@ -87,6 +106,7 @@ export class InMemoryUserRepository extends UserRepository {
         firstName: fields.firstName,
         lastName: fields.lastName,
         avatarUrl: fields.avatarUrl,
+        ageRange: fields.ageRange,
       }),
     );
   }
@@ -215,6 +235,17 @@ export class InMemoryUserRepository extends UserRepository {
     );
   }
 
+  // --- Interests ---
+
+  getInterestIds(userId: string): Promise<string[]> {
+    return Promise.resolve(this.interests.get(userId) ?? []);
+  }
+
+  setInterestIds(userId: string, interestIds: string[]): Promise<void> {
+    this.interests.set(userId, [...interestIds]);
+    return Promise.resolve();
+  }
+
   // --- Helpers ---
 
   private findByToken(
@@ -242,6 +273,7 @@ export class InMemoryUserRepository extends UserRepository {
         | 'blockchainAddress'
         | 'verified'
         | 'passwordChanged'
+        | 'ageRange'
       >
     >,
   ): User {
@@ -255,7 +287,7 @@ export class InMemoryUserRepository extends UserRepository {
       changes.username ?? e.username,
       changes.firstName ?? e.firstName,
       changes.lastName ?? e.lastName,
-      e.ageRange,
+      changes.ageRange ?? e.ageRange,
       changes.avatarUrl !== undefined ? changes.avatarUrl : e.avatarUrl,
       changes.blockchainAddress !== undefined
         ? changes.blockchainAddress

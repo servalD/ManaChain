@@ -3,6 +3,7 @@ import { Token } from '../../domain/token';
 import { TokenRepository } from '../../domain/token.repository';
 import { BrandLookup } from '../../domain/brand-lookup';
 import {
+  AccountNotVerifiedError,
   BrandAlreadyHasTokenError,
   BrandRequiredError,
   InvalidPriceError,
@@ -29,7 +30,14 @@ export class CreateTokenUseCase {
     private readonly brandLookup: BrandLookup,
   ) {}
 
-  async execute(ownerId: string, input: CreateTokenInput): Promise<Token> {
+  async execute(
+    ownerId: string,
+    verified: boolean,
+    input: CreateTokenInput,
+  ): Promise<Token> {
+    if (!verified) {
+      throw new AccountNotVerifiedError();
+    }
     const brandId = await this.brandLookup.findBrandIdByOwner(ownerId);
     if (!brandId) {
       throw new BrandRequiredError();

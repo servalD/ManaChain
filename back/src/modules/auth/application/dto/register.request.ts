@@ -8,9 +8,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { AGE_RANGES } from '../../../users/domain/age-ranges';
 import { IsStrongPassword } from './password.rules';
-
-const AGE_RANGES = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
 
 export class RegisterRequest {
   @ApiProperty({ example: 'ada@example.com' })

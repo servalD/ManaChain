@@ -46,6 +46,11 @@ export class UserResponse {
   createdAt: string;
 }
 
+export class PaginatedUsersResponse {
+  @ApiProperty({ type: UserResponse, isArray: true }) users: UserResponse[];
+  @ApiProperty() total: number;
+}
+
 /** Mappe un {@link User} de domaine vers la forme publique de l'API. */
 export const toUserResponse = (user: User): UserResponse => ({
   id: user.id,

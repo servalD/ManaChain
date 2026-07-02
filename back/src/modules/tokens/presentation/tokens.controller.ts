@@ -76,7 +76,9 @@ export class TokensController {
     @CurrentUser() user: User,
     @Body() body: CreateTokenRequest,
   ): Promise<TokenResponse> {
-    return toTokenResponse(await this.createToken.execute(user.id, body));
+    return toTokenResponse(
+      await this.createToken.execute(user.id, user.verified, body),
+    );
   }
 
   // --- Routes spécifiques AVANT /:id ---

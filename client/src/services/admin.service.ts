@@ -1,38 +1,29 @@
 import axios from "axios";
 import { ApiService } from "./api.service";
-import { GetUsersParams, GetUsersResponse, GetActiveBrandsParams, GetActiveBrandsResponse, User } from "@/types/admin.types";
+import { GetUsersParams, GetUsersResponse, GetActiveBrandsParams, GetActiveBrandsResponse } from "@/types/admin.types";
 
 export default class AdminService {
   /**
-   * Get all users, filtered/paginated client-side (admin only).
-   * The back exposes `GET /users` as a flat, unpaginated admin listing.
+   * Get all users with pagination and search (admin only)
    */
   static async getUsers(params: GetUsersParams = {}, token: string): Promise<GetUsersResponse | null> {
     try {
-      const res = await axios.get<User[]>(`${ApiService.baseURL}/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const queryParams = new URLSearchParams();
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (params.offset) queryParams.append('offset', params.offset.toString());
+      if (params.search) queryParams.append('search', params.search);
+      if (params.role) queryParams.append('role', params.role);
 
-      let users = res.data;
-      if (params.role) {
-        users = users.filter((u) => u.role === params.role);
-      }
-      if (params.search) {
-        const search = params.search.toLowerCase();
-        users = users.filter(
-          (u) =>
-            u.username.toLowerCase().includes(search) ||
-            u.email.toLowerCase().includes(search) ||
-            u.id.toLowerCase().includes(search)
-        );
-      }
+      const res = await axios.get(
+        `${ApiService.baseURL}/users?${queryParams.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const total = users.length;
-      const offset = params.offset ?? 0;
-      const limit = params.limit ?? total;
-      return { users: users.slice(offset, offset + limit), total };
+      return res.data;
     } catch (err: any) {
       console.error('Error fetching users:', err);
       return null;

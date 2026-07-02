@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../domain/user';
-import { UserRepository } from '../../domain/user.repository';
+import { ListUsersParams, UserRepository } from '../../domain/user.repository';
 
-/** Admin : liste tous les utilisateurs. */
+/** Admin : liste paginée des utilisateurs (recherche, filtre rôle). */
 @Injectable()
 export class GetAllUsersUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  execute(): Promise<User[]> {
-    return this.userRepository.findAll();
+  execute(params: ListUsersParams): Promise<{ users: User[]; total: number }> {
+    return this.userRepository.list(params);
   }
 }

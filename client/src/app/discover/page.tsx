@@ -34,7 +34,9 @@ export default function DiscoverPage() {
   useEffect(() => {
     const fetchBrands = async () => {
       setIsLoadingBrands(true);
-      const response = await BrandService.getAllBrands(50, 0);
+      const myLikes = await LikeService.getUserLikes();
+      const excludeBrandIds = myLikes?.map((l) => l.brand.id);
+      const response = await BrandService.getAllBrands(50, 0, excludeBrandIds);
 
       if (response) {
         const brandsFromApi = response.brands;

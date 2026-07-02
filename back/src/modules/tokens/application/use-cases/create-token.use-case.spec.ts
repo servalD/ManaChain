@@ -1,4 +1,5 @@
 import {
+  AccountNotVerifiedError,
   BrandAlreadyHasTokenError,
   BrandRequiredError,
   TokenSymbolTakenError,
@@ -19,14 +20,14 @@ describe('CreateTokenUseCase', () => {
 
   it('creates the token of the user brand (symbol upper-cased)', async () => {
     brands.seedBrand('brand-1', 'owner-1');
-    const token = await useCase.execute('owner-1', { symbol: 'mana' });
+    const token = await useCase.execute('owner-1', true, { symbol: 'mana' });
     expect(token.brandId).toBe('brand-1');
     expect(token.symbol).toBe('MANA');
   });
 
   it('throws when the user has no brand', async () => {
     await expect(
-      useCase.execute('owner-1', { symbol: 'MANA' }),
+      useCase.execute('owner-1', true, { symbol: 'MANA' }),
     ).rejects.toBeInstanceOf(BrandRequiredError);
   });
 
@@ -34,7 +35,7 @@ describe('CreateTokenUseCase', () => {
     brands.seedBrand('brand-1', 'owner-1');
     tokens.seed({ brandId: 'brand-1' });
     await expect(
-      useCase.execute('owner-1', { symbol: 'MANA' }),
+      useCase.execute('owner-1', true, { symbol: 'MANA' }),
     ).rejects.toBeInstanceOf(BrandAlreadyHasTokenError);
   });
 
@@ -42,7 +43,14 @@ describe('CreateTokenUseCase', () => {
     brands.seedBrand('brand-1', 'owner-1');
     tokens.seed({ brandId: 'brand-2', symbol: 'MANA' });
     await expect(
-      useCase.execute('owner-1', { symbol: 'MANA' }),
+      useCase.execute('owner-1', true, { symbol: 'MANA' }),
     ).rejects.toBeInstanceOf(TokenSymbolTakenError);
+  });
+
+  it('rejects an unverified account', async () => {
+    brands.seedBrand('brand-1', 'owner-1');
+    await expect(
+      useCase.execute('owner-1', false, { symbol: 'MANA' }),
+    ).rejects.toBeInstanceOf(AccountNotVerifiedError);
   });
 });
