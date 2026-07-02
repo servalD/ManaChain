@@ -189,7 +189,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
   const handleDeleteMedia = async (mediaId: string) => {
     if (!brandId) return;
 
-    // Find the media to get ipfs_hash
+    // Find the media to get ipfsHash
     const media = confirmedMedia.find((m) => m.id === mediaId);
     if (!media) {
       toast({
@@ -204,7 +204,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
 
     try {
       // First, unpin from Pinata (frontend)
-      await PinataService.deleteFile(media.ipfs_hash);
+      await PinataService.deleteFile(media.ipfsHash);
 
       // Then, delete from DB (backend)
       const success = await BrandService.deleteBrandMedia(brandId, mediaId);
@@ -359,7 +359,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
             >
               <div className="aspect-square bg-muted/30 flex items-center justify-center overflow-hidden">
                 <img
-                  src={PinataService.normalizeIpfsUrl(item.image_url)}
+                  src={PinataService.normalizeIpfsUrl(item.imageUrl)}
                   alt={`Media ${item.id}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -372,7 +372,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
               <div className="p-3 bg-background">
                 <p className="text-xs font-medium truncate mb-1">Media {item.id.slice(0, 8)}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{formatDate(item.created_at)}</span>
+                  <span>{formatDate(item.createdAt)}</span>
                 </div>
               </div>
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">

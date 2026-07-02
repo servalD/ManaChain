@@ -30,8 +30,8 @@ export default function ClientDashboardPage() {
       return;
     }
     
-    if (freshUser.blockchain_address) {
-      if (freshUser.blockchain_address.toLowerCase() !== address.toLowerCase()) {
+    if (freshUser.blockchainAddress) {
+      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
         toast({
           title: "Wallet Already Connected",
           description: "You already have a different wallet connected to your account.",
@@ -88,7 +88,7 @@ export default function ClientDashboardPage() {
           currentPage="dashboard"
           isLoggedIn={true}
           userName={user?.username}
-          userAvatarUrl={user?.avatar_url}
+          userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

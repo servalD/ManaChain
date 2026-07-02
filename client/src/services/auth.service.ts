@@ -13,10 +13,10 @@ export default class AuthService {
       const res = await axios.post(`${ApiService.baseURL}/auth/register`, {
         email: data.email,
         username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         password: data.password,
-        age_range: data.age_range,
+        ageRange: data.ageRange,
         interests: data.interests,
       });
 
@@ -27,7 +27,7 @@ export default class AuthService {
           description: "Please check your email to confirm your account",
           variant: "success",
         });
-        
+
         return res.data;
       }
       return null;
@@ -37,14 +37,14 @@ export default class AuthService {
         const data = err.response.data;
 
         switch (status) {
-          case 400:
-            if (data?.error?.includes("email")) {
+          case 409:
+            if (data?.error === "EmailAlreadyRegisteredError") {
               toast({
                 title: "Email already in use",
                 description: "This email is already associated with an account",
                 variant: "error",
               });
-            } else if (data?.error?.includes("username")) {
+            } else if (data?.error === "UsernameAlreadyTakenError") {
               toast({
                 title: "Username already taken",
                 description: "Please choose another username",
@@ -52,11 +52,18 @@ export default class AuthService {
               });
             } else {
               toast({
-                title: "Input error",
-                description: data?.error || "Please check your information",
+                title: "Conflict",
+                description: data?.message || "Please check your information",
                 variant: "error",
               });
             }
+            break;
+          case 400:
+            toast({
+              title: "Input error",
+              description: data?.message || "Please check your information",
+              variant: "error",
+            });
             break;
           case 500:
             toast({
@@ -68,7 +75,7 @@ export default class AuthService {
           default:
             toast({
               title: "Registration error",
-              description: data?.error || "An unexpected error occurred",
+              description: data?.message || "An unexpected error occurred",
               variant: "error",
             });
         }
@@ -102,13 +109,13 @@ export default class AuthService {
       if (res.status === 200) {
         localStorage.setItem("Token", res.data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
-        
+
         toast({
           title: "Login successful",
           description: `Welcome ${res.data.user.username}`,
           variant: "success",
         });
-        
+
         return res.data;
       }
       return null;
@@ -117,73 +124,37 @@ export default class AuthService {
         const status = err.response.status;
         const data = err.response.data;
 
-        switch (status) {
-          case 400:
-            if (data?.error?.includes("verify") || data?.error?.includes("verification")) {
-              toast({
-                title: "Account not verified",
-                description: data.error || "Please verify your email address before logging in",
-                variant: "warning",
-              });
-            } else {
-              toast({
-                title: "Input error",
-                description: data?.error || "Please check your login credentials",
-                variant: "error",
-              });
-            }
-            break;
-          case 401:
-            if (data?.error?.includes("verify") || data?.error?.includes("verification")) {
-              toast({
-                title: "Account not verified",
-                description: data.error || "Please verify your email address before logging in",
-                variant: "warning",
-              });
-            } else {
-              toast({
-                title: "Authentication failed",
-                description: "Incorrect email or password",
-                variant: "error",
-              });
-            }
-            break;
-          case 404:
+        switch (data?.error) {
+          case "EmailNotVerifiedError":
             toast({
-              title: "User not found",
-              description: "No account associated with this email",
-              variant: "error",
+              title: "Account not verified",
+              description: data.message || "Please verify your email address before logging in",
+              variant: "warning",
             });
             break;
-          case 500:
-            if (data && typeof data === 'string') {
-              if (data.includes("Invalid") || data.includes("incorrect")) {
-                toast({
-                  title: "Authentication failed",
-                  description: "Incorrect email or password",
-                  variant: "error",
-                });
-              } else {
-                toast({
-                  title: "Server error",
-                  description: data,
-                  variant: "error",
-                });
-              }
-            } else {
-              toast({
-                title: "Server error",
-                description: "Temporary issue, please try again",
-                variant: "error",
-              });
-            }
+          case "InvalidCredentialsError":
+            toast({
+              title: "Authentication failed",
+              description: "Incorrect email or password",
+              variant: "error",
+            });
             break;
           default:
-            toast({
-              title: "Connection error",
-              description: data?.error || "An unexpected error occurred",
-              variant: "error",
-            });
+            switch (status) {
+              case 500:
+                toast({
+                  title: "Server error",
+                  description: "Temporary issue, please try again",
+                  variant: "error",
+                });
+                break;
+              default:
+                toast({
+                  title: "Connection error",
+                  description: data?.message || "An unexpected error occurred",
+                  variant: "error",
+                });
+            }
         }
       } else if (err.request) {
         toast({
@@ -192,19 +163,11 @@ export default class AuthService {
           variant: "error",
         });
       } else {
-        if (err.message && err.message.includes("Invalid")) {
-          toast({
-            title: "Authentication failed",
-            description: "Incorrect email or password",
-            variant: "error",
-          });
-        } else {
-          toast({
-            title: "Connection error",
-            description: "An unexpected error occurred",
-            variant: "error",
-          });
-        }
+        toast({
+          title: "Connection error",
+          description: "An unexpected error occurred",
+          variant: "error",
+        });
       }
       return null;
     }
@@ -215,19 +178,18 @@ export default class AuthService {
    */
   static async isLogged(): Promise<ServiceResult<IUser>> {
     try {
-      let token = localStorage.getItem("Token");
-      if (token != null) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const res = await axios.get(`${ApiService.baseURL}/users/from-token/${token}`);
-        
-        if (res.status === 200) {
-          return ServiceResult.success(res.data.user);
-        } else {
-          return ServiceResult.notFound();
-        }
-      } else {
+      const token = localStorage.getItem("Token");
+      if (token == null) {
         return ServiceResult.notFound();
       }
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const res = await axios.get(`${ApiService.baseURL}/users/me`);
+
+      if (res.status === 200) {
+        return ServiceResult.success(res.data);
+      }
+      return ServiceResult.notFound();
     } catch (err: any) {
       if (err.response) {
         const status = err.response.status;
@@ -302,8 +264,6 @@ export default class AuthService {
    */
   static async logout() {
     try {
-      const token = localStorage.getItem("Token");
-      
       // No server-side logout endpoint, just clear local storage
       localStorage.removeItem("Token");
       delete axios.defaults.headers.common["Authorization"];
@@ -366,7 +326,7 @@ export default class AuthService {
         const data = err.response.data;
         toast({
           title: "Verification error",
-          description: data?.error || "The verification link is invalid or expired",
+          description: data?.message || "The verification link is invalid or expired",
           variant: "error",
         });
       } else {
@@ -403,7 +363,7 @@ export default class AuthService {
         const data = err.response.data;
         toast({
           title: "Sending error",
-          description: data?.error || "Unable to send verification email",
+          description: data?.message || "Unable to send verification email",
           variant: "error",
         });
       } else {
@@ -434,7 +394,7 @@ export default class AuthService {
 
       const res = await axios.post(
         `${ApiService.baseURL}/auth/change-password`,
-        { new_password: newPassword },
+        { newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -452,7 +412,7 @@ export default class AuthService {
         const data = err.response.data;
         toast({
           title: "Modification error",
-          description: data?.error || "Unable to change password",
+          description: data?.message || "Unable to change password",
           variant: "error",
         });
       } else {
@@ -473,7 +433,7 @@ export default class AuthService {
     try {
       const res = await axios.post(
         `${ApiService.baseURL}/auth/reset-password`,
-        { token, new_password: newPassword }
+        { token, newPassword }
       );
 
       if (res.status === 200) {
@@ -490,7 +450,7 @@ export default class AuthService {
         const data = err.response.data;
         toast({
           title: "Reset failed",
-          description: data?.error || "Unable to reset password. The link may have expired.",
+          description: data?.message || "Unable to reset password. The link may have expired.",
           variant: "error",
         });
       } else {
@@ -527,13 +487,13 @@ export default class AuthService {
   }
 
   /**
-   * Update current user profile (first_name, last_name, username, avatar_url)
+   * Update current user profile (firstName, lastName, username, avatarUrl)
    */
   static async updateProfile(updates: {
-    first_name?: string;
-    last_name?: string;
+    firstName?: string;
+    lastName?: string;
     username?: string;
-    avatar_url?: string;
+    avatarUrl?: string;
   }): Promise<IUser | null> {
     try {
       const token = AuthService.getToken();
@@ -549,17 +509,17 @@ export default class AuthService {
         }
       );
 
-      if (response.data?.user) {
+      if (response.data?.id) {
         toast({
           title: 'Profile updated',
           description: 'Your profile has been saved.',
           variant: 'success',
         });
-        return response.data.user;
+        return response.data;
       }
       return null;
     } catch (error: any) {
-      const msg = error.response?.data?.error || 'Failed to update profile. Please try again.';
+      const msg = error.response?.data?.message || 'Failed to update profile. Please try again.';
       toast({
         title: 'Error',
         description: msg,
@@ -579,7 +539,7 @@ export default class AuthService {
 
       const response = await axios.put(
         `${ApiService.baseURL}/users/me/blockchain-address`,
-        { blockchain_address: blockchainAddress },
+        { blockchainAddress },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -587,21 +547,12 @@ export default class AuthService {
         }
       );
 
-      if (response.data.user) {
-        // Update local user cache
-        const currentUser = this.getUser();
-        if (currentUser) {
-          const updatedUser = { ...currentUser, blockchain_address: blockchainAddress };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-        return true;
-      }
-      return false;
+      return !!response.data?.id;
     } catch (error: any) {
-      if (error.response?.data?.error) {
+      if (error.response?.data?.message) {
         toast({
           title: 'Error',
-          description: error.response.data.error,
+          description: error.response.data.message,
           variant: 'error',
         });
       }

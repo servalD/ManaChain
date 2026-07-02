@@ -27,8 +27,8 @@ export function ProfileAvatar({
 }: ProfileAvatarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const avatarUrl = user?.avatar_url
-    ? PinataService.normalizeIpfsUrl(user.avatar_url)
+  const avatarUrl = user?.avatarUrl
+    ? PinataService.normalizeIpfsUrl(user.avatarUrl)
     : null;
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,7 +88,7 @@ export function ProfileAvatar({
               />
             ) : (
               <span className="text-2xl font-bold text-muted-foreground">
-                {user?.first_name?.charAt(0) || user?.username?.charAt(0) || "?"}
+                {user?.firstName?.charAt(0) || user?.username?.charAt(0) || "?"}
               </span>
             )}
           </div>

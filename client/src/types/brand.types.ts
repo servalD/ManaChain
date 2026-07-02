@@ -3,34 +3,32 @@
  * TypeScript interfaces for brand-related data
  */
 
+export interface InterestRef {
+  id: string;
+  label: string;
+}
+
 export interface BrandFromAPI {
   id: string;
+  ownerId: string;
   name: string;
   description: string | null;
-  logo_url: string | null;
-  website_url: string | null;
+  logoUrl: string | null;
+  websiteUrl: string | null;
+  businessRegistrationNumber: string | null;
   country: string;
-  created_at: string;
-  updated_at: string;
-  brand_token?: Array<{
-    id: string;
-    symbol: string;
-    current_price: string;
-    total_supply: number;
-  }>;
-  brand_interest?: Array<{
-    interest: {
-      id: string;
-      label: string;
-    };
-  }>;
+  headquartersStreet: string;
+  headquartersCity: string;
+  headquartersZipCode: string;
+  headquartersAddressComplement: string | null;
+  socialMedias: Record<string, string> | null;
+  interests: InterestRef[];
+  createdAt: string;
 }
 
 export interface GetBrandsResponse {
   brands: BrandFromAPI[];
   total: number;
-  limit: number;
-  offset: number;
 }
 
 export interface BrandStats {

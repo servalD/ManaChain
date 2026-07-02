@@ -8,8 +8,8 @@ interface ProfileAccountInfoProps {
 }
 
 export function ProfileAccountInfo({ user }: ProfileAccountInfoProps) {
-  const memberSince = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", {
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })

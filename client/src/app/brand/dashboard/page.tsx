@@ -22,14 +22,14 @@ export default function BrandDashboardPage() {
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.role === "BRANDUSER" && user?.password_changed === false) {
+    if (user?.role === "BRANDUSER" && user?.passwordChanged === false) {
       router.replace("/brand/change-password-required");
       return;
     }
   }, [user, router]);
 
   useEffect(() => {
-    if (user?.role === "BRANDUSER" && user?.password_changed === false) {
+    if (user?.role === "BRANDUSER" && user?.passwordChanged === false) {
       return;
     }
     const fetchBrandData = async () => {
@@ -39,7 +39,7 @@ export default function BrandDashboardPage() {
         if (brand) {
           setBrandId(brand.id);
           setBrandName(brand.name);
-          setBrandLogo(brand.logo_url);
+          setBrandLogo(brand.logoUrl);
           // Mock: always set hasToken to true for testing
           setHasToken(true);
           // Check if brand has a token (commented out for mocking)
@@ -77,8 +77,8 @@ export default function BrandDashboardPage() {
       return;
     }
     
-    if (freshUser.blockchain_address) {
-      if (freshUser.blockchain_address.toLowerCase() !== address.toLowerCase()) {
+    if (freshUser.blockchainAddress) {
+      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
         toast({
           title: "Wallet Already Connected",
           description: "You already have a different wallet connected to your account.",
@@ -135,7 +135,7 @@ export default function BrandDashboardPage() {
           currentPage="dashboard"
           isLoggedIn={true}
           userName={user?.username}
-          userAvatarUrl={user?.avatar_url}
+          userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

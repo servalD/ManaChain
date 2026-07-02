@@ -29,8 +29,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setFirst_name(user.first_name ?? "");
-      setLast_name(user.last_name ?? "");
+      setFirst_name(user.firstName ?? "");
+      setLast_name(user.lastName ?? "");
       setUsername(user.username ?? "");
     }
   }, [user]);
@@ -39,8 +39,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setIsSaving(true);
     const updated = await AuthService.updateProfile({
-      first_name: first_name.trim() || undefined,
-      last_name: last_name.trim() || undefined,
+      firstName: first_name.trim() || undefined,
+      lastName: last_name.trim() || undefined,
       username: username.trim() || undefined,
     });
     setIsSaving(false);
@@ -55,8 +55,8 @@ export default function ProfilePage() {
   };
 
   const handleAvatarUploadComplete = async (avatarUrl: string) => {
-    const oldAvatarUrl = user?.avatar_url ?? null;
-    const updated = await AuthService.updateProfile({ avatar_url: avatarUrl });
+    const oldAvatarUrl = user?.avatarUrl ?? null;
+    const updated = await AuthService.updateProfile({ avatarUrl });
     if (updated) {
       await refreshUser();
       // Unpin previous avatar from Pinata if it was an IPFS URL
@@ -94,7 +94,7 @@ export default function ProfilePage() {
           currentPage="profile"
           isLoggedIn={true}
           userName={user?.username}
-          userAvatarUrl={user?.avatar_url}
+          userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

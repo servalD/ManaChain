@@ -17,8 +17,8 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
     const fetchLikes = async () => {
       setIsLoading(true);
       const response = await LikeService.getBrandLikes(brandId);
-      if (response?.success) {
-        setLikes(response.data);
+      if (response) {
+        setLikes(response);
       }
       setIsLoading(false);
     };
@@ -68,20 +68,20 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
           <div className="grid gap-4">
             {likes.map((like) => (
               <div
-                key={like.id}
+                key={like.likeId}
                 className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     {/* User Avatar */}
                     <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                      {like.user.first_name[0]}{like.user.last_name[0]}
+                      {like.user.firstName[0]}{like.user.lastName[0]}
                     </div>
 
                     {/* User Info */}
                     <div>
                       <h4 className="font-semibold">
-                        {like.user.first_name} {like.user.last_name}
+                        {like.user.firstName} {like.user.lastName}
                       </h4>
                       <p className="text-sm text-muted-foreground">@{like.user.username}</p>
                     </div>
@@ -90,14 +90,14 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
                   {/* Like Date */}
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">
-                      {new Date(like.created_at).toLocaleDateString("en-US", {
+                      {new Date(like.likedAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
                       })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(like.created_at).toLocaleTimeString("en-US", {
+                      {new Date(like.likedAt).toLocaleTimeString("en-US", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}

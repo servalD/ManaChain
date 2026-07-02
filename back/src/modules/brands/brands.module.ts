@@ -12,6 +12,7 @@ import { BrandRepository } from './domain/brand.repository';
 import { BrandApplicationRepository } from './domain/brand-application.repository';
 import { BrandMediaRepository } from './domain/brand-media.repository';
 import { InterestChecker } from './domain/interest-checker';
+import { InterestReader } from './domain/interest-reader';
 import { BrandApplicationMailer } from './domain/brand-application-mailer.port';
 import { TemporaryPasswordGenerator } from './domain/temporary-password-generator';
 import { BrandTokenStatsReader } from './domain/brand-token-stats.reader';
@@ -21,6 +22,7 @@ import { TypeOrmBrandRepository } from './infrastructure/typeorm-brand.repositor
 import { TypeOrmBrandApplicationRepository } from './infrastructure/typeorm-brand-application.repository';
 import { TypeOrmBrandMediaRepository } from './infrastructure/typeorm-brand-media.repository';
 import { TypeOrmInterestChecker } from './infrastructure/typeorm-interest-checker';
+import { TypeOrmInterestReader } from './infrastructure/typeorm-interest-reader';
 import { TemplatedBrandApplicationMailer } from './infrastructure/email/templated-brand-application-mailer';
 import { SecureTemporaryPasswordGenerator } from './infrastructure/secure-temporary-password.generator';
 import { TypeOrmBrandTokenStatsReader } from './infrastructure/typeorm-brand-token-stats.reader';
@@ -43,9 +45,11 @@ import { ListBrandApplicationsUseCase } from './application/use-cases/list-brand
 import { GetBrandApplicationUseCase } from './application/use-cases/get-brand-application.use-case';
 import { ApproveBrandApplicationUseCase } from './application/use-cases/approve-brand-application.use-case';
 import { RejectBrandApplicationUseCase } from './application/use-cases/reject-brand-application.use-case';
+import { ListInterestsUseCase } from './application/use-cases/list-interests.use-case';
 // Controllers
 import { BrandApplicationsController } from './presentation/brand-applications.controller';
 import { BrandsController } from './presentation/brands.controller';
+import { InterestsController } from './presentation/interests.controller';
 
 /**
  * Module marques : CRUD marques + médias + cycle de candidature. Consomme
@@ -63,7 +67,11 @@ import { BrandsController } from './presentation/brands.controller';
     AuthModule,
     EmailModule,
   ],
-  controllers: [BrandApplicationsController, BrandsController],
+  controllers: [
+    BrandApplicationsController,
+    BrandsController,
+    InterestsController,
+  ],
   providers: [
     { provide: BrandRepository, useClass: TypeOrmBrandRepository },
     {
@@ -72,6 +80,7 @@ import { BrandsController } from './presentation/brands.controller';
     },
     { provide: BrandMediaRepository, useClass: TypeOrmBrandMediaRepository },
     { provide: InterestChecker, useClass: TypeOrmInterestChecker },
+    { provide: InterestReader, useClass: TypeOrmInterestReader },
     {
       provide: BrandApplicationMailer,
       useClass: TemplatedBrandApplicationMailer,
@@ -99,6 +108,7 @@ import { BrandsController } from './presentation/brands.controller';
     GetBrandApplicationUseCase,
     ApproveBrandApplicationUseCase,
     RejectBrandApplicationUseCase,
+    ListInterestsUseCase,
   ],
   // Exporté pour les modules `likes` et `tokens` (délégation de leurs ports de
   // lecture marque au vrai repository, fin du SQL dupliqué).

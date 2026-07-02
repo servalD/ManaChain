@@ -11,6 +11,32 @@ import {
   RejectBrandApplicationResponse,
 } from "@/types/brand-application.types";
 
+/** Traduit la forme interne (snake_case) du wizard vers le contrat API (camelCase). */
+function toWireRequest(data: CreateBrandApplicationData) {
+  return {
+    contactEmail: data.contact_email,
+    contactFirstName: data.contact_first_name,
+    contactLastName: data.contact_last_name,
+    contactPhone: data.contact_phone,
+    brandName: data.brand_name,
+    interestIds: data.interest_ids,
+    description: data.description,
+    websiteUrl: data.website_url,
+    logoUrl: data.logo_url,
+    businessRegistrationNumber: data.business_registration_number,
+    country: data.country,
+    headquartersStreet: data.headquarters_street,
+    headquartersCity: data.headquarters_city,
+    headquartersZipCode: data.headquarters_zip_code,
+    headquartersAddressComplement: data.headquarters_address_complement,
+    registrationProofUrl: data.registration_proof_url,
+    motivation: data.motivation,
+    estimatedCommunitySize: data.estimated_community_size,
+    socialMediaLinks: data.social_media_links,
+    howDidYouHearAboutUs: data.how_did_you_hear_about_us,
+  };
+}
+
 export default class BrandApplicationService {
   /**
    * Create a new brand application (public endpoint)
@@ -21,17 +47,17 @@ export default class BrandApplicationService {
     try {
       const res = await axios.post(
         `${ApiService.baseURL}/brands/applications`,
-        data
+        toWireRequest(data)
       );
 
-      if (res.status === 201) {
+      if (res.status === 201 || res.status === 200) {
         toast({
           title: "Application submitted",
           description: "Your brand application has been submitted successfully! Please check your email to verify your address. We'll review your application once your email is verified.",
           variant: "success",
         });
 
-        return res.data.application;
+        return res.data;
       }
       return null;
     } catch (err: any) {
@@ -41,19 +67,18 @@ export default class BrandApplicationService {
 
         switch (status) {
           case 400:
-            if (data?.required) {
-              toast({
-                title: "Missing required fields",
-                description: `Please fill in: ${data.required.join(", ")}`,
-                variant: "error",
-              });
-            } else {
-              toast({
-                title: "Validation error",
-                description: data?.error || "Please check your information",
-                variant: "error",
-              });
-            }
+            toast({
+              title: "Validation error",
+              description: data?.message || "Please check your information",
+              variant: "error",
+            });
+            break;
+          case 409:
+            toast({
+              title: "Conflict",
+              description: data?.message || "This brand or registration number is already in use",
+              variant: "error",
+            });
             break;
           case 500:
             toast({
@@ -65,7 +90,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Application error",
-              description: data?.error || "An unexpected error occurred",
+              description: data?.message || "An unexpected error occurred",
               variant: "error",
             });
         }
@@ -103,7 +128,7 @@ export default class BrandApplicationService {
           variant: "success",
         });
 
-        return res.data.application;
+        return res.data;
       }
       return null;
     } catch (err: any) {
@@ -115,7 +140,7 @@ export default class BrandApplicationService {
           case 400:
             toast({
               title: "Verification error",
-              description: data?.error || "The verification link is invalid or expired",
+              description: data?.message || "The verification link is invalid or expired",
               variant: "error",
             });
             break;
@@ -129,7 +154,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Verification error",
-              description: data?.error || "An unexpected error occurred",
+              description: data?.message || "An unexpected error occurred",
               variant: "error",
             });
         }
@@ -158,7 +183,7 @@ export default class BrandApplicationService {
   ): Promise<GetBrandApplicationsResponse | null> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.limit) {
         queryParams.append("limit", params.limit.toString());
       }
@@ -216,7 +241,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Error",
-              description: data?.error || "Failed to fetch applications",
+              description: data?.message || "Failed to fetch applications",
               variant: "error",
             });
         }
@@ -254,7 +279,7 @@ export default class BrandApplicationService {
       );
 
       if (res.status === 200) {
-        return res.data.application;
+        return res.data;
       }
       return null;
     } catch (err: any) {
@@ -294,7 +319,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Error",
-              description: data?.error || "Failed to fetch application",
+              description: data?.message || "Failed to fetch application",
               variant: "error",
             });
         }
@@ -349,9 +374,10 @@ export default class BrandApplicationService {
 
         switch (status) {
           case 400:
+          case 409:
             toast({
               title: "Validation error",
-              description: data?.error || "Unable to approve application",
+              description: data?.message || "Unable to approve application",
               variant: "error",
             });
             break;
@@ -379,7 +405,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Error",
-              description: data?.error || "Failed to approve application",
+              description: data?.message || "Failed to approve application",
               variant: "error",
             });
         }
@@ -435,19 +461,11 @@ export default class BrandApplicationService {
 
         switch (status) {
           case 400:
-            if (data?.error?.includes("rejection_reason")) {
-              toast({
-                title: "Missing rejection reason",
-                description: "Please provide a reason for rejection",
-                variant: "error",
-              });
-            } else {
-              toast({
-                title: "Validation error",
-                description: data?.error || "Unable to reject application",
-                variant: "error",
-              });
-            }
+            toast({
+              title: "Validation error",
+              description: data?.message || "Please provide a reason for rejection",
+              variant: "error",
+            });
             break;
           case 401:
             toast({
@@ -473,7 +491,7 @@ export default class BrandApplicationService {
           default:
             toast({
               title: "Error",
-              description: data?.error || "Failed to reject application",
+              description: data?.message || "Failed to reject application",
               variant: "error",
             });
         }

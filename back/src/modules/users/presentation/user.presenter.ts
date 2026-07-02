@@ -36,6 +36,12 @@ export class UserResponse {
   @ApiProperty({ enum: Role })
   role: Role;
 
+  @ApiProperty({
+    description:
+      'False tant qu’un compte marque créé avec un mot de passe temporaire ne l’a pas changé.',
+  })
+  passwordChanged: boolean;
+
   @ApiProperty({ format: 'date-time' })
   createdAt: string;
 }
@@ -53,5 +59,6 @@ export const toUserResponse = (user: User): UserResponse => ({
   verified: user.verified,
   isBrand: user.isBrand,
   role: user.role,
+  passwordChanged: user.passwordChanged,
   createdAt: user.createdAt.toISOString(),
 });

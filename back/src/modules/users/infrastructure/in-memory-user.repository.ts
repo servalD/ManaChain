@@ -46,6 +46,7 @@ export class InMemoryUserRepository extends UserRepository {
       partial.verified ?? true,
       partial.isBrand ?? false,
       partial.role ?? Role.CLIENT,
+      partial.passwordChanged ?? true,
       partial.lastLogin ?? null,
       partial.createdAt ?? now,
       partial.updatedAt ?? now,
@@ -181,7 +182,7 @@ export class InMemoryUserRepository extends UserRepository {
     }
     this.passwordHashes.set(id, passwordHash);
     this.passwordReset.delete(id);
-    return Promise.resolve(this.users.get(id)!);
+    return Promise.resolve(this.cloneWith(id, { passwordChanged: true }));
   }
 
   // --- Brands ---
@@ -200,6 +201,7 @@ export class InMemoryUserRepository extends UserRepository {
       verified: true,
       isBrand: true,
       role: Role.BRANDUSER,
+      passwordChanged: false,
       passwordHash: params.passwordHash,
     });
     return Promise.resolve(user);
@@ -239,6 +241,7 @@ export class InMemoryUserRepository extends UserRepository {
         | 'avatarUrl'
         | 'blockchainAddress'
         | 'verified'
+        | 'passwordChanged'
       >
     >,
   ): User {
@@ -260,6 +263,7 @@ export class InMemoryUserRepository extends UserRepository {
       changes.verified ?? e.verified,
       e.isBrand,
       e.role,
+      changes.passwordChanged ?? e.passwordChanged,
       e.lastLogin,
       e.createdAt,
       new Date(),

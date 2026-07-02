@@ -268,6 +268,7 @@ export class TypeOrmUserRepository extends UserRepository {
       entity.verified,
       entity.isBrand,
       entity.role,
+      entity.passwordChanged,
       entity.lastLogin,
       entity.createdAt,
       entity.updatedAt,

@@ -9,6 +9,7 @@ export class BrandApplicationResponse {
   @ApiProperty() brandName: string;
   @ApiProperty({ type: String, nullable: true }) description: string | null;
   @ApiProperty({ type: String, nullable: true }) websiteUrl: string | null;
+  @ApiProperty({ type: String, nullable: true }) logoUrl: string | null;
   @ApiProperty() businessRegistrationNumber: string;
   @ApiProperty() country: string;
   @ApiProperty() status: string;
@@ -33,6 +34,7 @@ export const toApplicationResponse = (
   brandName: a.brandName,
   description: a.description,
   websiteUrl: a.websiteUrl,
+  logoUrl: a.logoUrl,
   businessRegistrationNumber: a.businessRegistrationNumber,
   country: a.country,
   status: a.status,

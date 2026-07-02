@@ -107,10 +107,10 @@ export default function RegisterPage() {
       const result = await AuthService.register({
         email: formData.email,
         username: formData.username,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         password: formData.password,
-        age_range: formData.ageRange,
+        ageRange: formData.ageRange,
         interests: formData.interests,
     });
 

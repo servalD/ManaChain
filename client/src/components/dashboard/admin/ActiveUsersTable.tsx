@@ -148,10 +148,10 @@ export function ActiveUsersTable() {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        {user.avatar_url ? (
+                        {user.avatarUrl ? (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0 overflow-hidden">
                             <img
-                              src={user.avatar_url}
+                              src={user.avatarUrl}
                               alt={user.username}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -163,7 +163,7 @@ export function ActiveUsersTable() {
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                             <span className="text-sm font-bold text-violet-400">
-                              {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                             </span>
                           </div>
                         )}
@@ -188,7 +188,7 @@ export function ActiveUsersTable() {
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-muted-foreground">
-                        {new Date(user.created_at).toLocaleDateString("en-US", {
+                        {new Date(user.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",

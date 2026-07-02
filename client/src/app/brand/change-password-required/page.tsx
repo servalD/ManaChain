@@ -18,7 +18,7 @@ export default function BrandChangePasswordRequiredPage() {
           currentPage="dashboard"
           isLoggedIn={true}
           userName={user?.username}
-          userAvatarUrl={user?.avatar_url}
+          userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
           onLogout={() => AuthService.logout()}
           onProfile={() => router.push("/profile")}

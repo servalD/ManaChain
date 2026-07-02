@@ -8,16 +8,16 @@ interface ProfileInfoReadOnlyProps {
 }
 
 export function ProfileInfoReadOnly({ user }: ProfileInfoReadOnlyProps) {
-  const memberSince = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-US", {
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       })
     : null;
 
   const fields = [
-    { label: "First name", value: user?.first_name ?? "—", icon: User },
-    { label: "Last name", value: user?.last_name ?? "—", icon: User },
+    { label: "First name", value: user?.firstName ?? "—", icon: User },
+    { label: "Last name", value: user?.lastName ?? "—", icon: User },
     { label: "Username", value: user?.username ?? "—", icon: User },
     { label: "Email", value: user?.email ?? "—", icon: Mail },
   ];

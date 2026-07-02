@@ -17,7 +17,7 @@ export function UserLikes() {
     const result = await LikeService.deleteLike(likeId);
     setDislikingId(null);
     if (result?.success) {
-      setLikes((prev) => prev.filter((l) => l.id !== likeId));
+      setLikes((prev) => prev.filter((l) => l.likeId !== likeId));
     }
   };
 
@@ -25,8 +25,8 @@ export function UserLikes() {
     const fetchLikes = async () => {
       setIsLoading(true);
       const response = await LikeService.getUserLikes();
-      if (response?.success) {
-        setLikes(response.data);
+      if (response) {
+        setLikes(response);
       }
       setIsLoading(false);
     };
@@ -75,17 +75,17 @@ export function UserLikes() {
             <tbody>
               {likes.map((like, index) => (
                 <tr
-                  key={like.id}
+                  key={like.likeId}
                   className={`border-b border-border hover:bg-muted/20 transition-colors ${
                     index === likes.length - 1 ? "border-b-0" : ""
                   }`}
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      {like.brand.logo_url ? (
+                      {like.brand.logoUrl ? (
                         <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
                           <img
-                            src={PinataService.normalizeIpfsUrl(like.brand.logo_url)}
+                            src={PinataService.normalizeIpfsUrl(like.brand.logoUrl)}
                             alt={like.brand.name}
                             className="w-full h-full object-contain"
                             style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -116,7 +116,7 @@ export function UserLikes() {
                   </td>
                   <td className="p-4">
                     <div className="text-sm text-muted-foreground">
-                      {new Date(like.created_at).toLocaleDateString("en-US", {
+                      {new Date(like.likedAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -125,7 +125,7 @@ export function UserLikes() {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
-                      {like.brand.website_url && (
+                      {like.brand.websiteUrl && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -133,7 +133,7 @@ export function UserLikes() {
                           className="h-8 text-xs"
                         >
                           <a
-                            href={like.brand.website_url}
+                            href={like.brand.websiteUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1"
@@ -155,11 +155,11 @@ export function UserLikes() {
                         variant="ghost"
                         size="sm"
                         className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                        onClick={() => handleDislike(like.id)}
-                        disabled={dislikingId === like.id}
+                        onClick={() => handleDislike(like.likeId)}
+                        disabled={dislikingId === like.likeId}
                         aria-label="Remove from liked"
                       >
-                        {dislikingId === like.id ? (
+                        {dislikingId === like.likeId ? (
                           <span className="inline-block w-4 h-4 border-2 border-red-500/50 border-t-red-500 rounded-full animate-spin" />
                         ) : (
                           <>

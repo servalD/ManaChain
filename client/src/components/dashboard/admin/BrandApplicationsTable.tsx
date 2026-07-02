@@ -117,7 +117,7 @@ export function BrandApplicationsTable() {
     try {
       const response = await BrandApplicationService.rejectApplication(
         selectedApplication.id,
-        { rejection_reason: rejectionReason }
+        { rejectionReason }
       );
       if (response) {
         // Refresh applications
@@ -245,11 +245,11 @@ export function BrandApplicationsTable() {
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          {app.logo_url ? (
+                          {app.logoUrl ? (
                             <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
                               <img
-                                src={PinataService.normalizeIpfsUrl(app.logo_url)}
-                                alt={app.brand_name}
+                                src={PinataService.normalizeIpfsUrl(app.logoUrl)}
+                                alt={app.brandName}
                                 className="w-full h-full object-contain"
                                 style={{ maxWidth: '100%', maxHeight: '100%' }}
                                 onError={(e) => {
@@ -259,7 +259,7 @@ export function BrandApplicationsTable() {
                                     target.style.display = 'none';
                                     const placeholder = document.createElement('div');
                                     placeholder.className = 'w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center';
-                                    placeholder.textContent = app.brand_name.charAt(0);
+                                    placeholder.textContent = app.brandName.charAt(0);
                                     parent.appendChild(placeholder);
                                   }
                                 }}
@@ -268,20 +268,20 @@ export function BrandApplicationsTable() {
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                               <span className="text-sm font-bold text-violet-400">
-                                {app.brand_name.charAt(0)}
+                                {app.brandName.charAt(0)}
                               </span>
                             </div>
                           )}
                           <div>
-                            <div className="font-semibold text-sm">{app.brand_name}</div>
+                            <div className="font-semibold text-sm">{app.brandName}</div>
                             <div className="text-xs text-muted-foreground">{app.country}</div>
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="text-sm text-muted-foreground">{app.contact_email}</div>
+                        <div className="text-sm text-muted-foreground">{app.contactEmail}</div>
                         <div className="text-xs text-muted-foreground">
-                          {app.contact_first_name} {app.contact_last_name}
+                          {app.contactFirstName} {app.contactLastName}
                         </div>
                       </td>
                       <td className="p-4">
@@ -291,7 +291,7 @@ export function BrandApplicationsTable() {
                       </td>
                       <td className="p-4">
                         <div className="text-sm text-muted-foreground">
-                          {new Date(app.created_at).toLocaleDateString("en-US", {
+                          {new Date(app.createdAt).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -355,11 +355,11 @@ export function BrandApplicationsTable() {
           <div className="space-y-4 py-4">
             {selectedApplication && (
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                {selectedApplication.logo_url ? (
+                {selectedApplication.logoUrl ? (
                   <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
                     <img
-                      src={PinataService.normalizeIpfsUrl(selectedApplication.logo_url)}
-                      alt={selectedApplication.brand_name}
+                      src={PinataService.normalizeIpfsUrl(selectedApplication.logoUrl)}
+                      alt={selectedApplication.brandName}
                       className="w-full h-full object-contain"
                       style={{ maxWidth: '100%', maxHeight: '100%' }}
                       onError={(e) => {
@@ -371,13 +371,13 @@ export function BrandApplicationsTable() {
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                     <span className="text-sm font-bold text-violet-400">
-                      {selectedApplication.brand_name.charAt(0)}
+                      {selectedApplication.brandName.charAt(0)}
                     </span>
                   </div>
                 )}
                 <div>
-                  <div className="font-semibold text-sm">{selectedApplication.brand_name}</div>
-                  <div className="text-xs text-muted-foreground">{selectedApplication.contact_email}</div>
+                  <div className="font-semibold text-sm">{selectedApplication.brandName}</div>
+                  <div className="text-xs text-muted-foreground">{selectedApplication.contactEmail}</div>
                 </div>
               </div>
             )}

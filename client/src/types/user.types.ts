@@ -2,26 +2,25 @@ export interface IUser {
   id: string;
   email: string;
   username: string;
-  first_name: string;
-  last_name: string;
-  avatar_url?: string;
-  age_range: string;
-  blockchain_address?: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  ageRange: string;
+  blockchainAddress: string | null;
   verified: boolean;
-  is_brand: boolean;
-  role?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
-  password_changed?: boolean;
-  created_at: string;
-  updated_at: string;
+  isBrand: boolean;
+  role: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
+  passwordChanged: boolean;
+  createdAt: string;
 }
 
 export interface RegisterData {
   email: string;
   username: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   password: string;
-  age_range: string;
+  ageRange: string;
   interests?: string[];
 }
 

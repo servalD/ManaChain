@@ -38,26 +38,27 @@ export default function DiscoverPage() {
 
       if (response) {
         const brandsFromApi = response.brands;
-        const mediaPerBrand = await Promise.all(
-          brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandMedia(b.id))
-        );
+        const [mediaPerBrand, statsPerBrand] = await Promise.all([
+          Promise.all(brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandMedia(b.id))),
+          Promise.all(brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandStats(b.id))),
+        ]);
 
         const transformedBrands: Brand[] = brandsFromApi.map((brand: BrandFromAPI, index: number) => {
-          const industry = brand.brand_interest && brand.brand_interest.length > 0
-            ? brand.brand_interest.map((bi: { interest: { id: string; label: string } }) => bi.interest.label).join(", ")
+          const industry = brand.interests && brand.interests.length > 0
+            ? brand.interests.map((i) => i.label).join(", ")
             : "General";
 
-          const token = brand.brand_token && brand.brand_token.length > 0 ? brand.brand_token[0] : null;
-          const hasToken = !!token;
-          const tokenSymbol = token?.symbol || "N/A";
-          const tokenPrice = token ? parseFloat(token.current_price) : 0;
-          const holders = token ? Math.floor(token.total_supply) : 0;
-          const raised = token ? parseFloat(token.current_price) * token.total_supply : 0;
+          const stats = statsPerBrand[index];
+          const hasToken = !!stats?.tokenSymbol;
+          const tokenSymbol = stats?.tokenSymbol || "N/A";
+          const tokenPrice = stats?.tokenPrice ? parseFloat(stats.tokenPrice) : 0;
+          const holders = stats?.tokenHolders ?? 0;
+          const raised = stats?.totalRaised ? parseFloat(stats.totalRaised) : 0;
 
-          const normalizedLogo = brand.logo_url ? PinataService.normalizeIpfsUrl(brand.logo_url) : "";
+          const normalizedLogo = brand.logoUrl ? PinataService.normalizeIpfsUrl(brand.logoUrl) : "";
           const media = mediaPerBrand[index];
           const firstImage = media?.length
-            ? PinataService.normalizeIpfsUrl(media[0].image_url)
+            ? PinataService.normalizeIpfsUrl(media[0].imageUrl)
             : null;
           const coverImage = firstImage && firstImage !== normalizedLogo ? firstImage : normalizedLogo;
 
@@ -88,8 +89,8 @@ export default function DiscoverPage() {
   const handleSwipeRight = async (brand: Brand) => {
     // Create like in database with real brand ID
     const result = await LikeService.createLike(brand.id);
-    
-    if (result?.success) {
+
+    if (result) {
       // Show investment modal
       setSelectedBrand(brand);
       setIsInvestmentModalOpen(true);
@@ -138,8 +139,8 @@ export default function DiscoverPage() {
     }
     
     // Check if user already has a blockchain address
-    if (freshUser.blockchain_address) {
-      if (freshUser.blockchain_address.toLowerCase() !== address.toLowerCase()) {
+    if (freshUser.blockchainAddress) {
+      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
         // Different wallet - show error and trigger disconnect
         toast({
           title: "Wallet Already Connected",
@@ -164,7 +165,7 @@ export default function DiscoverPage() {
       const success = await AuthService.updateBlockchainAddress(address);
       
       if (success) {
-        // Refresh user data after saving to update user.blockchain_address
+        // Refresh user data after saving to update user.blockchainAddress
         await refreshUser();
         setWalletAddress(address);
         toast({
@@ -203,7 +204,7 @@ export default function DiscoverPage() {
           currentPage="discover"
           isLoggedIn={true}
           userName={user?.username}
-          userAvatarUrl={user?.avatar_url}
+          userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
           onLogout={handleLogout}
           onProfile={handleProfile}

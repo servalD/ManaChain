@@ -52,7 +52,7 @@ export function LandingNavbar() {
       if (role === 'CLIENT') {
         router.push('/discover');
       } else if (role === 'BRANDUSER') {
-        router.push(user.password_changed === false ? '/brand/change-password-required' : '/brand/dashboard');
+        router.push(user.passwordChanged === false ? '/brand/change-password-required' : '/brand/dashboard');
       } else if (role === 'ADMIN') {
         router.push('/admin/dashboard');
       } else {

@@ -77,7 +77,7 @@ export function BrandDetailModal({
 
   // Get all images (cover + media, logo only at the end).
   const normalizedCover = brand.coverImage ? PinataService.normalizeIpfsUrl(brand.coverImage) : "";
-  const mediaUrls = brandMedia.map((m) => PinataService.normalizeIpfsUrl(m.image_url));
+  const mediaUrls = brandMedia.map((m) => PinataService.normalizeIpfsUrl(m.imageUrl));
   const mediaWithoutDuplicateCover = normalizedCover
     ? mediaUrls.filter((url) => url !== normalizedCover)
     : mediaUrls;
@@ -466,10 +466,10 @@ export function BrandDetailModal({
                     </div>
 
                     {/* Website */}
-                    {brandDetails?.website_url && (
+                    {brandDetails?.websiteUrl && (
                       <div>
                         <a
-                          href={brandDetails.website_url}
+                          href={brandDetails.websiteUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-violet-500 hover:text-violet-600 transition-colors"
@@ -691,10 +691,10 @@ export function BrandDetailModal({
                             </div>
                           )}
                         </div>
-                        {brandDetails?.website_url && (
+                        {brandDetails?.websiteUrl && (
                           <div>
                             <a
-                              href={brandDetails.website_url}
+                              href={brandDetails.websiteUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 text-violet-500 hover:text-violet-600 transition-colors"

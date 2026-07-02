@@ -9,10 +9,10 @@ export default class InterestsService {
    */
   static async getAllInterests(): Promise<Interest[]> {
     try {
-      const res = await axios.get(`${ApiService.baseURL}/users/interests`);
+      const res = await axios.get(`${ApiService.baseURL}/interests`);
 
       if (res.status === 200) {
-        return res.data.interests || [];
+        return res.data || [];
       }
       return [];
     } catch (err: any) {
@@ -38,7 +38,7 @@ export default class InterestsService {
           default:
             toast({
               title: "Error loading interests",
-              description: data?.error || "An unexpected error occurred",
+              description: data?.message || "An unexpected error occurred",
               variant: "error",
             });
         }

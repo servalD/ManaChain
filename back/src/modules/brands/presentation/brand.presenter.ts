@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Brand, InterestRef } from '../domain/brand';
 import { BrandMedia } from '../domain/brand-media';
+import { InterestSummary } from '../domain/interest-reader';
 
 class InterestRefResponse {
   @ApiProperty() id: string;
@@ -66,6 +67,18 @@ export const toBrandResponse = (brand: Brand): BrandResponse => ({
   socialMedias: brand.socialMedias,
   interests: brand.interests,
   createdAt: brand.createdAt.toISOString(),
+});
+
+export class InterestResponse {
+  @ApiProperty() id: string;
+  @ApiProperty() label: string;
+  @ApiProperty({ type: String, nullable: true }) icon: string | null;
+}
+
+export const toInterestResponse = (i: InterestSummary): InterestResponse => ({
+  id: i.id,
+  label: i.label,
+  icon: i.icon,
 });
 
 export const toBrandMediaResponse = (

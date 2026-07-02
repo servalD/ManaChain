@@ -14,7 +14,7 @@ class BrandService {
     try {
       const token = AuthService.getToken();
       const headers: Record<string, string> = {};
-      
+
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
@@ -46,17 +46,17 @@ class BrandService {
     try {
       const token = AuthService.getToken();
       const headers: Record<string, string> = {};
-      
+
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await axios.get<{ brand: BrandFromAPI }>(
+      const response = await axios.get<BrandFromAPI>(
         `${ApiService.baseURL}/brands/${brandId}`,
         { headers }
       );
 
-      return response.data.brand;
+      return response.data;
     } catch (error: any) {
       console.error("Error fetching brand:", error);
       return null;
@@ -73,7 +73,7 @@ class BrandService {
         return null;
       }
 
-      const response = await axios.get<{ brand: BrandFromAPI }>(
+      const response = await axios.get<BrandFromAPI>(
         `${ApiService.baseURL}/brands/me`,
         {
           headers: {
@@ -82,7 +82,7 @@ class BrandService {
         }
       );
 
-      return response.data.brand;
+      return response.data;
     } catch (error: any) {
       console.error("Error fetching my brand:", error);
       if (error.response?.status === 404) {
@@ -100,17 +100,17 @@ class BrandService {
     try {
       const token = AuthService.getToken();
       const headers: Record<string, string> = {};
-      
+
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
 
-      const response = await axios.get<{ stats: BrandStats }>(
+      const response = await axios.get<BrandStats>(
         `${ApiService.baseURL}/brands/${brandId}/stats`,
         { headers }
       );
 
-      return response.data.stats;
+      return response.data;
     } catch (error: any) {
       console.error("Error fetching brand stats:", error);
       if (error.response?.status === 404) {
@@ -136,8 +136,8 @@ class BrandService {
         return null;
       }
 
-      const request: ConfirmBrandMediaRequest = { ipfsHash, ipfsUrl };
-      const response = await axios.post<{ media: BrandMedia }>(
+      const request: ConfirmBrandMediaRequest = { ipfsHash, imageUrl: ipfsUrl };
+      const response = await axios.post<BrandMedia>(
         `${ApiService.baseURL}/brands/${brandId}/media/confirm`,
         request,
         {
@@ -147,12 +147,12 @@ class BrandService {
         }
       );
 
-      return response.data.media;
+      return response.data;
     } catch (error: any) {
       console.error("Error confirming brand media:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to confirm media. Please try again.",
+        description: error.response?.data?.message || "Failed to confirm media. Please try again.",
         variant: "error",
       });
       return null;
@@ -166,7 +166,7 @@ class BrandService {
     try {
       const token = AuthService.getToken();
       const headers: Record<string, string> = {};
-      
+
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
@@ -176,7 +176,7 @@ class BrandService {
         { headers }
       );
 
-      return response.data.media;
+      return response.data;
     } catch (error: any) {
       console.error("Error fetching brand media:", error);
       return [];
@@ -212,7 +212,7 @@ class BrandService {
       console.error("Error deleting brand media:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to delete media. Please try again.",
+        description: error.response?.data?.message || "Failed to delete media. Please try again.",
         variant: "error",
       });
       return false;

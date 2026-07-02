@@ -138,10 +138,10 @@ export function ActiveBrandsTable() {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        {brand.logo_url ? (
+                        {brand.logoUrl ? (
                           <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border overflow-hidden">
                             <img
-                              src={PinataService.normalizeIpfsUrl(brand.logo_url)}
+                              src={PinataService.normalizeIpfsUrl(brand.logoUrl)}
                               alt={brand.name}
                               className="w-full h-full object-contain"
                               style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -180,7 +180,7 @@ export function ActiveBrandsTable() {
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-muted-foreground">
-                        {new Date(brand.created_at).toLocaleDateString("en-US", {
+                        {new Date(brand.createdAt).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                           year: "numeric",

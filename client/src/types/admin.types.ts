@@ -10,20 +10,18 @@ export interface GetUsersParams {
 export interface GetUsersResponse {
     users: User[];
     total: number;
-    limit: number;
-    offset: number;
 }
 
 export interface User {
     id: string;
     username: string;
     email: string;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
     role: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
     verified: boolean;
-    avatar_url: string | null;
-    created_at: string;
+    avatarUrl: string | null;
+    createdAt: string;
 }
 
 export interface GetActiveBrandsParams {
@@ -35,6 +33,4 @@ export interface GetActiveBrandsParams {
 export interface GetActiveBrandsResponse {
     brands: BrandFromAPI[];
     total: number;
-    limit: number;
-    offset: number;
 }

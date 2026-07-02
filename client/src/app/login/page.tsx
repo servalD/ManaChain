@@ -143,7 +143,7 @@ function LoginPageContent() {
       const result = await AuthService.login(email, password);
 
       if (result && result.user) {
-        // Redirect based on user role; brands with password_changed=false must set password first
+        // Redirect based on user role; brands with passwordChanged=false must set password first
         const redirectPath = getRedirectPathByRole(result.user.role, result.user);
         setTimeout(() => {
           router.push(redirectPath);
@@ -154,12 +154,12 @@ function LoginPageContent() {
     }
   };
 
-  const getRedirectPathByRole = (role?: string, user?: { password_changed?: boolean }): string => {
+  const getRedirectPathByRole = (role?: string, user?: { passwordChanged?: boolean }): string => {
     switch (role) {
       case 'CLIENT':
         return '/discover';
       case 'BRANDUSER':
-        return user?.password_changed === false ? '/brand/change-password-required' : '/brand/dashboard';
+        return user?.passwordChanged === false ? '/brand/change-password-required' : '/brand/dashboard';
       case 'ADMIN':
         return '/admin/dashboard';
       default:

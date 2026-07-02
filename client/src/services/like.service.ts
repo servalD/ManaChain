@@ -33,20 +33,16 @@ class LikeService {
         }
       );
 
-      if (response.data.success) {
-        toast({
-          title: 'Brand Liked!',
-          description: 'You have successfully liked this brand.',
-          variant: 'success',
-        });
-        return response.data;
-      }
-
-      return null;
+      toast({
+        title: 'Brand Liked!',
+        description: 'You have successfully liked this brand.',
+        variant: 'success',
+      });
+      return response.data;
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || 'Failed to like brand. Please try again.';
-      
+
       toast({
         title: 'Error',
         description: errorMessage,
@@ -66,22 +62,18 @@ class LikeService {
         return null;
       }
 
-      const response = await axios.delete(`${API_URL}/likes/${likeId}`, {
+      await axios.delete(`${API_URL}/likes/${likeId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.data.success) {
-        toast({
-          title: 'Like removed',
-          description: "You've removed this brand from your liked list.",
-          variant: 'success',
-        });
-        return { success: true };
-      }
-
-      return null;
+      toast({
+        title: 'Like removed',
+        description: "You've removed this brand from your liked list.",
+        variant: 'success',
+      });
+      return { success: true };
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || 'Failed to remove like. Please try again.';
@@ -110,11 +102,7 @@ class LikeService {
         },
       });
 
-      if (response.data.success) {
-        return response.data;
-      }
-
-      return null;
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching user likes:', error);
       toast({
@@ -142,11 +130,7 @@ class LikeService {
         },
       });
 
-      if (response.data.success) {
-        return response.data;
-      }
-
-      return null;
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching brand likes:', error);
       toast({

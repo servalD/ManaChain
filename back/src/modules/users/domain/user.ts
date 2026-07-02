@@ -20,6 +20,7 @@ export class User {
     public readonly verified: boolean,
     public readonly isBrand: boolean,
     public readonly role: Role,
+    public readonly passwordChanged: boolean,
     public readonly lastLogin: Date | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
