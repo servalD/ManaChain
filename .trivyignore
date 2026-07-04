@@ -1,0 +1,15 @@
+# Exclusions Trivy — chaque entrée doit être justifiée.
+
+# NSG manager : 80/443 ouverts sur internet, c'est la définition d'un serveur
+# web public (traefik + Let's Encrypt). Le SSH, lui, est restreint à l'IP admin.
+AVD-AZU-0047
+
+# bigint-buffer (transitif @dynamic-labs/solana) : aucune version corrigée
+# publiée (status "affected" sans fix). Surface limitée au parsing de soldes
+# côté navigateur.
+CVE-2025-3194
+
+# valibot 0.36 (transitif SDK web3) : le fix impose la majeure 1.x, API
+# incompatible avec la lib consommatrice — bump impossible sans casser la
+# dépendance amont. ReDoS limité à EMOJI_REGEX côté client.
+CVE-2025-66020

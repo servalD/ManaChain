@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Determine content type from response or default to image
-    const contentType = response.headers['content-type'] || 'image/jpeg';
+    // (String() : axios ≥1.16 type la valeur d'en-tête plus largement que string)
+    const contentType = String(response.headers['content-type'] ?? 'image/jpeg');
 
     // Return the file with appropriate headers
     return new NextResponse(response.data, {
