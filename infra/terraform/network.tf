@@ -19,6 +19,10 @@ resource "azurerm_subnet" "nodes" {
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.10.1.0/24"]
+
+  # Route directe vers le Storage Account des backups (network_rules du
+  # storage n'accepte le subnet que si ce service endpoint est déclaré).
+  service_endpoints = ["Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "postgres" {

@@ -1,5 +1,9 @@
 # ManaChain
 
+[![Back CI](https://github.com/servalD/ManaChain/actions/workflows/back.yml/badge.svg?branch=main)](https://github.com/servalD/ManaChain/actions/workflows/back.yml)
+[![Client CI](https://github.com/servalD/ManaChain/actions/workflows/client.yml/badge.svg?branch=main)](https://github.com/servalD/ManaChain/actions/workflows/client.yml)
+[![Security Scan](https://github.com/servalD/ManaChain/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/servalD/ManaChain/actions/workflows/security.yml)
+
 ## 🏆 Compétition Engrainages & Projet Annuel ESGI
 
 Projet développé dans le cadre du **Projet Annuel ESGI** et de la compétition

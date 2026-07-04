@@ -20,15 +20,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Scan complet (toutes sévérités, ne bloque jamais)
-        uses: aquasecurity/trivy-action@0.28.0
+      # Même scan qu'en local :
+      #   trivy fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL .
+      # exit-code 1 si findings, mais continue-on-error : on exporte d'abord
+      # le rapport, l'échec est prononcé par la dernière étape.
+      - name: Scan Trivy
+        id: scan
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
           format: table
           output: trivy-report.txt
-          exit-code: "0"
+          exit-code: "1"
 
       - name: Rapport dans le log et le résumé du run
         if: always()
@@ -44,13 +51,10 @@ jobs:
           path: trivy-report.txt
           retention-days: 30
 
-      # Échec seulement APRÈS l'export du rapport, et uniquement sur du
-      # HIGH/CRITICAL non couvert par .trivyignore.
-      - name: Gate HIGH/CRITICAL
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln,secret,misconfig
-          severity: HIGH,CRITICAL
-          exit-code: "1"
+      # Pas de second scan : on relaie simplement le verdict du scan unique,
+      # maintenant que le rapport est exporté.
+      - name: Gate — échouer si le scan a trouvé du HIGH/CRITICAL
+        if: steps.scan.outcome == 'failure'
+        run: |
+          echo "::error::Trivy a détecté des findings HIGH/CRITICAL — voir l'artifact trivy-report"
+          exit 1

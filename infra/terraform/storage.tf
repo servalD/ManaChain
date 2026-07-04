@@ -8,6 +8,16 @@ resource "azurerm_storage_account" "backups" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
+
+  # Les dumps DB sont sensibles : accès réseau fermé par défaut, ouvert
+  # uniquement au subnet des nœuds (uploads rclone du service backup) et à
+  # l'IP admin (Terraform gère les containers en data-plane + vérifs az cli).
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"] # services Azure de confiance (métriques, etc.)
+    virtual_network_subnet_ids = [azurerm_subnet.nodes.id]
+    ip_rules                   = [replace(var.admin_ip_cidr, "/32", "")]
+  }
 }
 
 resource "azurerm_storage_container" "backups" {
