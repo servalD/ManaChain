@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Squares from "@/components/ui/squares/Squares";
 import { LandingNavbar } from "@/components/ui/navbar/LandingNavbar";
 import { Hero, Stats, HowItWorks, TheyTrustUs, TrustedByBrands, FAQ, Footer } from "@/components/landing";
+import { useMounted } from "@/hooks/useMounted";
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden pointer-events-none">

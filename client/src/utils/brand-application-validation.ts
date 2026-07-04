@@ -306,10 +306,16 @@ export function validateDocuments(data: {
   };
 }
 
+type AllStepsData = Parameters<typeof validateContactInfo>[0] &
+  Parameters<typeof validateBrandInfo>[0] &
+  Parameters<typeof validateLegalInfo>[0] &
+  Parameters<typeof validateAdditionalInfo>[0] &
+  Parameters<typeof validateDocuments>[0];
+
 /**
  * Validate all steps at once (for final submission)
  */
-export function validateAllSteps(data: any): ValidationResult {
+export function validateAllSteps(data: AllStepsData): ValidationResult {
   const step1 = validateContactInfo({
     contact_email: data.contact_email,
     contact_first_name: data.contact_first_name,

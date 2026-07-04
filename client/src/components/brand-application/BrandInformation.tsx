@@ -12,7 +12,7 @@ interface BrandInformationProps {
     website_url: string;
     logo_url: string;
   };
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: string | string[]) => void;
   interests: Interest[];
   errors?: Record<string, string>;
 }

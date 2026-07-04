@@ -24,7 +24,7 @@ export default class AdminService {
       );
 
       return res.data;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching users:', err);
       return null;
     }
@@ -50,7 +50,7 @@ export default class AdminService {
       );
 
       return res.data;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching active brands:', err);
       return null;
     }

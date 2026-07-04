@@ -4,13 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { User, Menu, X, Building2 } from "lucide-react";
+import { User, Menu, X } from "lucide-react";
 import AuthService from "@/services/auth.service";
 import { ServiceErrorCode } from "@/services/service.result";
-
-interface LandingNavbarProps {
-  // No props needed - using static logo image
-}
 
 export function LandingNavbar() {
   const router = useRouter();

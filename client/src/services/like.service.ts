@@ -7,6 +7,7 @@ import {
   GetLikesResponse,
   GetBrandLikesResponse,
 } from '@/types/like.types';
+import { asAxiosError } from '@/lib/api-error';
 
 const API_URL = ApiService.baseURL;
 
@@ -39,9 +40,9 @@ class LikeService {
         variant: 'success',
       });
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to like brand. Please try again.';
+        asAxiosError(error)?.response?.data?.message || 'Failed to like brand. Please try again.';
 
       toast({
         title: 'Error',
@@ -74,9 +75,9 @@ class LikeService {
         variant: 'success',
       });
       return { success: true };
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to remove like. Please try again.';
+        asAxiosError(error)?.response?.data?.message || 'Failed to remove like. Please try again.';
       toast({
         title: 'Error',
         description: errorMessage,
@@ -103,7 +104,7 @@ class LikeService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching user likes:', error);
       toast({
         title: 'Error',
@@ -131,7 +132,7 @@ class LikeService {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching brand likes:', error);
       toast({
         title: 'Error',

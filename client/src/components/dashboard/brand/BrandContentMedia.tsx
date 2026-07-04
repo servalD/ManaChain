@@ -104,11 +104,11 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
         description: "Image uploaded to IPFS. Please confirm to save it.",
         variant: "success",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Upload error:", error);
       toast({
         title: "Upload failed",
-        description: error.message || "An error occurred while uploading the image",
+        description: error instanceof Error ? error.message : "An error occurred while uploading the image",
         variant: "error",
       });
     } finally {

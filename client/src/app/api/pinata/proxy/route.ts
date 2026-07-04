@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { asAxiosError } from '@/lib/api-error';
 
 /**
  * Proxy route to serve Pinata IPFS files
@@ -39,13 +40,14 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    const axiosErr = asAxiosError(error);
     console.error('Pinata proxy error:', error);
-    console.error('Error response:', error.response?.data);
-    console.error('Error status:', error.response?.status);
-    
-    
-    if (error.response?.status === 404) {
+    console.error('Error response:', axiosErr?.response?.data);
+    console.error('Error status:', axiosErr?.response?.status);
+
+
+    if (axiosErr?.response?.status === 404) {
       return NextResponse.json(
         { error: 'File not found on Pinata' },
         { status: 404 }
@@ -53,12 +55,12 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { 
-        error: error.message || 'Failed to fetch file from Pinata',
-        status: error.response?.status,
-        details: error.response?.data
+      {
+        error: axiosErr?.message || 'Failed to fetch file from Pinata',
+        status: axiosErr?.response?.status,
+        details: axiosErr?.response?.data
       },
-      { status: error.response?.status || 500 }
+      { status: axiosErr?.response?.status || 500 }
     );
   }
 }

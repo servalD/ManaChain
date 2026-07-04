@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { Heart, X } from "lucide-react";
 import PinataService from "@/services/pinata.service";
 
@@ -50,14 +50,14 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
     setCards([...brands]);
   }, [brands]);
 
-  const handleDrag = (event: any, info: any, index: number) => {
+  const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, index: number) => {
     setDragDirections((prev) => ({
       ...prev,
       [index]: info.offset.x > 0 ? "right" : "left",
     }));
   };
 
-  const handleDragEnd = (event: any, info: any, index: number) => {
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, index: number) => {
     const direction = info.offset.x > 0 ? "right" : "left";
     
     if (Math.abs(info.offset.x) > swipeThreshold) {
@@ -109,7 +109,7 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
       <div className="flex flex-col items-center justify-center h-full text-center px-4 sm:px-6">
         <div className="text-5xl sm:text-6xl mb-4">🎉</div>
         <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">No more brands!</h2>
-        <p className="text-sm sm:text-base text-muted-foreground">You've seen all available brands. Check back later for more.</p>
+        <p className="text-sm sm:text-base text-muted-foreground">You&apos;ve seen all available brands. Check back later for more.</p>
       </div>
     );
   }
@@ -287,7 +287,7 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
                         No token available yet
                       </p>
                       <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                        This brand hasn't issued units yet
+                        This brand hasn&apos;t issued units yet
                       </p>
                     </div>
                   )}

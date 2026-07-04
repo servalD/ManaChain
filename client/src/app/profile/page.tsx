@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
@@ -16,6 +16,7 @@ import {
 } from "@/components/profile";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
+import { IUser } from "@/types/user.types";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -26,14 +27,17 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [syncedUser, setSyncedUser] = useState<IUser | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      setFirst_name(user.firstName ?? "");
-      setLast_name(user.lastName ?? "");
-      setUsername(user.username ?? "");
-    }
-  }, [user]);
+  // Réinitialise les champs éditables à chaque fois que l'objet user change de référence
+  // (chargement initial ou après refreshUser()), pas seulement quand l'id change, pour bien
+  // resynchroniser les champs si les valeurs ont changé entre-temps (ex: refreshUser() après édition).
+  if (user && user !== syncedUser) {
+    setSyncedUser(user);
+    setFirst_name(user.firstName ?? "");
+    setLast_name(user.lastName ?? "");
+    setUsername(user.username ?? "");
+  }
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();

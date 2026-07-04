@@ -8,15 +8,14 @@ import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import { Rocket, Globe2, ChevronDown } from "lucide-react";
 import AuthService from "@/services/auth.service";
 import { ServiceErrorCode } from "@/services/service.result";
+import { useMounted } from "@/hooks/useMounted";
 
 export function Hero() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
-    
     const checkDarkMode = () => {
       const isDark = document.documentElement.classList.contains('dark');
       setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");

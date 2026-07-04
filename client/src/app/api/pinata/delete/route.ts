@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { asAxiosError } from '@/lib/api-error';
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -38,16 +39,18 @@ export async function DELETE(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
+    const axiosErr = asAxiosError(error);
+
     // 404 means already deleted, consider as success
-    if (error.response?.status === 404) {
+    if (axiosErr?.response?.status === 404) {
       return NextResponse.json({ success: true });
     }
 
     console.error('Pinata delete error:', error);
     return NextResponse.json(
-      { error: error.response?.data?.error || error.message || 'Delete failed' },
-      { status: error.response?.status || 500 }
+      { error: axiosErr?.response?.data?.error || axiosErr?.message || 'Delete failed' },
+      { status: axiosErr?.response?.status || 500 }
     );
   }
 }

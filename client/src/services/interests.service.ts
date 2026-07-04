@@ -2,6 +2,7 @@ import axios from "axios";
 import { ApiService } from "./api.service";
 import { toast } from "@/lib/toast";
 import { Interest } from "@/types/interest.types";
+import { asAxiosError } from "@/lib/api-error";
 
 export default class InterestsService {
   /**
@@ -15,10 +16,11 @@ export default class InterestsService {
         return res.data || [];
       }
       return [];
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 404:
@@ -42,7 +44,7 @@ export default class InterestsService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server",

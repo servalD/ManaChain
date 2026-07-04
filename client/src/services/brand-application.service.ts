@@ -10,6 +10,7 @@ import {
   RejectBrandApplicationData,
   RejectBrandApplicationResponse,
 } from "@/types/brand-application.types";
+import { asAxiosError } from "@/lib/api-error";
 
 /** Traduit la forme interne (snake_case) du wizard vers le contrat API (camelCase). */
 function toWireRequest(data: CreateBrandApplicationData) {
@@ -60,10 +61,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 400:
@@ -94,7 +96,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -131,10 +133,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 400:
@@ -158,7 +161,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -211,10 +214,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 401:
@@ -245,7 +249,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -282,10 +286,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 401:
@@ -323,7 +328,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -367,10 +372,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 400:
@@ -409,7 +415,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -454,10 +460,11 @@ export default class BrandApplicationService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 400:
@@ -495,7 +502,7 @@ export default class BrandApplicationService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import FormDataNode from 'form-data';
 import axios from 'axios';
+import { asAxiosError } from '@/lib/api-error';
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,11 +87,12 @@ export async function POST(request: NextRequest) {
       { error: 'Invalid response from Pinata' },
       { status: 500 }
     );
-  } catch (error: any) {
+  } catch (error) {
+    const axiosErr = asAxiosError(error);
     console.error('Pinata upload error:', error);
     return NextResponse.json(
-      { error: error.response?.data?.error || error.message || 'Upload failed' },
-      { status: error.response?.status || 500 }
+      { error: axiosErr?.response?.data?.error || axiosErr?.message || 'Upload failed' },
+      { status: axiosErr?.response?.status || 500 }
     );
   }
 }

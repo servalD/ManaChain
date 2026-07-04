@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 
 export interface SwipeableCardStackProps {
   images?: string[];
@@ -48,14 +48,14 @@ export function SwipeableCardStack({
     setCards([...images]);
   }, [images]);
 
-  const handleDrag = (event: any, info: any, index: number) => {
-    setDragDirections((prev) => ({ 
-      ...prev, 
-      [index]: info.offset.x > 0 ? "right" : "left" 
+  const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, index: number) => {
+    setDragDirections((prev) => ({
+      ...prev,
+      [index]: info.offset.x > 0 ? "right" : "left"
     }));
   };
 
-  const handleDragEnd = (event: any, info: any, index: number) => {
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo, index: number) => {
     if (Math.abs(info.offset.x) > swipeThreshold) {
       handleSwipe(index, dragDirections[index] || "left");
     } else {
@@ -103,7 +103,7 @@ export function SwipeableCardStack({
               }}
               exit="exit"
               variants={{
-                exit: (custom: any) => ({
+                exit: (custom: { direction?: string | null }) => ({
                   x: (custom?.direction || "left") === "right" ? 300 : -300,
                   rotate: (custom?.direction || "left") === "right" ? 20 : -20,
                   opacity: 0,

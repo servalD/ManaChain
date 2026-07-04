@@ -1,7 +1,7 @@
  "use client";
  
 import React, { useRef, useState, useEffect } from "react";
-import { SignUpPage, Interest } from "@/components/ui/sign-up";
+import { SignUpPage, Interest, SignUpFormData } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import AuthService from "@/services/auth.service";
@@ -71,7 +71,7 @@ export default function RegisterPage() {
     loadInterests();
   }, []);
 
-  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: any) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: SignUpFormData) => {
     event.preventDefault();
     
     // Validate interests (min 3, max 5)

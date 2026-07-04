@@ -1,8 +1,9 @@
 import axios from "axios";
 import { ServiceResult, ServiceErrorCode } from "./service.result";
-import { IUser, RegisterData, LoginData, AuthResponse } from "@/types/user.types";
+import { IUser, RegisterData, AuthResponse } from "@/types/user.types";
 import { ApiService } from "./api.service";
 import { toast } from "@/lib/toast";
+import { asAxiosError } from "@/lib/api-error";
 
 export default class AuthService {
   /**
@@ -31,10 +32,11 @@ export default class AuthService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (status) {
           case 409:
@@ -79,7 +81,7 @@ export default class AuthService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -119,10 +121,11 @@ export default class AuthService {
         return res.data;
       }
       return null;
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
+        const data = axiosErr.response.data;
 
         switch (data?.error) {
           case "EmailNotVerifiedError":
@@ -156,7 +159,7 @@ export default class AuthService {
                 });
             }
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server. Check your internet connection.",
@@ -190,9 +193,10 @@ export default class AuthService {
         return ServiceResult.success(res.data);
       }
       return ServiceResult.notFound();
-    } catch (err: any) {
-      if (err.response) {
-        const status = err.response.status;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const status = axiosErr.response.status;
 
         switch (status) {
           case 401:
@@ -225,7 +229,7 @@ export default class AuthService {
               variant: "error",
             });
         }
-      } else if (err.request) {
+      } else if (axiosErr?.request) {
         toast({
           title: "Connection error",
           description: "Unable to reach the server",
@@ -298,7 +302,7 @@ export default class AuthService {
 
       const user = await this.isLogged();
       return user && user.errorCode === ServiceErrorCode.success;
-    } catch (err) {
+    } catch {
       return false;
     }
   }
@@ -321,9 +325,10 @@ export default class AuthService {
         return true;
       }
       return false;
-    } catch (err: any) {
-      if (err.response) {
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const data = axiosErr.response.data;
         toast({
           title: "Verification error",
           description: data?.message || "The verification link is invalid or expired",
@@ -358,9 +363,10 @@ export default class AuthService {
         return true;
       }
       return false;
-    } catch (err: any) {
-      if (err.response) {
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const data = axiosErr.response.data;
         toast({
           title: "Sending error",
           description: data?.message || "Unable to send verification email",
@@ -407,9 +413,10 @@ export default class AuthService {
         return true;
       }
       return false;
-    } catch (err: any) {
-      if (err.response) {
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const data = axiosErr.response.data;
         toast({
           title: "Modification error",
           description: data?.message || "Unable to change password",
@@ -445,9 +452,10 @@ export default class AuthService {
         return true;
       }
       return false;
-    } catch (err: any) {
-      if (err.response) {
-        const data = err.response.data;
+    } catch (err) {
+      const axiosErr = asAxiosError(err);
+      if (axiosErr?.response) {
+        const data = axiosErr.response.data;
         toast({
           title: "Reset failed",
           description: data?.message || "Unable to reset password. The link may have expired.",
@@ -476,7 +484,7 @@ export default class AuthService {
         variant: "success",
       });
       return true;
-    } catch (err: any) {
+    } catch {
       toast({
         title: "Check your email",
         description: "If an account exists with this email, you will receive a password reset link.",
@@ -518,8 +526,8 @@ export default class AuthService {
         return response.data;
       }
       return null;
-    } catch (error: any) {
-      const msg = error.response?.data?.message || 'Failed to update profile. Please try again.';
+    } catch (error) {
+      const msg = asAxiosError(error)?.response?.data?.message || 'Failed to update profile. Please try again.';
       toast({
         title: 'Error',
         description: msg,
@@ -548,11 +556,12 @@ export default class AuthService {
       );
 
       return !!response.data?.id;
-    } catch (error: any) {
-      if (error.response?.data?.message) {
+    } catch (error) {
+      const message = asAxiosError(error)?.response?.data?.message;
+      if (message) {
         toast({
           title: 'Error',
-          description: error.response.data.message,
+          description: message,
           variant: 'error',
         });
       }

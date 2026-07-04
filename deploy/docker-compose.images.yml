@@ -12,6 +12,10 @@
 #
 # Base jetable (tmpfs) : rien n'est persisté. Surcharger BACK_IMAGE /
 # CLIENT_IMAGE pour tester un tag de l'ACR.
+#
+# Variables optionnelles à exporter AVANT le `up` pour les fonctionnalités
+# qui en dépendent (sinon : upload Pinata → 500, login Google → google_failed) :
+#   set -a; source client/.env; source back/.env; set +a
 name: manachain-images
 
 services:
