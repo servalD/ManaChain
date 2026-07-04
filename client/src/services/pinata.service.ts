@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "@/lib/toast";
+import { asAxiosError } from "@/lib/api-error";
 
 export default class PinataService {
   private static readonly UPLOAD_TIMEOUT = 30000; // 30 seconds
@@ -23,7 +24,7 @@ export default class PinataService {
       throw new Error(`File size exceeds ${maxSizeMB}MB limit`);
     }
 
-    let lastError: any;
+    let lastError: unknown;
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         const formData = new FormData();
@@ -51,11 +52,12 @@ export default class PinataService {
         } else {
           throw new Error("Invalid response from server");
         }
-      } catch (error: any) {
+      } catch (error) {
         lastError = error;
-        
+        const axiosErr = asAxiosError(error);
+
         // Don't retry on specific errors
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (axiosErr?.response?.status === 401 || axiosErr?.response?.status === 403) {
           toast({
             title: "Authentication error",
             description: "Invalid Pinata credentials",
@@ -64,10 +66,10 @@ export default class PinataService {
           throw error;
         }
 
-        if (error.response?.status === 400) {
+        if (axiosErr?.response?.status === 400) {
           toast({
             title: "Invalid file",
-            description: error.response?.data?.error || "File validation failed",
+            description: axiosErr.response?.data?.error || "File validation failed",
             variant: "error",
           });
           throw error;
@@ -83,13 +85,14 @@ export default class PinataService {
     }
 
     // All retries failed
-    if (lastError?.code === 'ECONNABORTED') {
+    const lastAxiosErr = asAxiosError(lastError);
+    if (lastAxiosErr?.code === 'ECONNABORTED') {
       toast({
         title: "Upload timeout",
         description: "The upload took too long. Please try again.",
         variant: "error",
       });
-    } else if (lastError?.message?.includes('Network Error')) {
+    } else if (lastAxiosErr?.message?.includes('Network Error')) {
       toast({
         title: "Network error",
         description: "Unable to reach server. Check your internet connection.",
@@ -98,7 +101,7 @@ export default class PinataService {
     } else {
       toast({
         title: "Upload failed",
-        description: lastError?.response?.data?.error || "An unexpected error occurred",
+        description: lastAxiosErr?.response?.data?.error || "An unexpected error occurred",
         variant: "error",
       });
     }
@@ -125,9 +128,9 @@ export default class PinataService {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       // 404 means already deleted, consider as success
-      if (error.response?.status === 404) {
+      if (asAxiosError(error)?.response?.status === 404) {
         return true;
       }
       

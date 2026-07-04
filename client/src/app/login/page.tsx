@@ -39,6 +39,19 @@ function LoginPageFallback() {
   );
 }
 
+function getRedirectPathByRole(role?: string, user?: { passwordChanged?: boolean }): string {
+  switch (role) {
+    case 'CLIENT':
+      return '/discover';
+    case 'BRANDUSER':
+      return user?.passwordChanged === false ? '/brand/change-password-required' : '/brand/dashboard';
+    case 'ADMIN':
+      return '/admin/dashboard';
+    default:
+      return '/discover';
+  }
+}
+
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -151,19 +164,6 @@ function LoginPageContent() {
       }
     } catch (error) {
       console.error("Login error:", error);
-    }
-  };
-
-  const getRedirectPathByRole = (role?: string, user?: { passwordChanged?: boolean }): string => {
-    switch (role) {
-      case 'CLIENT':
-        return '/discover';
-      case 'BRANDUSER':
-        return user?.passwordChanged === false ? '/brand/change-password-required' : '/brand/dashboard';
-      case 'ADMIN':
-        return '/admin/dashboard';
-      default:
-        return '/discover';
     }
   };
 

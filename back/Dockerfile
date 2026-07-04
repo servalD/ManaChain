@@ -37,10 +37,14 @@ COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/package.json ./package.json
 COPY --from=builder --chown=node:node /app/assets ./assets
 
+# Entrypoint qui résout les secrets Docker (variables *_FILE → variable nue).
+COPY --chown=node:node docker/docker-entrypoint.sh ./docker-entrypoint.sh
+
 EXPOSE 3001
 
 # Healthcheck sur la route publique /health (hors préfixe /api).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3001/health || exit 1
 
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
 CMD ["node", "dist/main"]

@@ -22,6 +22,10 @@ export default new DataSource({
   database: process.env.DATABASE_NAME ?? 'manachain',
   username: process.env.DATABASE_USER ?? 'postgres',
   password: process.env.DATABASE_PASSWORD ?? 'postgres',
+  ssl:
+    process.env.DATABASE_SSL === 'true'
+      ? { rejectUnauthorized: false }
+      : undefined,
   entities: [
     UserOrmEntity,
     BrandLikeOrmEntity,

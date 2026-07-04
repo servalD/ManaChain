@@ -4,6 +4,7 @@ import { toast } from "@/lib/toast";
 import AuthService from "./auth.service";
 import { BrandFromAPI, GetBrandsResponse, BrandStats } from "@/types/brand.types";
 import { BrandMedia, ConfirmBrandMediaRequest, GetBrandMediaResponse } from "@/types/brand-media.types";
+import { asAxiosError } from "@/lib/api-error";
 
 
 class BrandService {
@@ -37,7 +38,7 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching brands:", error);
       toast({
         title: "Error",
@@ -66,7 +67,7 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching brand:", error);
       return null;
     }
@@ -92,12 +93,8 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching my brand:", error);
-      if (error.response?.status === 404) {
-        // Brand not found for this user
-        return null;
-      }
       return null;
     }
   }
@@ -120,12 +117,8 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching brand stats:", error);
-      if (error.response?.status === 404) {
-        // Brand stats not found (no token yet)
-        return null;
-      }
       return null;
     }
   }
@@ -157,11 +150,11 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error confirming brand media:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to confirm media. Please try again.",
+        description: asAxiosError(error)?.response?.data?.message || "Failed to confirm media. Please try again.",
         variant: "error",
       });
       return null;
@@ -186,7 +179,7 @@ class BrandService {
       );
 
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching brand media:", error);
       return [];
     }
@@ -217,11 +210,11 @@ class BrandService {
       );
 
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting brand media:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to delete media. Please try again.",
+        description: asAxiosError(error)?.response?.data?.message || "Failed to delete media. Please try again.",
         variant: "error",
       });
       return false;

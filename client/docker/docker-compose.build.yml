@@ -1,0 +1,18 @@
+# Construit l'image de production du client en local (réutilisable en CI).
+# Les NEXT_PUBLIC_* sont inlinées au build (cf. client/README.md) : elles sont
+# interpolées ici depuis l'environnement ou un --env-file.
+#   cd client
+#   docker compose --env-file .env -f docker/docker-compose.build.yml build
+name: manachain-client-build
+
+services:
+  client:
+    image: ${CLIENT_IMAGE:-manachain-client:local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+        NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: ${NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:?requis — cf. client/README.md}
+        NEXT_PUBLIC_PINATA_GATEWAY: ${NEXT_PUBLIC_PINATA_GATEWAY:-}

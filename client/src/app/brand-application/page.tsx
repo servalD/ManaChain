@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import FormCacheService from "@/services/form-cache.service";
+import { useMounted } from "@/hooks/useMounted";
 import BrandApplicationService from "@/services/brand-application.service";
 import InterestsService from "@/services/interests.service";
 import { Interest } from "@/types/interest.types";
@@ -63,35 +64,52 @@ interface FormData {
   registration_proof_url: string;
 }
 
+const DEFAULT_FORM_DATA: FormData = {
+  contact_email: '',
+  contact_first_name: '',
+  contact_last_name: '',
+  contact_phone: '',
+  brand_name: '',
+  interest_ids: [],
+  description: '',
+  website_url: '',
+  logo_url: '',
+  business_registration_number: '',
+  country: '',
+  headquarters_street: '',
+  headquarters_city: '',
+  headquarters_zip_code: '',
+  headquarters_address_complement: '',
+  motivation: '',
+  estimated_community_size: '',
+  social_media_links: {},
+  how_did_you_hear_about_us: '',
+  registration_proof_url: '',
+};
+
+/** Extracts the dial code's matching country from a cached international phone number. */
+function countryCodeFromCachedPhone(phone: string | undefined): string | null {
+  if (!phone) return null;
+  const phoneMatch = phone.match(/^\+(\d{1,4})/);
+  if (!phoneMatch) return null;
+  const dialCode = `+${phoneMatch[1]}`;
+  return COUNTRY_PHONE_CODES.find(c => c.dialCode === dialCode)?.code ?? null;
+}
+
 export default function BrandApplicationPage() {
   const router = useRouter();
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
-  const [formData, setFormData] = useState<FormData>({
-    contact_email: '',
-    contact_first_name: '',
-    contact_last_name: '',
-    contact_phone: '',
-    brand_name: '',
-    interest_ids: [],
-    description: '',
-    website_url: '',
-    logo_url: '',
-    business_registration_number: '',
-    country: '',
-    headquarters_street: '',
-    headquarters_city: '',
-    headquarters_zip_code: '',
-    headquarters_address_complement: '',
-    motivation: '',
-    estimated_community_size: '',
-    social_media_links: {},
-    how_did_you_hear_about_us: '',
-    registration_proof_url: '',
-  });
+  const mounted = useMounted();
+  const [cachedFormData] = useState(() => FormCacheService.loadFormData());
+  const [formData, setFormData] = useState<FormData>(() =>
+    cachedFormData ? { ...DEFAULT_FORM_DATA, ...cachedFormData } : DEFAULT_FORM_DATA
+  );
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
   const [interests, setInterests] = useState<Interest[]>([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('US'); // +1 par défaut
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
+    () => countryCodeFromCachedPhone(cachedFormData?.contact_phone) ?? 'US' // +1 par défaut
+  );
 
   // Fetch interests on mount
   useEffect(() => {
@@ -122,32 +140,24 @@ export default function BrandApplicationPage() {
     };
   }, []);
 
-  // Load cached form data on mount (before initializing defaults)
+  // Notify the user once if their form was restored from cache.
   useEffect(() => {
-    const cached = FormCacheService.loadFormData();
-    if (cached) {
-      setFormData(prev => ({
-        ...prev,
-        ...cached,
-      }));
-      
-      // Extract country code from phone number if present
-      if (cached.contact_phone) {
-        const phoneMatch = cached.contact_phone.match(/^\+(\d{1,4})/);
-        if (phoneMatch) {
-          const dialCode = `+${phoneMatch[1]}`;
-          const country = COUNTRY_PHONE_CODES.find(c => c.dialCode === dialCode);
-          if (country) {
-            setSelectedCountryCode(country.code);
-          }
-        }
-      }
-      
+    if (cachedFormData) {
       toast.info("Resumed application", {
         description: "Your previous progress has been restored.",
       });
     }
-  }, []);
+  }, [cachedFormData]);
+
+  // L'état initial du formulaire dépend du cache localStorage (inexistant côté serveur) :
+  // on ne rend le formulaire qu'après hydratation pour éviter un hydration mismatch.
+  if (!mounted) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-background">
+        <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const isNextDisabled = (() => {
     switch (currentStep) {

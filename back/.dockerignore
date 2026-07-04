@@ -9,5 +9,6 @@ coverage
 Dockerfile
 .dockerignore
 docker
+!docker/docker-entrypoint.sh
 **/*.spec.ts
 test

@@ -40,6 +40,11 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
         database: config.get('DATABASE_NAME', { infer: true }),
         username: config.get('DATABASE_USER', { infer: true }),
         password: config.get('DATABASE_PASSWORD', { infer: true }),
+        // Chiffrement du transport sans pinning de CA (le certificat Azure
+        // chaîne vers une CA absente du store par défaut de node-postgres).
+        ssl: config.get('DATABASE_SSL', { infer: true })
+          ? { rejectUnauthorized: false }
+          : undefined,
         entities: [
           UserOrmEntity,
           BrandLikeOrmEntity,

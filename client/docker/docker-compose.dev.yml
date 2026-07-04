@@ -1,0 +1,32 @@
+# Dev du client Next.js en conteneur, avec hot-reload (le code est monté,
+# `pnpm dev` tourne dans le conteneur). Même modèle que back/docker/.
+#   cp client/.env.example client/.env   # puis remplir (cf. client/README.md)
+#   docker compose -f client/docker/docker-compose.dev.yml up
+#
+# client → http://localhost:3000
+#
+# NB : en dev, les NEXT_PUBLIC_* sont lues au démarrage du serveur de dev (pas
+# d'inlining figé comme en prod) — le .env local suffit. Les URLs restent en
+# `localhost` car elles sont consommées par le NAVIGATEUR, pas par le conteneur.
+# Nom de projet explicite : sinon Compose dérive « docker » du nom du dossier,
+# le même que back/docker/, et les deux stacks partageraient réseau/projet.
+name: manachain-client-dev
+
+services:
+  client:
+    image: node:22-alpine
+    container_name: manachain_client_dev
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    volumes:
+      - ..:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - '3000:3000'
+    environment:
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+    env_file:
+      - ../.env
+    tty: true
+    stdin_open: true

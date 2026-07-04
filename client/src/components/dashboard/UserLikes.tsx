@@ -58,7 +58,7 @@ export function UserLikes() {
       <div>
         <h2 className="text-xl font-bold">My Liked Brands</h2>
         <p className="text-sm text-muted-foreground">
-          {likes.length} {likes.length === 1 ? "brand" : "brands"} you've shown interest in
+          {likes.length} {likes.length === 1 ? "brand" : "brands"} you&apos;ve shown interest in
         </p>
       </div>
 

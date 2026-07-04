@@ -1,0 +1,50 @@
+# ufw — deuxième couche de pare-feu derrière les NSG Azure (exigence du sujet).
+# Manager : SSH (filtré en amont par le NSG) + HTTP/HTTPS publics.
+# Workers : rien depuis internet ; SSH et ports Swarm intra-subnet uniquement.
+---
+- name: Installer ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Politique par défaut — tout refuser en entrée
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Politique par défaut — tout autoriser en sortie
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Ouvrir les ports publics du manager
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: ["22", "80", "443"]
+  when: "'manager' in group_names"
+
+- name: Autoriser SSH depuis le subnet (bastion → workers)
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+    from_ip: "{{ nodes_subnet_cidr }}"
+  when: "'workers' in group_names"
+
+- name: Autoriser les ports Swarm depuis le subnet (tous les nœuds)
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    from_ip: "{{ nodes_subnet_cidr }}"
+  loop:
+    - { port: "2377", proto: tcp } # management du cluster
+    - { port: "7946", proto: tcp } # gossip
+    - { port: "7946", proto: udp }
+    - { port: "4789", proto: udp } # overlay VXLAN
+
+- name: Activer ufw
+  community.general.ufw:
+    state: enabled

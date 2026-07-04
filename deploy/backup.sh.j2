@@ -1,0 +1,28 @@
+#!/bin/sh
+# Sauvegarde 3-2-1 de la base ManaChain (rendu par Ansible, exécuté dans le
+# service `backup` de la stack — image postgres:16-alpine + rclone).
+#   1. dump local sur le disque du manager (médium 1)
+#   2. copie Azure Blob (médium 2, object storage)
+#   3. copie S3/R2 hors Azure (sauvegarde externe)
+set -eu
+
+PGPASSWORD="$(cat /run/secrets/database_password)"
+export PGPASSWORD
+RCLONE="rclone --config /run/secrets/rclone_conf"
+
+STAMP="$(date +%Y%m%d-%H%M%S)"
+DUMP="/backups/manachain-${STAMP}.sql.gz"
+
+echo "[backup] pg_dump → ${DUMP}"
+pg_dump -h "$DATABASE_HOST" -U "$DATABASE_USER" -d "$DATABASE_NAME" | gzip > "$DUMP"
+
+echo "[backup] copie Azure Blob (médium 2)"
+$RCLONE copyto "$DUMP" "azure:${BACKUP_CONTAINER}/$(basename "$DUMP")"
+
+echo "[backup] copie externe hors Azure (n°3)"
+$RCLONE copyto "$DUMP" "offsite:manachain-backups/$(basename "$DUMP")"
+
+# Rétention locale 30 jours (Blob : lifecycle Azure ; offsite : lifecycle du bucket).
+find /backups -name 'manachain-*.sql.gz' -mtime +30 -delete
+
+echo "[backup] OK ${STAMP}"

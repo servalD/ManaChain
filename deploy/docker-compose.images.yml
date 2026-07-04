@@ -1,0 +1,77 @@
+# Test local des IMAGES BUILDÉES (back + client + Postgres éphémère) : la
+# répétition générale avant le déploiement Swarm, sans live-reload ni volumes
+# de code — on exécute exactement ce qui partira sur l'ACR.
+#
+#   1. builder les images (compose.build de chaque app, ou docker build)
+#      → manachain-back:local / manachain-client:local par défaut ;
+#      le client doit être buildé avec NEXT_PUBLIC_API_URL=http://localhost:3001/api
+#   2. docker compose -f deploy/docker-compose.images.yml up
+#      back   → http://localhost:3001/health, Swagger sur /api/docs
+#      client → http://localhost:3000
+#   3. docker compose -f deploy/docker-compose.images.yml down
+#
+# Base jetable (tmpfs) : rien n'est persisté. Surcharger BACK_IMAGE /
+# CLIENT_IMAGE pour tester un tag de l'ACR.
+#
+# Variables optionnelles à exporter AVANT le `up` pour les fonctionnalités
+# qui en dépendent (sinon : upload Pinata → 500, login Google → google_failed) :
+#   set -a; source client/.env; source back/.env; set +a
+name: manachain-images
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: manachain
+      POSTGRES_USER: manachain
+      POSTGRES_PASSWORD: manachain
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U manachain -d manachain']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # One-shot : joue les migrations depuis l'image (comme le deploy.yml Ansible).
+  migrate:
+    image: ${BACK_IMAGE:-manachain-back:local}
+    command: node node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/typeorm.config.js
+    environment: &db-env
+      DATABASE_HOST: db
+      DATABASE_PORT: '5432'
+      DATABASE_NAME: manachain
+      DATABASE_USER: manachain
+      DATABASE_PASSWORD: manachain
+    depends_on:
+      db:
+        condition: service_healthy
+
+  back:
+    image: ${BACK_IMAGE:-manachain-back:local}
+    environment:
+      <<: *db-env
+      NODE_ENV: production
+      PORT: '3001'
+      CORS_ORIGIN: http://localhost:3000
+      FRONTEND_URL: http://localhost:3000
+      API_URL: http://localhost:3001/api
+      APP_JWT_SECRET: local-images-test-secret-min-16-chars
+      # Optionnels — exporter les valeurs (cf. back/.env) pour tester le login
+      # Google ici ; vides, l'endpoint renvoie une erreur claire (google_failed).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    ports:
+      - '3001:3001'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  client:
+    image: ${CLIENT_IMAGE:-manachain-client:local}
+    environment:
+      PINATA_JWT: ${PINATA_JWT:-}
+    ports:
+      - '3000:3000'
+    depends_on:
+      - back

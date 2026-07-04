@@ -1,0 +1,76 @@
+# CI du back NestJS : lint + tests unitaires + e2e (Postgres de service) sur
+# chaque PR/push ; build + push de l'image vers l'ACR sur main.
+# Secrets requis : ACR_LOGIN_SERVER, ACR_USERNAME, ACR_PASSWORD.
+name: Back CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["back/**", ".github/workflows/back.yml"]
+  pull_request:
+    paths: ["back/**", ".github/workflows/back.yml"]
+
+defaults:
+  run:
+    working-directory: back
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      # Reproduit back/docker/docker-compose.test.yml : les défauts de
+      # test/setup-e2e.ts pointent sur manachain_test@localhost:5433.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: manachain_test
+          POSTGRES_PASSWORD: manachain_test
+          POSTGRES_DB: manachain_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U manachain_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version lue dans "packageManager" du back
+        with:
+          package_json_file: back/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: back/pnpm-lock.yaml
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm exec eslint "{src,test}/**/*.ts"
+
+      - name: Tests unitaires
+        run: pnpm test
+
+      - name: Tests e2e
+        run: pnpm test:e2e
+
+  build-push:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: back
+          push: true
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/manachain-back:${{ github.sha }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/manachain-back:latest

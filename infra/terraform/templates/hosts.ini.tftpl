@@ -1,0 +1,11 @@
+# Généré par Terraform (inventory.tf) — ne pas éditer, ne pas committer.
+[manager]
+swarm-manager ansible_host=${manager_public_ip} private_ip=${manager_private_ip}
+
+[workers]
+%{ for name, ip in workers ~}
+swarm-${name} ansible_host=${ip} private_ip=${ip} ansible_ssh_common_args='-o ProxyJump=${admin_username}@${manager_public_ip} -o StrictHostKeyChecking=no'
+%{ endfor ~}
+
+[all:vars]
+ansible_user=${admin_username}

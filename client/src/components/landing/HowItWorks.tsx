@@ -6,7 +6,7 @@ import type React from "react";
 import ScrollFloat from "@/components/ui/scroll-float/scroll-float";
 
 // The main props for the HowItWorks component
-interface HowItWorksProps extends React.HTMLAttributes<HTMLElement> {}
+type HowItWorksProps = React.HTMLAttributes<HTMLElement>;
 
 // The props for a single step card
 interface StepCardProps {

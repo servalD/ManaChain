@@ -1,0 +1,33 @@
+# Provisionnement des 3 nœuds : durcissement de base, Docker, pare-feu ufw,
+# formation du cluster Swarm. Idempotent — rejouable sans risque.
+#   ansible-playbook provision.yml
+---
+- name: Base commune + Docker + pare-feu
+  hosts: all
+  become: true
+  roles:
+    - common
+    - docker
+    - firewall
+
+- name: Initialiser le manager Swarm
+  hosts: manager
+  become: true
+  tasks:
+    - name: Swarm init (advertise sur l'IP privée)
+      community.docker.docker_swarm:
+        state: present
+        advertise_addr: "{{ private_ip }}"
+      register: swarm_manager
+
+- name: Joindre les workers au cluster
+  hosts: workers
+  become: true
+  tasks:
+    - name: Swarm join
+      community.docker.docker_swarm:
+        state: join
+        advertise_addr: "{{ private_ip }}"
+        join_token: "{{ hostvars[groups['manager'][0]].swarm_manager.swarm_facts.JoinTokens.Worker }}"
+        remote_addrs:
+          - "{{ hostvars[groups['manager'][0]].private_ip }}:2377"

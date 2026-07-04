@@ -18,6 +18,24 @@ export interface GeocodingValidationResult {
   detectedCountryCode?: string;
 }
 
+/** Shape of a single result returned by the Nominatim search endpoint. */
+interface NominatimResult {
+  display_name: string;
+  address?: {
+    house_number?: string;
+    road?: string;
+    pedestrian?: string;
+    path?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    postcode?: string;
+    country?: string;
+    country_code?: string;
+  };
+}
+
 export default class GeocodingService {
   private static readonly DEBOUNCE_DELAY = 500; // ms
   private static readonly SEARCH_LIMIT = 5;
@@ -31,7 +49,7 @@ export default class GeocodingService {
     }
 
     try {
-      const response = await axios.get(
+      const response = await axios.get<NominatimResult[]>(
         `${ApiService.NOMINATIM_GEOCODING_URL}/search`,
         {
           params: {
@@ -51,7 +69,7 @@ export default class GeocodingService {
         return [];
       }
 
-      return response.data.map((result: any) => {
+      return response.data.map((result) => {
         const addr = result.address || {};
         
         // Build street address (house number + road name)
@@ -114,7 +132,7 @@ export default class GeocodingService {
     try {
       const addressQuery = `${street}, ${city}, ${zipCode}`;
       
-      const response = await axios.get(
+      const response = await axios.get<NominatimResult[]>(
         `${ApiService.NOMINATIM_GEOCODING_URL}/search`,
         {
           params: {

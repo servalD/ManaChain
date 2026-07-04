@@ -1,0 +1,8 @@
+# Remotes rclone du backup 3-2-1 (secret Swarm `rclone_conf`).
+# [azure] est alimenté par Terraform ; [offsite] vient du vault Ansible.
+[azure]
+type = azureblob
+account = {{ backup_storage_account }}
+key = {{ backup_storage_key }}
+
+{{ vault_rclone_offsite_conf }}

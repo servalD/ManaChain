@@ -1,0 +1,40 @@
+# Docker Engine depuis le dépôt officiel + SDK Python requis par les modules
+# community.docker (docker_swarm, docker_secret, docker_stack).
+---
+- name: Clé GPG du dépôt Docker
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Dépôt apt Docker
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}
+      signed-by=/etc/apt/keyrings/docker.asc]
+      https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+
+- name: Installer Docker et les dépendances Python des modules Ansible
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+      - python3-docker
+      - python3-jsondiff
+    state: present
+    update_cache: true
+
+- name: Démarrer Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Autoriser l'utilisateur admin à parler au démon Docker
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true

@@ -1,0 +1,18 @@
+# Secrets applicatifs — à copier en vault.yml puis chiffrer :
+#   cp vault.yml.example vault.yml
+#   (remplir les valeurs)
+#   ansible-vault encrypt vault.yml
+# deploy.yml se lance ensuite avec --ask-vault-pass.
+vault_app_jwt_secret: "change-me-64-random-chars"
+vault_smtp_pass: ""
+vault_google_client_secret: ""
+vault_pinata_jwt: ""
+# Backup 3-2-1 : remote rclone de la copie externe n°3 (S3/R2, hors Azure).
+# La section [azure] (médium 2) est générée automatiquement depuis Terraform.
+vault_rclone_offsite_conf: |
+  [offsite]
+  type = s3
+  provider = Cloudflare
+  access_key_id = CHANGE_ME
+  secret_access_key = CHANGE_ME
+  endpoint = https://CHANGE_ME.r2.cloudflarestorage.com

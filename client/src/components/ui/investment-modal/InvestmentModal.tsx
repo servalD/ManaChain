@@ -34,7 +34,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Support {brand.name}</DialogTitle>
           <DialogDescription>
-            You've liked this brand! Would you like to show your support and become part of their community with a badge?
+            You&apos;ve liked this brand! Would you like to show your support and become part of their community with a badge?
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +80,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
           ) : (
             <div className="bg-accent/50 rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                This brand hasn't issued a badge yet
+                This brand hasn&apos;t issued a badge yet
               </p>
               <p className="text-xs text-muted-foreground">
                 Units will be available soon. Stay tuned!

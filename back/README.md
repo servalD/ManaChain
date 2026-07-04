@@ -1,98 +1,112 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Back ManaChain — API NestJS
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API de la plateforme ManaChain : NestJS 11, architecture hexagonale par module
+(auth, users, brands, likes, tokens), TypeORM + PostgreSQL 16, JWT, Google
+OAuth, Swagger exposé sur `/api/docs`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+> Le détail par module (endpoints, flux auth, applications de marque…) vit dans
+> [`back/docs/`](docs/) — en cours de remise à jour après la migration NestJS,
+> se fier au code en cas de doute.
 
-## Description
+## Prérequis
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Node.js 22+ et pnpm (`corepack enable` suffit, la version est figée par le
+  champ `packageManager`)
+- Docker (pour la base Postgres et les e2e et le test de l'image en dev)
 
-## Project setup
+## 1. Configuration des variables d'environnement
 
 ```bash
-$ pnpm install
+cd back
+cp .env.example .env
 ```
 
-## Compile and run the project
+La config est validée au démarrage (`src/infrastructure/config/env.validation.ts`,
+fail-fast) : une variable manquante ou malformée fait planter l'app immédiatement
+avec la liste des problèmes.
+
+| Variable                                        | Comment la remplir                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_*`                                  | connexion Postgres. Les défauts collent au service`db` du compose dev lancé en local (voir .2). `DATABASE_SSL=true` uniquement pour une base managée (Azure)                                                                                                                                  |
+| `APP_JWT_SECRET`                              | à générer soi-même :`openssl rand -base64 48` (min. 16 caractères). En changer invalide toutes les sessions en cours                                                                                                                                                                          |
+| `APP_JWT_EXPIRES_IN`                          | durée de vie des jetons (`7d` par défaut)                                                                                                                                                                                                                                                        |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS`   | ton fournisseur SMTP — ex. Gmail :[mot de passe d&#39;application](https://myaccount.google.com/apppasswords) avec `SMTP_HOST=smtp.gmail.com`. **Laisser vide = mode simulation** : les emails (vérification, reset) sont seulement loggés en console                                      |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Credentials → OAuth 2.0 Client ID (type « Web application »). Redirect URI en dev : `http://localhost:3001/api/auth/google/callback`. Optionnel : vide → l'endpoint `/api/auth/google` renvoie une erreur claire |
+| `CORS_ORIGIN`, `FRONTEND_URL`, `API_URL`  | URLs du front et de l'API (défauts corrects pour le dev local)                                                                                                                                                                                                                                      |
+
+## 2. Lancer le back en dev (`pnpm start:dev`)
+
+Il faut un Postgres qui tourne. Le plus simple : démarrer uniquement le service
+`db` du compose dev, puis lancer le back sur la machine :
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
+docker compose -f docker/docker-compose.dev.yml up -d db   # Postgres 16 sur :5432
+pnpm migration:run                                         # schéma à jour
+pnpm start:dev                                             # watch mode
 ```
 
-## Run tests
+- API → http://localhost:3001/api
+- Swagger → http://localhost:3001/api/docs
+- Santé → http://localhost:3001/health
+
+## 3. Tests unitaires
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+pnpm test        # 17 suites, fakes in-memory : aucune DB ni .env requis
+pnpm test:cov    # avec couverture
 ```
 
-## Deployment
+> 📖 Les trois fichiers compose (dev / test / build) utilisés dans les sections
+> suivantes sont documentés en détail dans [`docker/README.md`](docker/README.md) —
+> ici, seulement les commandes et les différences de setup d'env.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 4. Tests e2e (avec Docker Compose)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Les e2e démarrent l'app complète et frappent une vraie base : un Postgres
+**éphémère** (tmpfs, rien n'est persisté) exposé sur le port **5433** pour ne
+pas entrer en collision avec la base de dev du .2.
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+docker compose -f docker/docker-compose.test.yml up -d --wait
+pnpm test:e2e
+docker compose -f docker/docker-compose.test.yml down -v
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Setup d'env : rien à faire.** Contrairement au dev, aucun `.env` n'est
+nécessaire : `test/setup-e2e.ts` embarque des défauts qui ciblent exactement ce
+service (`manachain_test@localhost:5433`). Un `back/.env.test` (cf.
+`.env.test.example`) reste possible pour surcharger, et la CI fournit ses
+propres variables d'environnement.
 
-## Resources
+## 5. Tout lancer avec Docker (compose dev)
 
-Check out a few resources that may come in handy when working with NestJS:
+Alternative au §2 : back **et** Postgres en conteneurs, avec live-reload (le
+code est monté, `start:dev` tourne dans le conteneur).
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+cp .env.dev.example .env.dev
+docker compose -f docker/docker-compose.dev.yml up
+```
 
-## Support
+**Différence de setup d'env avec le §2** : le fichier est `.env.dev` (pas
+`.env`) et `DATABASE_HOST=db`. Le back joint Postgres par le nom du service
+compose, pas par `localhost`. Le fichier est partagé entre le service `db`
+(variables `POSTGRES_*`) et le back (`DATABASE_*`) : les deux doivent rester
+cohérents.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 6. Builder les images avec le compose
 
-## Stay in touch
+```bash
+export BACK_IMAGE=<registre>/manachain-back:<tag>     # défaut : ghcr.io placeholder
+docker compose -f docker/docker-compose.build.yml build
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# équivalent direct :
+docker build -t manachain-back .
+```
 
-## License
+Caractéristiques de l'image (multi-stage, non-root, healthcheck, convention
+`*_FILE` pour les secrets Swarm) : voir [`docker/README.md`](docker/README.md).
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Pour le déploiement complet (Terraform, Ansible, Swarm, backups), voir
+[`infra/README.md`](../infra/README.md).

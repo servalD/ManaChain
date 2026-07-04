@@ -67,6 +67,8 @@ export default class FormCacheService {
    * Returns null if no cached data exists
    */
   static loadFormData(): Partial<FormData> | null {
+    // localStorage n'existe pas côté serveur (SSR/prérendu) : pas de cache dans ce cas.
+    if (typeof window === "undefined") return null;
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (!cached) return null;

@@ -3,6 +3,9 @@ import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Sortie autonome (.next/standalone) : serveur Node minimal embarqué,
+  // requis par l'image Docker de prod (client/Dockerfile).
+  output: "standalone",
   reactCompiler: true,
   
   turbopack: {

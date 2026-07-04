@@ -35,13 +35,22 @@ export function BrandDetailModal({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFullscreenImageOpen, setIsFullscreenImageOpen] = useState(false);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Reset selected image when modal closes
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setSelectedImageIndex(0);
+    }
+  }
 
   // Fetch brand details and media when modal opens
   useEffect(() => {
     if (isOpen && brand) {
-      setIsLoading(true);
       const fetchData = async () => {
+        setIsLoading(true);
         // Fetch brand details
         const details = await BrandService.getBrandById(brand.id);
         setBrandDetails(details);
@@ -54,13 +63,6 @@ export function BrandDetailModal({
       fetchData();
     }
   }, [isOpen, brand]);
-
-  // Reset selected image when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setSelectedImageIndex(0);
-    }
-  }, [isOpen]);
 
   // Close on escape key
   useEffect(() => {
@@ -457,7 +459,7 @@ export function BrandDetailModal({
                             <div>
                               <p className="font-medium">No badge available</p>
                               <p className="text-sm">
-                                This brand hasn't issued badges yet
+                                This brand hasn&apos;t issued badges yet
                               </p>
                             </div>
                           </div>

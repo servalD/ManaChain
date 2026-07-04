@@ -22,12 +22,22 @@ export interface Interest {
   icon: string;
 }
 
+export interface SignUpFormData {
+  firstName: string;
+  lastName: string;
+  ageRange: string;
+  username: string;
+  email: string;
+  password: string;
+  interests: string[];
+}
+
 interface SignUpPageProps {
   title?: React.ReactNode;
   description?: React.ReactNode;
   heroImageSrc?: string;
   interests?: Interest[];
-  onSignUp?: (event: React.FormEvent<HTMLFormElement>, data: any) => void;
+  onSignUp?: (event: React.FormEvent<HTMLFormElement>, data: SignUpFormData) => void;
   onGoogleSignUp?: () => void;
   onSignIn?: () => void;
 }
@@ -112,9 +122,14 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = {
-      ...Object.fromEntries(formData.entries()),
-      interests: selectedInterests
+    const data: SignUpFormData = {
+      firstName: String(formData.get('firstName') ?? ''),
+      lastName: String(formData.get('lastName') ?? ''),
+      ageRange: String(formData.get('ageRange') ?? ''),
+      username: String(formData.get('username') ?? ''),
+      email: String(formData.get('email') ?? ''),
+      password: String(formData.get('password') ?? ''),
+      interests: selectedInterests,
     };
     onSignUp?.(e, data);
   };
