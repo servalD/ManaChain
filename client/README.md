@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Client ManaChain — Front Next.js
 
-## Getting Started
+Front de la plateforme ManaChain : Next.js 16 (App Router, Turbopack),
+React 19, Tailwind CSS 4, connexion wallet via Dynamic SDK + Wagmi/Viem,
+médias sur IPFS via Pinata.
 
-First, run the development server:
+## Prérequis
+
+- Node.js 22+ et pnpm (`corepack enable` suffit, la version est figée par le
+  champ `packageManager`)
+- Le back qui tourne pour toutes les pages qui parlent à l'API — voir le
+  [README du back](../back/README.md)
+
+## 1. Configuration des variables d'environnement
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd client
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+⚠️ Deux familles de variables, au comportement très différent :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **`NEXT_PUBLIC_*`** : inlinées dans le bundle **au build** (`pnpm build` /
+  build de l'image Docker). Elles sont publiques (visibles dans le JS servi au
+  navigateur) et **figées** : les changer impose de rebuilder.
+- **`PINATA_JWT`** : lue **au runtime**, côté serveur Next uniquement — c'est
+  un secret, jamais dans le bundle.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable                               | Comment la remplir                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`                | URL de l'API back. Dev :`http://localhost:3001/api`. Prod : `https://<domaine>/api`                          |
+| `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` | [dashboard Dynamic](https://app.dynamic.xyz/) → ton projet → Developers → Environment ID (sandbox pour le dev) |
+| `PINATA_JWT`                         | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key                           |
+| `NEXT_PUBLIC_PINATA_GATEWAY`         | dashboard Pinata → Gateways (ex.`xxx.mypinata.cloud`, sans `https://`)                                      |
 
-## Learn More
+## 2. Lancer en dev
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+pnpm dev        # http://localhost:3000, hot-reload
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Alternative en conteneur (hot-reload aussi, le code est monté) :
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+docker compose -f docker/docker-compose.dev.yml up
+```
 
-## Deploy on Vercel
+Le `.env` local suffit dans les deux cas : en dev les `NEXT_PUBLIC_*` sont lues
+au démarrage (pas d'inlining figé comme en prod), et leurs URLs `localhost`
+restent correctes car c'est le **navigateur** qui les consomme, pas le conteneur.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 3. Lint et build de prod local
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm lint
+pnpm build      # sortie standalone (.next/standalone), cf. next.config.ts
+pnpm start      # sert le build
+```
+
+Le build **prérend les pages** : il exécute le code côté serveur, donc
+`NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` doit être définie (le provider Dynamic du
+layout racine plante sinon) — via ton `.env` en local.
+
+## 4. Builder l'image Docker
+
+Le `.dockerignore` exclut les `.env*` du contexte (aucun secret figé dans une
+image) : les `NEXT_PUBLIC_*` doivent donc être passées en **build-args**,
+obligatoirement :
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.build.yml build
+```
+
+Les build-args sont interpolés depuis le `.env` (ou l'environnement) ; l'image
+produite est `manachain-client:local` par défaut, surchargeable via `CLIENT_IMAGE`.
+
+Pour **tester les images buildées** (back + client + Postgres jetable, comme en
+prod) : `deploy/docker-compose.images.yml` à la racine du repo — voir son
+en-tête pour le mode d'emploi.
+
+Conséquence de l'inlining : **une image = un environnement**. L'image de prod
+est buildée par la CI (`.github/workflows/client.yml`) avec les variables
+GitHub ; des valeurs factices suffisent pour tester que le build passe.
+
+`PINATA_JWT`, elle, se fournit au **run** (`docker run -e PINATA_JWT=…`, ou le
+secret Swarm `pinata_jwt` en prod).
+
+L'image (multi-stage, non-root, healthcheck) suit le même modèle que celle du
+back. Pour le déploiement complet (Swarm, traefik, CI/CD), voir
+[`infra/README.md`](../infra/README.md).
+
+## Tests
+
+Pas encore de tests d'interface — Playwright est prévu (parcours register,
+login, découverte…) et sera branché sur la CI.

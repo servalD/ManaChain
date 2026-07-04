@@ -1,0 +1,4 @@
+# Copier en terraform.tfvars (ignoré par git) et compléter.
+admin_ip_cidr       = "203.0.113.42/32" # ton IP publique : curl -4 ifconfig.me
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+# auto_shutdown_time = "2000"  # extinction auto quotidienne à 20h (mettre "" pour désactiver)

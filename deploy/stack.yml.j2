@@ -1,0 +1,184 @@
+# ---------------------------------------------------------------------------
+# Stack Docker Swarm de production ManaChain.
+#
+# Template Jinja2 rendu par Ansible (infra/ansible/deploy.yml) avec les
+# variables d'infra (domaine, ACR, hôte Postgres managé Azure) puis appliqué
+# via `docker stack deploy`. Les valeurs sensibles ne transitent JAMAIS par ce
+# fichier : elles sont des secrets Swarm consommés via les variables *_FILE
+# (résolues par le docker-entrypoint.sh des images).
+#
+# Topologie (3 nœuds : 1 manager + 2 workers) :
+#   - traefik épinglé sur le manager (IP publique + volume des certificats ACME)
+#   - back et client ×2 replicas sur les workers, 1 replica max par nœud
+#   - pas de Postgres dans la stack : Azure Database for PostgreSQL (managé)
+# ---------------------------------------------------------------------------
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v3.5
+    command:
+      - --providers.swarm.endpoint=unix:///var/run/docker.sock
+      - --providers.swarm.exposedByDefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Redirection globale HTTP → HTTPS.
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      # Certificats Let's Encrypt (challenge HTTP sur :80).
+      - --certificatesresolvers.letsencrypt.acme.email={{ acme_email }}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    ports:
+      # Mode host : préserve l'IP source et évite un saut de routing mesh ;
+      # possible car traefik est contraint sur le manager (qui porte l'IP publique).
+      - target: 80
+        published: 80
+        mode: host
+      - target: 443
+        published: 443
+        mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - edge
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+        delay: 5s
+
+  back:
+    image: "{{ acr_login_server }}/manachain-back:{{ back_image_tag }}"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      CORS_ORIGIN: https://{{ domain_name }}
+      FRONTEND_URL: https://{{ domain_name }}
+      API_URL: https://{{ domain_name }}/api
+      DATABASE_HOST: "{{ database_host }}"
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: "{{ database_name }}"
+      DATABASE_USER: "{{ database_user }}"
+      DATABASE_SSL: "true"
+      APP_JWT_EXPIRES_IN: 7d
+      # Vides ("") → mode simulation des emails, comme en dev.
+      SMTP_HOST: "{{ smtp_host | default('') }}"
+      SMTP_PORT: "{{ smtp_port | default('587') }}"
+      SMTP_USER: "{{ smtp_user | default('') }}"
+      EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
+      GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
+      DATABASE_PASSWORD_FILE: /run/secrets/database_password
+      APP_JWT_SECRET_FILE: /run/secrets/app_jwt_secret
+      SMTP_PASS_FILE: /run/secrets/smtp_pass
+      GOOGLE_CLIENT_SECRET_FILE: /run/secrets/google_client_secret
+    secrets:
+      - database_password
+      - app_jwt_secret
+      - smtp_pass
+      - google_client_secret
+    networks:
+      - edge
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+        max_replicas_per_node: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.back.rule=Host(`{{ domain_name }}`) && PathPrefix(`/api`)
+        - traefik.http.routers.back.entrypoints=websecure
+        - traefik.http.routers.back.tls.certresolver=letsencrypt
+        - traefik.http.services.back.loadbalancer.server.port=3001
+
+  client:
+    image: "{{ acr_login_server }}/manachain-client:{{ client_image_tag }}"
+    environment:
+      PINATA_JWT_FILE: /run/secrets/pinata_jwt
+    secrets:
+      - pinata_jwt
+    networks:
+      - edge
+    deploy:
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == worker
+        max_replicas_per_node: 1
+      update_config:
+        order: start-first
+        parallelism: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.client.rule=Host(`{{ domain_name }}`)
+        - traefik.http.routers.client.entrypoints=websecure
+        - traefik.http.routers.client.tls.certresolver=letsencrypt
+        - traefik.http.services.client.loadbalancer.server.port=3000
+
+  # Politique de sauvegarde 3-2-1 : pg_dump quotidien → disque du manager
+  # (médium 1) → Azure Blob via rclone (médium 2) → S3/R2 hors Azure (copie
+  # externe n°3). Voir deploy/backup.sh.j2. Épinglé sur le manager : les bind
+  # mounts (script + dossier de dumps) doivent suivre le même nœud.
+  backup:
+    image: postgres:16-alpine
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - apk add --no-cache rclone >/dev/null && while true; do /backup.sh; sleep 86400; done
+    environment:
+      DATABASE_HOST: "{{ database_host }}"
+      DATABASE_NAME: "{{ database_name }}"
+      DATABASE_USER: "{{ database_user }}"
+      BACKUP_CONTAINER: "{{ backup_container }}"
+    volumes:
+      - {{ stack_dir }}/backup.sh:/backup.sh:ro
+      - /var/backups/manachain:/backups
+    secrets:
+      - database_password
+      - rclone_conf
+    networks:
+      - edge
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+        delay: 30s
+
+networks:
+  # Un seul overlay suffit : la DB est hors cluster (Azure) et le front parle
+  # au back via l'URL publique — aucun trafic interne inter-services.
+  edge:
+    driver: overlay
+
+volumes:
+  # Certificats ACME — reste sur le manager (traefik y est contraint).
+  traefik_letsencrypt:
+
+secrets:
+  # Créés/tournés par Ansible (deploy.yml) avant le stack deploy.
+  database_password:
+    external: true
+  app_jwt_secret:
+    external: true
+  smtp_pass:
+    external: true
+  google_client_secret:
+    external: true
+  pinata_jwt:
+    external: true
+  rclone_conf:
+    external: true

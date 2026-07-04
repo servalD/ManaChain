@@ -1,0 +1,66 @@
+# CI du client Next.js : lint + build sur chaque PR/push ; build + push de
+# l'image vers l'ACR sur main.
+# Secrets requis : ACR_LOGIN_SERVER, ACR_USERNAME, ACR_PASSWORD.
+# Variables requises (Settings > Variables) : NEXT_PUBLIC_API_URL,
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID, NEXT_PUBLIC_PINATA_GATEWAY — inlinées
+# dans le bundle au build de l'image.
+name: Client CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["client/**", ".github/workflows/client.yml"]
+  pull_request:
+    paths: ["client/**", ".github/workflows/client.yml"]
+
+defaults:
+  run:
+    working-directory: client
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build (valeurs factices — vérifie seulement que ça compile)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: ci-dummy
+          NEXT_PUBLIC_PINATA_GATEWAY: ci-dummy.mypinata.cloud
+
+  build-push:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: client
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=${{ vars.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID }}
+            NEXT_PUBLIC_PINATA_GATEWAY=${{ vars.NEXT_PUBLIC_PINATA_GATEWAY }}
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/manachain-client:${{ github.sha }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/manachain-client:latest

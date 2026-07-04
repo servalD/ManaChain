@@ -18,6 +18,11 @@ export const envSchema = z.object({
   DATABASE_NAME: z.string().default('manachain'),
   DATABASE_USER: z.string().default('postgres'),
   DATABASE_PASSWORD: z.string().default('postgres'),
+  // TLS vers Postgres — requis par Azure Database for PostgreSQL en prod.
+  DATABASE_SSL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 
   // JWT applicatif. DOIT être le MÊME secret que l'Express actuel pour que le
   // nouveau back valide les jetons déjà émis (bascule strangler sans re-login).

@@ -6,3 +6,25 @@
 **/dist
 **/next-env.d.ts
 /contracts/broadcast
+**/.pnpm-*
+ARCHITECTURE.md
+AUDIT.md
+IDEA.md
+PURPOSE.md
+SECURITY.md
+back/docs/AUTH.md
+back/docs/BRAND_APPLICATIONS.md
+back/docs/BRANDS.md
+back/docs/README.md
+back/docs/TOKENS.md
+back/docs/USERS.md
+contracts/cast-interactions.md
+contracts/doc.txt
+contracts/manachain_audit_report.md
+
+# Infra — state Terraform, variables et inventaires générés (contiennent des secrets)
+/infra/terraform/.terraform/
+/infra/terraform/*.tfstate*
+/infra/terraform/terraform.tfvars
+/infra/ansible/inventory/
+/infra/ansible/vault.yml

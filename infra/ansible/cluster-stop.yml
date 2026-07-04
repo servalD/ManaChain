@@ -1,0 +1,37 @@
+# Éteint (deallocate) les VMs du cluster : plus de facturation compute.
+# Déclenche d'abord un backup DB pour ne laisser aucune fenêtre sans
+# sauvegarde récente (politique 3-2-1). Prérequis : az login.
+#   ansible-playbook cluster-stop.yml
+#   ansible-playbook cluster-stop.yml -e skip_backup=true
+---
+- name: Backup avant extinction
+  hosts: manager
+  become: true
+  gather_facts: false
+  # Cluster déjà éteint → on passe directement au deallocate (no-op).
+  ignore_unreachable: true
+  tasks:
+    - name: Déclencher le backup via le service de la stack
+      ansible.builtin.shell: |
+        cid=$(docker ps -q -f name={{ stack_name }}_backup | head -1)
+        if [ -n "$cid" ]; then docker exec "$cid" /backup.sh; else echo "stack éteinte, backup ignoré"; fi
+      register: pre_stop_backup
+      changed_when: "'OK' in pre_stop_backup.stdout"
+      failed_when: false
+      when: not (skip_backup | default(false) | bool)
+
+- name: Éteindre les VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - inventory/tf_outputs.yml
+  tasks:
+    - name: Deallocate toutes les VMs du resource group
+      ansible.builtin.shell: >-
+        az vm deallocate --ids $(az vm list -g {{ resource_group }} --query "[].id" -o tsv)
+      changed_when: true
+
+    - name: Rappel facturation
+      ansible.builtin.debug:
+        msg: "Cluster éteint. Restent facturés : Postgres managé, IP publique, storage (~qq €/mois)."

@@ -103,7 +103,10 @@ describe('Auth & RBAC (e2e)', () => {
       .get('/api/users')
       .set(...bearer(signToken(ctx, admin)))
       .expect(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect((res.body as unknown[]).length).toBeGreaterThanOrEqual(2);
+    // GET /api/users renvoie une liste paginée { users, total }.
+    const body = res.body as { users: unknown[]; total: number };
+    expect(Array.isArray(body.users)).toBe(true);
+    expect(body.users.length).toBeGreaterThanOrEqual(2);
+    expect(body.total).toBeGreaterThanOrEqual(2);
   });
 });

@@ -1,0 +1,59 @@
+# Déploiement sur le cluster Swarm (manuel : workflow_dispatch).
+# Migre la base depuis la NOUVELLE image puis met à jour back et client.
+# Échoue explicitement si le cluster est éteint (cf. infra/scripts/cluster-start.sh).
+#
+# Secrets requis :
+#   ACR_LOGIN_SERVER / ACR_USERNAME / ACR_PASSWORD
+#   MANAGER_HOST            IP publique du manager (output Terraform)
+#   MANAGER_SSH_PRIVATE_KEY clé privée SSH de l'utilisateur azureuser
+#   DB_HOST / DB_NAME / DB_USER / DB_PASSWORD  (outputs Terraform)
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Tag des images à déployer (SHA du commit, ou latest)"
+        required: true
+        default: latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Préparer la clé SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.MANAGER_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Vérifier que le cluster est allumé
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
+            azureuser@${{ secrets.MANAGER_HOST }} 'docker node ls' \
+            || { echo "::error::Cluster injoignable — le démarrer avec ansible-playbook cluster-start.yml"; exit 1; }
+
+      - name: Migrations + mise à jour des services
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new azureuser@${{ secrets.MANAGER_HOST }} \
+            ACR='${{ secrets.ACR_LOGIN_SERVER }}' TAG='${{ inputs.image_tag }}' \
+            ACR_USER='${{ secrets.ACR_USERNAME }}' ACR_PASS='${{ secrets.ACR_PASSWORD }}' \
+            DB_HOST='${{ secrets.DB_HOST }}' DB_NAME='${{ secrets.DB_NAME }}' \
+            DB_USER='${{ secrets.DB_USER }}' DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            'bash -s' <<'EOF'
+          set -euo pipefail
+          echo "$ACR_PASS" | docker login "$ACR" -u "$ACR_USER" --password-stdin
+
+          echo "--- Migrations (image $TAG) ---"
+          docker run --rm \
+            -e DATABASE_HOST="$DB_HOST" -e DATABASE_PORT=5432 \
+            -e DATABASE_NAME="$DB_NAME" -e DATABASE_USER="$DB_USER" \
+            -e DATABASE_PASSWORD="$DB_PASSWORD" -e DATABASE_SSL=true \
+            "$ACR/manachain-back:$TAG" \
+            node node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/typeorm.config.js
+
+          echo "--- Mise à jour des services ---"
+          docker service update --with-registry-auth --image "$ACR/manachain-back:$TAG" manachain_back
+          docker service update --with-registry-auth --image "$ACR/manachain-client:$TAG" manachain_client
+          docker service ls
+          EOF

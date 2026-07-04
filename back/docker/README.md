@@ -14,6 +14,13 @@ Multi-stage, durcie, tournant **non-root** :
 Le build élague aux dépendances de production (`pnpm prune --prod`) et patche
 OpenSSL (`libssl3`/`libcrypto3`).
 
+**Secrets** : l'entrypoint (`docker-entrypoint.sh`) résout la convention
+`*_FILE` — toute variable `XXX_FILE` pointant vers un fichier lisible
+(typiquement un secret Swarm sous `/run/secrets/`) est exportée en `XXX` avec
+le contenu du fichier, ex. `DATABASE_PASSWORD_FILE=/run/secrets/database_password`.
+Même pattern que l'image officielle postgres ; les variables d'env classiques
+restent utilisables telles quelles (dev, CI).
+
 ## Fichiers Compose
 
 | Fichier | Usage |
@@ -58,3 +65,9 @@ docker build -t manachain-back ./back
 
 En production, jouer les migrations avec `pnpm migration:run:prod` (utilise `dist/`)
 avant/à côté du démarrage de l'app.
+
+## Tester les images buildées
+
+`deploy/docker-compose.images.yml` (racine du repo) lance les images de prod
+back + client avec un Postgres jetable et joue les migrations — la répétition
+générale avant le déploiement Swarm. Mode d'emploi dans l'en-tête du fichier.

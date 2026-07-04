@@ -1,0 +1,96 @@
+# Déploiement applicatif sur le cluster Swarm (manager uniquement).
+#   ansible-playbook deploy.yml --ask-vault-pass
+#   ansible-playbook deploy.yml --ask-vault-pass -e back_image_tag=<sha> -e client_image_tag=<sha>
+#
+# Prérequis : provision.yml joué, images poussées sur l'ACR, vault.yml chiffré.
+# NB : les secrets Swarm sont immuables — pour en changer un : docker stack rm
+# manachain, relancer ce playbook, redeployer.
+---
+- name: Déployer la stack ManaChain
+  hosts: manager
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/tf_outputs.yml"
+    - vault.yml
+
+  tasks:
+    - name: Créer les dossiers de la stack et des backups
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0750"
+      loop:
+        - "{{ stack_dir }}"
+        - /var/backups/manachain
+
+    - name: Login sur le registre ACR
+      community.docker.docker_login:
+        registry_url: "{{ acr_login_server }}"
+        username: "{{ acr_admin_username }}"
+        password: "{{ acr_admin_password }}"
+
+    - name: Créer les secrets Swarm
+      community.docker.docker_secret:
+        name: "{{ item.name }}"
+        # `default(' ', true)` : un secret Swarm ne peut pas être vide — un
+        # espace suffit pour les optionnels non configurés (SMTP, Google…).
+        data: "{{ item.data | default(' ', true) }}"
+        state: present
+      loop:
+        - { name: database_password, data: "{{ database_password }}" }
+        - { name: app_jwt_secret, data: "{{ vault_app_jwt_secret }}" }
+        - { name: smtp_pass, data: "{{ vault_smtp_pass }}" }
+        - { name: google_client_secret, data: "{{ vault_google_client_secret }}" }
+        - { name: pinata_jwt, data: "{{ vault_pinata_jwt }}" }
+        # Rendu sur le nœud de contrôle : jamais écrit en clair sur la VM.
+        - { name: rclone_conf, data: "{{ lookup('ansible.builtin.template', '../../deploy/rclone.conf.j2') }}" }
+      loop_control:
+        label: "{{ item.name }}"
+      no_log: true
+
+    - name: Rendre le script de backup
+      ansible.builtin.template:
+        src: ../../deploy/backup.sh.j2
+        dest: "{{ stack_dir }}/backup.sh"
+        mode: "0755"
+
+    - name: Rendre la définition de la stack
+      ansible.builtin.template:
+        src: ../../deploy/stack.yml.j2
+        dest: "{{ stack_dir }}/stack.yml"
+        mode: "0640"
+
+    - name: Jouer les migrations TypeORM (one-shot, avant la bascule)
+      ansible.builtin.command: >-
+        docker run --rm
+        -e DATABASE_HOST={{ database_host }}
+        -e DATABASE_PORT=5432
+        -e DATABASE_NAME={{ database_name }}
+        -e DATABASE_USER={{ database_user }}
+        -e DATABASE_PASSWORD={{ database_password }}
+        -e DATABASE_SSL=true
+        {{ acr_login_server }}/manachain-back:{{ back_image_tag }}
+        node node_modules/typeorm/cli.js migration:run -d dist/infrastructure/database/typeorm.config.js
+      register: migrations
+      changed_when: "'No migrations are pending' not in migrations.stdout"
+      no_log: true
+
+    - name: Déployer la stack Swarm
+      community.docker.docker_stack:
+        name: "{{ stack_name }}"
+        state: present
+        with_registry_auth: true
+        compose:
+          - "{{ stack_dir }}/stack.yml"
+
+    - name: Backup post-déploiement (aucune fenêtre sans sauvegarde récente)
+      ansible.builtin.shell: |
+        set -e
+        for i in $(seq 1 30); do
+          cid=$(docker ps -q -f name={{ stack_name }}_backup | head -1)
+          [ -n "$cid" ] && docker exec "$cid" /backup.sh && exit 0
+          sleep 5
+        done
+        echo "service backup indisponible" >&2; exit 1
+      register: post_backup
+      changed_when: true

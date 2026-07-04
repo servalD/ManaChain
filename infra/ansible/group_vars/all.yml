@@ -1,0 +1,22 @@
+# Variables non sensibles du déploiement. Les secrets applicatifs vivent dans
+# vault.yml (ansible-vault, cf. vault.yml.example) ; les valeurs issues de
+# l'infra (ACR, Postgres…) dans inventory/tf_outputs.yml (généré).
+
+domain_name: manachain.online # à remplacer par le domaine acheté
+acme_email: serval7391@gmail.com
+
+back_image_tag: latest
+client_image_tag: latest
+
+# Subnet des nœuds (doit correspondre à infra/terraform/network.tf).
+nodes_subnet_cidr: 10.10.1.0/24
+
+# SMTP (mode simulation si laissé vide) et OAuth.
+smtp_host: ""
+smtp_port: 587
+smtp_user: ""
+email_from: noreply@mana-chain.com
+google_client_id: ""
+
+stack_name: manachain
+stack_dir: /opt/manachain

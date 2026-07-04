@@ -1,0 +1,30 @@
+# Durcissement et hygiène de base des hôtes.
+---
+- name: Mettre à jour le cache apt et les paquets
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Installer les paquets de base
+  ansible.builtin.apt:
+    name:
+      - fail2ban # jail sshd active par défaut sur Ubuntu
+      - unattended-upgrades
+      - ca-certificates
+      - curl
+    state: present
+
+- name: Activer les mises à jour de sécurité automatiques
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    mode: "0644"
+
+- name: Démarrer fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true

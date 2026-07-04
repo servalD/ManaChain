@@ -1,0 +1,26 @@
+# Allume les 3 VMs du cluster (l'environnement ne tourne pas h24).
+# Swarm et la stack repartent seuls (restart_policy: any).
+# Prérequis : az login.
+#   ansible-playbook cluster-start.yml
+---
+- name: Démarrer les VMs du cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - inventory/tf_outputs.yml
+  tasks:
+    - name: Démarrer toutes les VMs du resource group
+      ansible.builtin.shell: >-
+        az vm start --ids $(az vm list -g {{ resource_group }} --query "[].id" -o tsv)
+      changed_when: true
+
+    - name: Attendre que le manager réponde en SSH
+      ansible.builtin.wait_for:
+        host: "{{ hostvars['swarm-manager'].ansible_host }}"
+        port: 22
+        timeout: 300
+
+    - name: Cluster prêt
+      ansible.builtin.debug:
+        msg: "Cluster démarré — https://{{ domain_name | default('<domaine>') }} sera servi dès que la stack a convergé."
