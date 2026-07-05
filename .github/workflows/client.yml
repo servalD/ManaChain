@@ -2,7 +2,8 @@
 # l'image vers l'ACR sur main.
 # Secrets requis : ACR_LOGIN_SERVER, ACR_USERNAME, ACR_PASSWORD.
 # Variables requises (Settings > Variables) : NEXT_PUBLIC_API_URL,
-# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID, NEXT_PUBLIC_PINATA_GATEWAY — inlinées
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID, NEXT_PUBLIC_PINATA_GATEWAY,
+# NEXT_PUBLIC_SENTRY_DSN (optionnelle, vide = Sentry désactivé) — inlinées
 # dans le bundle au build de l'image.
 name: Client CI
 
@@ -63,6 +64,7 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=${{ vars.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID }}
             NEXT_PUBLIC_PINATA_GATEWAY=${{ vars.NEXT_PUBLIC_PINATA_GATEWAY }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
           tags: |
             ${{ secrets.ACR_LOGIN_SERVER }}/manachain-client:${{ github.sha }}
             ${{ secrets.ACR_LOGIN_SERVER }}/manachain-client:latest

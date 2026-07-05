@@ -32,6 +32,7 @@ cp .env.example .env
 | `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` | [dashboard Dynamic](https://app.dynamic.xyz/) → ton projet → Developers → Environment ID (sandbox pour le dev) |
 | `PINATA_JWT`                         | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key                           |
 | `NEXT_PUBLIC_PINATA_GATEWAY`         | dashboard Pinata → Gateways (ex.`xxx.mypinata.cloud`, sans `https://`)                                      |
+| `NEXT_PUBLIC_SENTRY_DSN`             | Optionnelle — projet Sentry (nextjs) → Settings → Client Keys (DSN). Vide = Sentry désactivé. Voir [MONITORING.md](MONITORING.md) |
 
 ## 2. Lancer en dev
 

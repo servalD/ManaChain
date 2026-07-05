@@ -111,7 +111,8 @@ Automatique : chaque push sur `main` build et pousse `manachain-back` et
 `manachain-client` sur l'ACR (workflows `back.yml` / `client.yml`).
 Secrets GitHub à créer : `ACR_LOGIN_SERVER`, `ACR_USERNAME`, `ACR_PASSWORD`
 (→ `terraform output acr_admin_password`) ; variables : `NEXT_PUBLIC_API_URL`,
-`NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`, `NEXT_PUBLIC_PINATA_GATEWAY`.
+`NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`, `NEXT_PUBLIC_PINATA_GATEWAY`,
+`NEXT_PUBLIC_SENTRY_DSN` (optionnelle — vide/absente = Sentry front désactivé).
 
 Premier push manuel si besoin :
 
@@ -127,6 +128,7 @@ CLIENT_IMAGE=acrmanachain.azurecr.io/manachain-client:latest \
 NEXT_PUBLIC_API_URL=https://<domaine>/api \
 NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=<id> \
 NEXT_PUBLIC_PINATA_GATEWAY=<gateway> \
+NEXT_PUBLIC_SENTRY_DSN=<dsn ou vide> \
   docker compose -f client/docker/docker-compose.build.yml build
 
 docker push acrmanachain.azurecr.io/manachain-back:latest
