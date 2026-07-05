@@ -7,6 +7,9 @@ vault_app_jwt_secret: "change-me-64-random-chars"
 vault_smtp_pass: ""
 vault_google_client_secret: ""
 vault_pinata_jwt: ""
+# Monitoring : login admin Grafana natif + bot Telegram (alerting).
+vault_grafana_admin_password: "change-me"
+vault_telegram_bot_token: ""
 # Backup 3-2-1 : remote rclone de la copie externe n°3 (S3/R2, hors Azure).
 # La section [azure] (médium 2) est générée automatiquement depuis Terraform.
 vault_rclone_offsite_conf: |

@@ -1,0 +1,12 @@
+# Statique (aucune valeur secrète/infra) : copiée telle quelle par Ansible,
+# jamais templée (les {{ }} de Grafana ne doivent pas être touchés par Jinja).
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

@@ -42,6 +42,7 @@
         - { name: smtp_pass, data: "{{ vault_smtp_pass }}" }
         - { name: google_client_secret, data: "{{ vault_google_client_secret }}" }
         - { name: pinata_jwt, data: "{{ vault_pinata_jwt }}" }
+        - { name: grafana_admin_password, data: "{{ vault_grafana_admin_password }}" }
         # Rendu sur le nœud de contrôle : jamais écrit en clair sur la VM.
         - { name: rclone_conf, data: "{{ lookup('ansible.builtin.template', '../../deploy/rclone.conf.j2') }}" }
       loop_control:
@@ -53,6 +54,54 @@
         src: ../../deploy/backup.sh.j2
         dest: "{{ stack_dir }}/backup.sh"
         mode: "0755"
+
+    - name: Créer les dossiers de config monitoring
+      ansible.builtin.file:
+        path: "{{ stack_dir }}/monitoring/{{ item }}"
+        state: directory
+        mode: "0750"
+      loop:
+        - grafana/provisioning/datasources
+        - grafana/provisioning/dashboards
+        - grafana/provisioning/alerting
+        - grafana/dashboards
+
+    - name: Rendre la config Prometheus
+      ansible.builtin.template:
+        src: ../../deploy/monitoring/prometheus.yml.j2
+        dest: "{{ stack_dir }}/monitoring/prometheus.yml"
+        mode: "0644"
+      register: prometheus_config
+
+    # owner 472 = uid grafana dans l'image officielle ; mode 0600 car le
+    # fichier rendu contient le token du bot Telegram en clair.
+    - name: Rendre l'alerting Grafana (contact point Telegram + règles)
+      ansible.builtin.template:
+        src: ../../deploy/monitoring/grafana/provisioning/alerting/alerting.yml.j2
+        dest: "{{ stack_dir }}/monitoring/grafana/provisioning/alerting/alerting.yml"
+        owner: "472"
+        mode: "0600"
+      register: grafana_alerting_config
+      no_log: true
+
+    # copy (jamais template) : les {{ }} des dashboards/datasources Grafana
+    # casseraient le rendu Jinja s'ils étaient templés.
+    - name: Copier le provisioning Grafana statique (datasource + provider dashboards)
+      ansible.builtin.copy:
+        src: "../../deploy/monitoring/grafana/provisioning/{{ item }}"
+        dest: "{{ stack_dir }}/monitoring/grafana/provisioning/{{ item }}"
+        mode: "0644"
+      loop:
+        - datasources/prometheus.yml
+        - dashboards/default.yml
+      register: grafana_provisioning_static
+
+    - name: Copier les dashboards Grafana versionnés
+      ansible.builtin.copy:
+        src: ../../deploy/monitoring/grafana/dashboards/
+        dest: "{{ stack_dir }}/monitoring/grafana/dashboards/"
+        mode: "0644"
+      register: grafana_dashboards
 
     - name: Rendre la définition de la stack
       ansible.builtin.template:
@@ -97,4 +146,31 @@
         done
         echo "service backup indisponible" >&2; exit 1
       register: post_backup
+      changed_when: true
+
+    # Garde d'existence : prometheus/grafana n'entrent dans la stack qu'à
+    # partir de l'étape qui les ajoute à stack.yml.j2 — sans cette garde, ce
+    # commit (configs seules) casserait le déploiement en attendant.
+    - name: Services monitoring déjà présents dans la stack ?
+      ansible.builtin.command: "docker service ls --filter name={{ stack_name }}_{{ item }} -q"
+      loop:
+        - prometheus
+        - grafana
+      register: monitoring_services
+      changed_when: false
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Forcer le redéploiement de prometheus si sa config a changé
+      ansible.builtin.command: "docker service update --force {{ stack_name }}_prometheus"
+      when:
+        - prometheus_config.changed
+        - monitoring_services.results[0].stdout | trim != ''
+      changed_when: true
+
+    - name: Forcer le redéploiement de grafana si sa config a changé
+      ansible.builtin.command: "docker service update --force {{ stack_name }}_grafana"
+      when:
+        - grafana_alerting_config.changed or grafana_provisioning_static.changed or grafana_dashboards.changed
+        - monitoring_services.results[1].stdout | trim != ''
       changed_when: true

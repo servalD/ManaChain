@@ -1,0 +1,15 @@
+# Statique : copiée telle quelle par Ansible (jamais templée). Charge les
+# dashboards JSON versionnés depuis /etc/grafana/dashboards (bind ro séparé
+# de /etc/grafana/provisioning, cf. deploy/stack.yml.j2 étape 5).
+apiVersion: 1
+
+providers:
+  - name: default
+    orgId: 1
+    folder: ManaChain
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: false
