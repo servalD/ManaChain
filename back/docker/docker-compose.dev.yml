@@ -47,5 +47,52 @@ services:
       retries: 5
     logging: *default-logging
 
+  # Monitoring opt-in : docker compose -f docker/docker-compose.dev.yml --profile monitoring up
+  # Mêmes images épinglées que la prod, sans node-exporter (pas de nœud à
+  # surveiller ici) ; dashboards/provisioning Grafana réutilisés tels quels
+  # (zéro duplication) — seule l'alerte Telegram (fichier .j2, non rendu) n'est
+  # pas chargée en dev.
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: ['monitoring']
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=2d
+    volumes:
+      - ../../deploy/monitoring/dev/prometheus-back.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '9090:9090'
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:12.2.1
+    profiles: ['monitoring']
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+    volumes:
+      - ../../deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../deploy/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - '3002:3000'
+    logging: *default-logging
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    profiles: ['monitoring']
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    ports:
+      - '8088:8080'
+    logging: *default-logging
+
 volumes:
   postgres_dev_data:

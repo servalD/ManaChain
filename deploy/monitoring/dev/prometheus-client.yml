@@ -1,0 +1,14 @@
+# Prometheus dev pour client/docker/docker-compose.dev.yml (profil "monitoring").
+# Le client n'expose aucune métrique applicative (cf. tableau anti-redondance) :
+# seul cadvisor donne de la visibilité ici.
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: containers
+    static_configs:
+      - targets: ['cadvisor:8080']

@@ -31,6 +31,13 @@ services:
       - --certificatesresolvers.letsencrypt.acme.email={{ acme_email }}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # Métriques edge (req/s, latences, codes par router) — scrapées par
+      # Prometheus sur l'overlay ; :8082 n'est jamais publié sur l'hôte.
+      - --metrics.prometheus=true
+      - --metrics.prometheus.entrypoint=metrics
+      - --metrics.prometheus.addRoutersLabels=true
+      - --entrypoints.metrics.address=:8082
+      - --ping=true
     ports:
       # Mode host : préserve l'IP source et évite un saut de routing mesh ;
       # possible car traefik est contraint sur le manager (qui porte l'IP publique).
@@ -45,6 +52,11 @@ services:
       - traefik_letsencrypt:/letsencrypt
     networks:
       - edge
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     deploy:
       placement:
         constraints:
@@ -73,6 +85,7 @@ services:
       SMTP_USER: "{{ smtp_user | default('') }}"
       EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
+      SENTRY_DSN: "{{ sentry_dsn_back | default('') }}"
       DATABASE_PASSWORD_FILE: /run/secrets/database_password
       APP_JWT_SECRET_FILE: /run/secrets/app_jwt_secret
       SMTP_PASS_FILE: /run/secrets/smtp_pass
@@ -139,6 +152,138 @@ services:
         - traefik.http.routers.client.tls.certresolver=letsencrypt
         - traefik.http.services.client.loadbalancer.server.port=3000
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=10d
+      - --storage.tsdb.retention.size=2GB
+    volumes:
+      - {{ stack_dir }}/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # dockerswarm_sd_configs a besoin du socket pour découvrir les tâches.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - prometheus_data:/prometheus
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s # replay du WAL au démarrage
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.50'
+      restart_policy:
+        condition: any
+        delay: 5s
+      # Aucun label traefik : jamais exposé publiquement (cf. Contexte).
+
+  grafana:
+    image: grafana/grafana:12.2.1
+    environment:
+      GF_SERVER_ROOT_URL: https://grafana.{{ domain_name }}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - {{ stack_dir }}/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - {{ stack_dir }}/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.30'
+      restart_policy:
+        condition: any
+        delay: 5s
+      labels:
+        # Seul service de monitoring exposé publiquement — login admin
+        # Grafana natif uniquement (pas de basicAuth traefik, cf. Contexte).
+        - traefik.enable=true
+        - traefik.http.routers.grafana.rule=Host(`grafana.{{ domain_name }}`)
+        - traefik.http.routers.grafana.entrypoints=websecure
+        - traefik.http.routers.grafana.tls.certresolver=letsencrypt
+        - traefik.http.services.grafana.loadbalancer.server.port=3000
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    command:
+      - --path.rootfs=/rootfs
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9100/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.10'
+      restart_policy:
+        condition: any
+        delay: 5s
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+      - --store_container_labels=false
+      - --disable_metrics=percpu,sched,tcp,udp,advtcp,hugetlb,referenced_memory,cpu_topology,resctrl,disk
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      # Pas de `privileged` (invalide en stack deploy) : fonctionne sans, en cgroup v2.
+      mode: global
+      resources:
+        limits:
+          memory: 192M
+          cpus: '0.20'
+      restart_policy:
+        condition: any
+        delay: 5s
+
   # Politique de sauvegarde 3-2-1 : pg_dump quotidien → disque du manager
   # (médium 1) → Azure Blob via rclone (médium 2) → S3/R2 hors Azure (copie
   # externe n°3). Voir deploy/backup.sh.j2. Épinglé sur le manager : les bind
@@ -161,6 +306,13 @@ services:
       - rclone_conf
     networks:
       - edge
+    healthcheck:
+      # start_period généreux : le `apk add rclone` tourne au boot du conteneur.
+      test: ["CMD-SHELL", "pg_isready -h $$DATABASE_HOST -U $$DATABASE_USER -d $$DATABASE_NAME"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
     deploy:
       placement:
         constraints:
@@ -178,6 +330,10 @@ networks:
 volumes:
   # Certificats ACME — reste sur le manager (traefik y est contraint).
   traefik_letsencrypt:
+  # prometheus/grafana sont épinglés sur le manager (cf. deploy) : ces
+  # volumes locaux suivent le même nœud, pas besoin d'un driver partagé.
+  prometheus_data:
+  grafana_data:
 
 secrets:
   # Créés/tournés par Ansible (deploy.yml) avant le stack deploy.
@@ -190,6 +346,8 @@ secrets:
   google_client_secret:
     external: true
   pinata_jwt:
+    external: true
+  grafana_admin_password:
     external: true
   rclone_conf:
     external: true

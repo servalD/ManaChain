@@ -33,8 +33,8 @@ avec les marques qu'ils soutiennent.
 
 | Dossier | Contenu | Documentation |
 | --- | --- | --- |
-| [`back/`](back/) | API NestJS 11 (hexagonale), TypeORM + PostgreSQL 16 | [README](back/README.md) · [Docker](back/docker/README.md) · [docs/](back/docs/) |
-| [`client/`](client/) | Front Next.js 16, React 19, Tailwind 4, Dynamic/Wagmi/Viem, Pinata IPFS | [README](client/README.md) |
+| [`back/`](back/) | API NestJS 11 (hexagonale), TypeORM + PostgreSQL 16 | [README](back/README.md) · [Docker](back/docker/README.md) · [docs/](back/docs/) (dont [MONITORING](back/docs/MONITORING.md)) |
+| [`client/`](client/) | Front Next.js 16, React 19, Tailwind 4, Dynamic/Wagmi/Viem, Pinata IPFS | [README](client/README.md) · [MONITORING](client/MONITORING.md) |
 | [`contracts/`](contracts/) | Smart contracts Solidity (Foundry), UUPS upgradeables, ciblant Avalanche | [README](contracts/README.md) |
 | [`deploy/`](deploy/) | Stack Docker Swarm de prod + test local des images buildées | en-têtes des fichiers |
 | [`infra/`](infra/) | Terraform (Azure) + Ansible : provisionnement, déploiement, backups 3-2-1 | [README](infra/README.md) |
@@ -59,7 +59,10 @@ pnpm dev                  # http://localhost:3000
 ```
 
 Chaque partie a aussi un mode 100 % Docker (composes `dev`) — voir les README
-respectifs.
+respectifs. Ajouter `--profile monitoring` à un `up` de compose dev lance
+Prometheus + Grafana en local (opt-in, inchangé sans le flag) — voir
+[back/docs/MONITORING.md](back/docs/MONITORING.md) ou
+[client/MONITORING.md](client/MONITORING.md).
 
 ## ✅ Tests
 

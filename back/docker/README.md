@@ -25,7 +25,7 @@ restent utilisables telles quelles (dev, CI).
 
 | Fichier | Usage |
 | --- | --- |
-| `docker-compose.dev.yml` | Dev live-reload : back (watch) + Postgres. Lit `../.env.dev`. Joue `migration:run` au démarrage. |
+| `docker-compose.dev.yml` | Dev live-reload : back (watch) + Postgres. Lit `../.env.dev`. Joue `migration:run` au démarrage. Monitoring en profil opt-in (`--profile monitoring`). |
 | `docker-compose.test.yml` | Postgres éphémère (tmpfs) sur `:5433` pour les tests e2e. |
 | `docker-compose.build.yml` | Build de l'image de prod en local / CI. |
 
@@ -40,6 +40,15 @@ docker compose -f back/docker/docker-compose.dev.yml up
 
 Le service `back` lance la migration baseline puis `start:dev` (watch). La base est
 persistée dans le volume `postgres_dev_data`.
+
+Monitoring opt-in (Prometheus + Grafana, inchangé sans le flag) :
+
+```bash
+docker compose -f back/docker/docker-compose.dev.yml --profile monitoring up
+# prometheus → http://localhost:9090   grafana → http://localhost:3002 (accès anonyme Admin)
+```
+
+Détails : [back/docs/MONITORING.md](../docs/MONITORING.md).
 
 ## Tests e2e
 
