@@ -14,9 +14,11 @@ FROM node:22-alpine AS builder
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
 ARG NEXT_PUBLIC_PINATA_GATEWAY
+ARG NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=$NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID \
     NEXT_PUBLIC_PINATA_GATEWAY=$NEXT_PUBLIC_PINATA_GATEWAY \
+    NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
     NEXT_TELEMETRY_DISABLED=1
 
 # pnpm via corepack (version figée par "packageManager" du package.json).
@@ -57,7 +59,7 @@ COPY --chown=node:node docker-entrypoint.sh ./docker-entrypoint.sh
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/health >/dev/null || exit 1
 
 ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
 CMD ["node", "server.js"]

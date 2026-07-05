@@ -129,8 +129,12 @@ services:
       labels:
         - traefik.enable=true
         # Couvre aussi www (le DNS y pointe) : traefik demande un certificat
-        # pour chaque Host de la règle.
-        - traefik.http.routers.client.rule=Host(`{{ domain_name }}`) || Host(`www.{{ domain_name }}`)
+        # pour chaque Host de la règle. !PathPrefix(/health) exclut le
+        # healthcheck du client de l'exposition publique (usage Docker
+        # interne uniquement) ; priorités explicites sur back ET client :
+        # on ne dépend plus du tri par longueur de règle de traefik.
+        - traefik.http.routers.client.rule=(Host(`{{ domain_name }}`) || Host(`www.{{ domain_name }}`)) && !PathPrefix(`/health`)
+        - traefik.http.routers.client.priority=1
         - traefik.http.routers.client.entrypoints=websecure
         - traefik.http.routers.client.tls.certresolver=letsencrypt
         - traefik.http.services.client.loadbalancer.server.port=3000
