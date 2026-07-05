@@ -16,7 +16,11 @@ smtp_host: ""
 smtp_port: 587
 smtp_user: ""
 email_from: noreply@mana-chain.com
-google_client_id: ""
+google_client_id: "863120568268-mp7cam4i3s6bett5pvd9mdsrvod8g1mf.apps.googleusercontent.com"
 
 stack_name: manachain
 stack_dir: /opt/manachain
+
+# Monitoring (Prometheus + Grafana + Sentry).
+telegram_chat_id: "8821560616"
+sentry_dsn_back: "https://2de61554c91382ea7bed215d5a4516b8@o4511682552266752.ingest.de.sentry.io/4511682565046352" # un DSN n'est pas un secret

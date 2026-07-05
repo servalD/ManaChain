@@ -18,6 +18,12 @@
 #   set -a; source client/.env; source back/.env; set +a
 name: manachain-images
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
 services:
   db:
     image: postgres:16-alpine
@@ -32,6 +38,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    logging: *default-logging
 
   # One-shot : joue les migrations depuis l'image (comme le deploy.yml Ansible).
   migrate:
@@ -46,6 +53,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging: *default-logging
 
   back:
     image: ${BACK_IMAGE:-manachain-back:local}
@@ -66,6 +74,7 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    logging: *default-logging
 
   client:
     image: ${CLIENT_IMAGE:-manachain-client:local}
@@ -75,3 +84,50 @@ services:
       - '3000:3000'
     depends_on:
       - back
+    logging: *default-logging
+
+  # Monitoring opt-in : docker compose -f deploy/docker-compose.images.yml --profile monitoring up
+  # Mêmes images épinglées que la prod, sans node-exporter ; dashboards/
+  # provisioning Grafana réutilisés tels quels (zéro duplication) — seule
+  # l'alerte Telegram (fichier .j2, non rendu) n'est pas chargée en dev.
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    profiles: ['monitoring']
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=2d
+    volumes:
+      - ./monitoring/dev/prometheus-images.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - '9090:9090'
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:12.2.1
+    profiles: ['monitoring']
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - '3002:3000'
+    logging: *default-logging
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    profiles: ['monitoring']
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    ports:
+      - '8088:8080'
+    logging: *default-logging

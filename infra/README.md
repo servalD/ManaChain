@@ -62,6 +62,10 @@ Créer un enregistrement `A` du domaine vers `terraform output manager_public_ip
 dans `infra/ansible/group_vars/all.yml`. Traefik obtient et renouvelle le
 certificat Let's Encrypt tout seul au premier déploiement.
 
+Créer aussi un enregistrement `A` pour `grafana.<domaine>` → la même IP,
+**avant** le déploiement (sinon le challenge ACME de Grafana échoue — traefik
+réessaie tout seul, mais autant l'avoir en place dès le départ).
+
 ## 3. Provisionner les nœuds (Ansible)
 
 ```bash
@@ -92,6 +96,11 @@ ansible-vault encrypt vault.yml
 > | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 > | `vault_pinata_jwt`          | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key. Même valeur que le `PINATA_JWT` du dev local (cf. `client/.env.example`)                                                                                                                  |
 > | `vault_rclone_offsite_conf` | Cloudflare R2 : dashboard → R2 →[Manage R2 API Tokens](https://dash.cloudflare.com/?to=/:account/r2/api-tokens) (access key + secret + endpoint du compte), puis créer le bucket `manachain-backups`. Format des remotes : [doc rclone S3/R2](https://rclone.org/s3/#cloudflare-r2) |
+> | `vault_grafana_admin_password` | Choisie librement — login admin Grafana natif (pas de double auth, cf. [infra/MONITORING.md](MONITORING.md)) |
+> | `vault_telegram_bot_token`   | Bot Telegram de l'alerting Grafana — création et détails dans [infra/MONITORING.md](MONITORING.md) |
+>
+> `telegram_chat_id` (non secret) et `sentry_dsn_back` (un DSN n'est pas un
+> secret) vont dans `group_vars/all.yml`, pas dans le vault.
 
 ⚠️ Les secrets Swarm sont immuables : pour en changer un après coup →
 `docker stack rm manachain` sur le manager, puis rejouer `deploy.yml`.
@@ -149,6 +158,9 @@ curl https://<domaine>/api/docs                  # Swagger
 nmap <ip-manager>                                # seuls 22/80/443 ouverts
 ```
 
+Monitoring (Prometheus/Grafana/alerting/rotation des logs) : voir
+[infra/MONITORING.md](MONITORING.md).
+
 Test de recouvrement (à faire au moins une fois, garder une capture) :
 
 ```bash
@@ -176,6 +188,7 @@ ansible-playbook cluster-stop.yml    # backup puis deallocate (0 € compute)
 | `infra/ansible/deploy.yml`     | secrets, migrations,`docker stack deploy`                   |
 | `infra/terraform/inventory.tf` | génère l'inventaire Ansible (hosts.ini + tf_outputs.yml)    |
 | `infra/ansible/cluster-*.yml`  | allumage / extinction (deallocate) des VMs                    |
-| `deploy/stack.yml.j2`          | définition de la stack Swarm (traefik, back, client, backup) |
+| `deploy/stack.yml.j2`          | définition de la stack Swarm (traefik, back, client, prometheus, grafana, node-exporter, cadvisor, backup) |
 | `deploy/backup.sh.j2`          | script de sauvegarde 3-2-1                                    |
+| `deploy/monitoring/`           | configs Prometheus/Grafana (prod + profil dev) — détail dans [infra/MONITORING.md](MONITORING.md) |
 | `.github/workflows/`           | CI back/client + déploiement                                 |

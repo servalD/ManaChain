@@ -38,3 +38,17 @@
     name: "{{ ansible_user }}"
     groups: docker
     append: true
+
+- name: Rotation des logs Docker (json-file 10m x3, sinon un conteneur bavard remplit le disque)
+  ansible.builtin.copy:
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      }
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+  notify: Redémarrer Docker

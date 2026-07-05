@@ -1,0 +1,16 @@
+# Prometheus dev pour deploy/docker-compose.images.yml (profil "monitoring").
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: back
+    static_configs:
+      - targets: ['back:3001']
+
+  - job_name: containers
+    static_configs:
+      - targets: ['cadvisor:8080']

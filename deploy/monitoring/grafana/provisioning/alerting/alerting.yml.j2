@@ -1,0 +1,235 @@
+# ---------------------------------------------------------------------------
+# Alerting Grafana (unified alerting intégré — pas d'Alertmanager séparé).
+# Rendu par Ansible (deploy.yml) vers {{ stack_dir }}/monitoring/grafana/
+# provisioning/alerting/alerting.yml, owner "472" (uid grafana), mode 0600 :
+# contient le token du bot Telegram en clair.
+# ---------------------------------------------------------------------------
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: telegram-manachain
+        type: telegram
+        settings:
+          bottoken: "{{ vault_telegram_bot_token }}"
+          chatid: "{{ telegram_chat_id }}"
+
+policies:
+  - orgId: 1
+    receiver: telegram
+    group_by: ['alertname']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 3h
+
+groups:
+  - orgId: 1
+    name: manachain-alerts
+    folder: ManaChain
+    interval: 1m
+    rules:
+      - uid: manachain-node-down
+        title: 'Nœud down'
+        condition: B
+        for: 2m
+        noDataState: Alerting
+        execErrState: Alerting
+        annotations:
+          summary: "Un node-exporter ne répond plus depuis 2 minutes."
+        labels:
+          severity: critical
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: up{job="nodes"} == 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
+
+      - uid: manachain-disk-low
+        title: 'Disque < 20%'
+        condition: B
+        for: 5m
+        noDataState: Alerting
+        execErrState: Alerting
+        annotations:
+          summary: "Espace disque disponible sous les 20% sur un nœud."
+        labels:
+          severity: warning
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: 100 * node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"} < 20
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
+
+      - uid: manachain-ram-low
+        title: 'RAM disponible < 10%'
+        condition: B
+        for: 5m
+        noDataState: Alerting
+        execErrState: Alerting
+        annotations:
+          summary: "RAM disponible sous les 10% sur un nœud."
+        labels:
+          severity: warning
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: 100 * node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 10
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
+
+      - uid: manachain-traefik-5xx
+        title: 'Taux de 5xx traefik > 5%'
+        condition: B
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        annotations:
+          summary: "Plus de 5% de réponses 5xx sur les 5 dernières minutes (edge traefik)."
+        labels:
+          severity: critical
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: (sum(rate(traefik_router_requests_total{code=~"5.."}[5m])) / sum(rate(traefik_router_requests_total[5m]))) * 100 > 5
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
+
+      - uid: manachain-back-unhealthy
+        title: 'back sans replica sain'
+        condition: B
+        for: 2m
+        noDataState: Alerting
+        execErrState: Alerting
+        annotations:
+          summary: "Aucun replica back ne répond aux scrapes Prometheus."
+        labels:
+          severity: critical
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: sum(up{job="back"}) == 0
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
+
+      - uid: manachain-eventloop-lag
+        title: 'Event loop lag p99 > 0.5s'
+        condition: B
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        annotations:
+          summary: "Le p99 de l'event loop lag Node.js dépasse 500ms depuis 5 minutes."
+        labels:
+          severity: warning
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: A
+              expr: nodejs_eventloop_lag_p99_seconds{job="back"} > 0.5
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource: { type: prometheus, uid: prometheus }
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange: { from: 600, to: 0 }
+            model:
+              refId: B
+              type: classic_conditions
+              datasource: { type: __expr__, uid: __expr__ }
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+                  operator: { type: and }
+                  query: { params: ['A'] }
+                  reducer: { type: last }
