@@ -43,6 +43,9 @@ export const envSchema = z.object({
   // Google OAuth. Si absent → l'endpoint /auth/google renvoie une erreur claire.
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+  // Sentry (crash reporting). Vide/absent → Sentry désactivé (voir instrument.ts).
+  SENTRY_DSN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -1,3 +1,6 @@
+// Import en premier : Sentry doit instrumenter les autres modules au chargement.
+import './instrument';
+
 import { join } from 'node:path';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,8 +19,9 @@ async function bootstrap() {
     prefix: '/api/assets/',
   });
 
-  // Toutes les routes sous /api ; /health reste à la racine pour le healthcheck.
-  app.setGlobalPrefix('api', { exclude: ['health'] });
+  // Toutes les routes sous /api ; /health et /metrics restent à la racine
+  // (healthcheck et scrape Prometheus, jamais routés par traefik en prod).
+  app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
 
   app.useGlobalPipes(
     new ValidationPipe({

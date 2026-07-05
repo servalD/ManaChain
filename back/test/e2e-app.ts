@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { register } from 'prom-client';
 import { DataSource } from 'typeorm';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
@@ -17,7 +18,7 @@ export interface E2EContext {
 /**
  * Démarre l'application complète (AppModule) contre la vraie base Postgres de
  * test, en reproduisant la configuration de `main.ts` (préfixe global `/api` sauf
- * `/health`, ValidationPipe strict). Repart d'un schéma VIERGE : on drop puis on
+ * `/health` et `/metrics`, ValidationPipe strict). Repart d'un schéma VIERGE : on drop puis on
  * rejoue les migrations (baseline + colonnes) — ce qui couvre aussi la migration.
  */
 export async function createE2EApp(): Promise<E2EContext> {
@@ -26,7 +27,7 @@ export async function createE2EApp(): Promise<E2EContext> {
   }).compile();
 
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
-  app.setGlobalPrefix('api', { exclude: ['health'] });
+  app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -47,6 +48,10 @@ export async function createE2EApp(): Promise<E2EContext> {
 export async function destroyE2EApp(ctx: E2EContext): Promise<void> {
   await ctx.dataSource.dropDatabase();
   await ctx.app.close();
+  // Le registre prom-client est global au process : sans ça, les métriques
+  // par défaut (déjà enregistrées par prom-client lui-même) entrent en
+  // conflit d'un fichier e2e-spec à l'autre.
+  register.clear();
 }
 
 export interface SeedUserOptions {
