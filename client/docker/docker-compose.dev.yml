@@ -12,6 +12,12 @@
 # le même que back/docker/, et les deux stacks partageraient réseau/projet.
 name: manachain-client-dev
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
 services:
   client:
     image: node:22-alpine
@@ -28,5 +34,6 @@ services:
       COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
     env_file:
       - ../.env
+    logging: *default-logging
     tty: true
     stdin_open: true

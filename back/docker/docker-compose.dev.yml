@@ -3,6 +3,12 @@
 #   docker compose -f back/docker/docker-compose.dev.yml up
 #
 # back  → http://localhost:3001  (GET /health, Swagger sur /api/docs)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
 services:
   back:
     image: node:22-alpine
@@ -21,6 +27,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging: *default-logging
     tty: true
     stdin_open: true
 
@@ -38,6 +45,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    logging: *default-logging
 
 volumes:
   postgres_dev_data:

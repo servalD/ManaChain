@@ -18,6 +18,12 @@
 #   set -a; source client/.env; source back/.env; set +a
 name: manachain-images
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
 services:
   db:
     image: postgres:16-alpine
@@ -32,6 +38,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    logging: *default-logging
 
   # One-shot : joue les migrations depuis l'image (comme le deploy.yml Ansible).
   migrate:
@@ -46,6 +53,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging: *default-logging
 
   back:
     image: ${BACK_IMAGE:-manachain-back:local}
@@ -66,6 +74,7 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    logging: *default-logging
 
   client:
     image: ${CLIENT_IMAGE:-manachain-client:local}
@@ -75,3 +84,4 @@ services:
       - '3000:3000'
     depends_on:
       - back
+    logging: *default-logging
