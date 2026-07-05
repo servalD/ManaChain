@@ -16,7 +16,9 @@ version: "3.8"
 
 services:
   traefik:
-    image: traefik:v3.5
+    # >= v3.6.1 obligatoire : les versions antérieures figent l'API Docker à
+    # 1.24 (refusée par Docker Engine 29+) ; v3.6.1+ négocie automatiquement.
+    image: traefik:v3.6
     command:
       - --providers.swarm.endpoint=unix:///var/run/docker.sock
       - --providers.swarm.exposedByDefault=false
@@ -96,7 +98,10 @@ services:
         delay: 5s
       labels:
         - traefik.enable=true
+        # Priorité explicite : sans elle, traefik classe par longueur de règle
+        # et la règle du client (apex + www) passerait devant /api.
         - traefik.http.routers.back.rule=Host(`{{ domain_name }}`) && PathPrefix(`/api`)
+        - traefik.http.routers.back.priority=100
         - traefik.http.routers.back.entrypoints=websecure
         - traefik.http.routers.back.tls.certresolver=letsencrypt
         - traefik.http.services.back.loadbalancer.server.port=3001
@@ -123,7 +128,9 @@ services:
         delay: 5s
       labels:
         - traefik.enable=true
-        - traefik.http.routers.client.rule=Host(`{{ domain_name }}`)
+        # Couvre aussi www (le DNS y pointe) : traefik demande un certificat
+        # pour chaque Host de la règle.
+        - traefik.http.routers.client.rule=Host(`{{ domain_name }}`) || Host(`www.{{ domain_name }}`)
         - traefik.http.routers.client.entrypoints=websecure
         - traefik.http.routers.client.tls.certresolver=letsencrypt
         - traefik.http.services.client.loadbalancer.server.port=3000

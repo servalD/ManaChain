@@ -31,6 +31,14 @@ resource "azurerm_postgresql_flexible_server" "main" {
   depends_on = [azurerm_private_dns_zone_virtual_network_link.postgres]
 }
 
+# Azure refuse CREATE EXTENSION pour toute extension non allow-listée ici.
+# La migration baseline fait `CREATE EXTENSION "uuid-ossp"`.
+resource "azurerm_postgresql_flexible_server_configuration" "extensions" {
+  name      = "azure.extensions"
+  server_id = azurerm_postgresql_flexible_server.main.id
+  value     = "UUID-OSSP"
+}
+
 resource "azurerm_postgresql_flexible_server_database" "manachain" {
   name      = "manachain"
   server_id = azurerm_postgresql_flexible_server.main.id
