@@ -92,12 +92,12 @@ ansible-vault encrypt vault.yml
 > et le client ID va dans `group_vars/all.yml` (`google_client_id`), pas dans le
 > vault. Ne restent propres à l'infra :
 >
-> | Secret                        | Source                                                                                                                                                                                                                                                                                 |
-> | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | `vault_pinata_jwt`          | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key. Même valeur que le `PINATA_JWT` du dev local (cf. `client/.env.example`)                                                                                                                  |
-> | `vault_rclone_offsite_conf` | Cloudflare R2 : dashboard → R2 →[Manage R2 API Tokens](https://dash.cloudflare.com/?to=/:account/r2/api-tokens) (access key + secret + endpoint du compte), puis créer le bucket `manachain-backups`. Format des remotes : [doc rclone S3/R2](https://rclone.org/s3/#cloudflare-r2) |
-> | `vault_grafana_admin_password` | Choisie librement — login admin Grafana natif (pas de double auth, cf. [infra/MONITORING.md](MONITORING.md)) |
-> | `vault_telegram_bot_token`   | Bot Telegram de l'alerting Grafana — création et détails dans [infra/MONITORING.md](MONITORING.md) |
+> | Secret                           | Source                                                                                                                                                                                                                                                                                 |
+> | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | `vault_pinata_jwt`             | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key. Même valeur que le `PINATA_JWT` du dev local (cf. `client/.env.example`)                                                                                                                  |
+> | `vault_rclone_offsite_conf`    | Cloudflare R2 : dashboard → R2 →[Manage R2 API Tokens](https://dash.cloudflare.com/?to=/:account/r2/api-tokens) (access key + secret + endpoint du compte), puis créer le bucket `manachain-backups`. Format des remotes : [doc rclone S3/R2](https://rclone.org/s3/#cloudflare-r2) |
+> | `vault_grafana_admin_password` | Choisie librement — login admin Grafana natif (pas de double auth, cf.[infra/MONITORING.md](MONITORING.md))                                                                                                                                                                            |
+> | `vault_telegram_bot_token`     | Bot Telegram de l'alerting Grafana — création et détails dans[infra/MONITORING.md](MONITORING.md)                                                                                                                                                                                    |
 >
 > `telegram_chat_id` (non secret) et `sentry_dsn_back` (un DSN n'est pas un
 > secret) vont dans `group_vars/all.yml`, pas dans le vault.
@@ -183,14 +183,14 @@ ansible-playbook cluster-stop.yml    # backup puis deallocate (0 € compute)
 
 ## Fichiers
 
-| Chemin                           | Rôle                                                         |
-| -------------------------------- | ------------------------------------------------------------- |
-| `infra/terraform/`             | VMs, réseau, NSG, PG managé, ACR, Blob                      |
-| `infra/ansible/provision.yml`  | Docker, ufw, fail2ban, formation du Swarm                     |
-| `infra/ansible/deploy.yml`     | secrets, migrations,`docker stack deploy`                   |
-| `infra/terraform/inventory.tf` | génère l'inventaire Ansible (hosts.ini + tf_outputs.yml)    |
-| `infra/ansible/cluster-*.yml`  | allumage / extinction (deallocate) des VMs                    |
+| Chemin                           | Rôle                                                                                                       |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `infra/terraform/`             | VMs, réseau, NSG, PG managé, ACR, Blob                                                                    |
+| `infra/ansible/provision.yml`  | Docker, ufw, fail2ban, formation du Swarm                                                                   |
+| `infra/ansible/deploy.yml`     | secrets, migrations,`docker stack deploy`                                                                 |
+| `infra/terraform/inventory.tf` | génère l'inventaire Ansible (hosts.ini + tf_outputs.yml)                                                  |
+| `infra/ansible/cluster-*.yml`  | allumage / extinction (deallocate) des VMs                                                                  |
 | `deploy/stack.yml.j2`          | définition de la stack Swarm (traefik, back, client, prometheus, grafana, node-exporter, cadvisor, backup) |
-| `deploy/backup.sh.j2`          | script de sauvegarde 3-2-1                                    |
-| `deploy/monitoring/`           | configs Prometheus/Grafana (prod + profil dev) — détail dans [infra/MONITORING.md](MONITORING.md) |
-| `.github/workflows/`           | CI back/client + déploiement                                 |
+| `deploy/backup.sh.j2`          | script de sauvegarde 3-2-1                                                                                  |
+| `deploy/monitoring/`           | configs Prometheus/Grafana (prod + profil dev) — détail dans[infra/MONITORING.md](MONITORING.md)           |
+| `.github/workflows/`           | CI back/client + déploiement                                                                               |
