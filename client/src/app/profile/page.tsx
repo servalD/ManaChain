@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
-import AuthService from "@/services/auth.service";
+import { useUpdateProfile, logout } from "@/hooks/api/useAuth";
 import PinataService from "@/services/pinata.service";
 import {
   ProfileAvatar,
@@ -16,18 +16,19 @@ import {
 } from "@/components/profile";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
-import { IUser } from "@/types/user.types";
+import type { UserResponse } from "@/api/generated/models";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
+  const updateProfile = useUpdateProfile();
   const [first_name, setFirst_name] = useState("");
   const [last_name, setLast_name] = useState("");
   const [username, setUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [syncedUser, setSyncedUser] = useState<IUser | null>(null);
+  const [syncedUser, setSyncedUser] = useState<UserResponse | null>(null);
 
   // Réinitialise les champs éditables à chaque fois que l'objet user change de référence
   // (chargement initial ou après refreshUser()), pas seulement quand l'id change, pour bien
@@ -42,16 +43,22 @@ export default function ProfilePage() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    const updated = await AuthService.updateProfile({
-      firstName: first_name.trim() || undefined,
-      lastName: last_name.trim() || undefined,
-      username: username.trim() || undefined,
-    });
-    setIsSaving(false);
-    if (updated) {
-      await refreshUser();
-      setIsEditingProfile(false);
-    }
+    updateProfile.mutate(
+      {
+        data: {
+          firstName: first_name.trim() || undefined,
+          lastName: last_name.trim() || undefined,
+          username: username.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: async () => {
+          await refreshUser();
+          setIsEditingProfile(false);
+        },
+        onSettled: () => setIsSaving(false),
+      }
+    );
   };
 
   const handleAvatarUploadStart = () => {
@@ -60,19 +67,23 @@ export default function ProfilePage() {
 
   const handleAvatarUploadComplete = async (avatarUrl: string) => {
     const oldAvatarUrl = user?.avatarUrl ?? null;
-    const updated = await AuthService.updateProfile({ avatarUrl });
-    if (updated) {
-      await refreshUser();
-      // Unpin previous avatar from Pinata if it was an IPFS URL
-      if (
-        oldAvatarUrl &&
-        (PinataService.isIpfsUrl(oldAvatarUrl) ||
-          /^Qm[a-zA-Z0-9]{44,}$/.test(String(oldAvatarUrl).trim()))
-      ) {
-        await PinataService.deleteFile(oldAvatarUrl);
+    updateProfile.mutate(
+      { data: { avatarUrl } },
+      {
+        onSuccess: async () => {
+          await refreshUser();
+          // Unpin previous avatar from Pinata if it was an IPFS URL
+          if (
+            oldAvatarUrl &&
+            (PinataService.isIpfsUrl(oldAvatarUrl) ||
+              /^Qm[a-zA-Z0-9]{44,}$/.test(String(oldAvatarUrl).trim()))
+          ) {
+            await PinataService.deleteFile(oldAvatarUrl);
+          }
+        },
+        onSettled: () => setIsUploadingAvatar(false),
       }
-    }
-    setIsUploadingAvatar(false);
+    );
   };
 
   const handleAvatarUploadError = () => {
@@ -83,8 +94,8 @@ export default function ProfilePage() {
     router.push("/profile/change-password");
   };
 
-  const handleLogout = async () => {
-    await AuthService.logout();
+  const handleLogout = () => {
+    logout();
   };
 
   const handleProfile = () => {

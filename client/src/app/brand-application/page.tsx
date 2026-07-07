@@ -16,9 +16,8 @@ import { toast } from "sonner";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import FormCacheService from "@/services/form-cache.service";
 import { useMounted } from "@/hooks/useMounted";
-import BrandApplicationService from "@/services/brand-application.service";
-import InterestsService from "@/services/interests.service";
-import { Interest } from "@/types/interest.types";
+import { useCreateBrandApplication, toCreateBrandApplicationRequest } from "@/hooks/api/useBrandApplications";
+import { useInterests } from "@/hooks/api/useInterests";
 import { COUNTRY_PHONE_CODES } from "@/utils/constants";
 import {
   validateContactInfo,
@@ -106,19 +105,11 @@ export default function BrandApplicationPage() {
   );
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [currentStep, setCurrentStep] = useState(1);
-  const [interests, setInterests] = useState<Interest[]>([]);
+  const { data: interests = [] } = useInterests();
+  const createApplication = useCreateBrandApplication();
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
     () => countryCodeFromCachedPhone(cachedFormData?.contact_phone) ?? 'US' // +1 par défaut
   );
-
-  // Fetch interests on mount
-  useEffect(() => {
-    const fetchInterests = async () => {
-      const fetchedInterests = await InterestsService.getAllInterests();
-      setInterests(fetchedInterests);
-    };
-    fetchInterests();
-  }, []);
 
   // Detect dark mode for logo
   useEffect(() => {
@@ -332,17 +323,21 @@ export default function BrandApplicationPage() {
       };
 
       // Submit to API
-      const result = await BrandApplicationService.createApplication(applicationData);
+      createApplication.mutate(
+        { data: toCreateBrandApplicationRequest(applicationData) },
+        {
+          onSuccess: () => {
+            // Clear cache on success
+            FormCacheService.clearFormData();
 
-      if (result) {
-        // Clear cache on success
-        FormCacheService.clearFormData();
-        
-        // Redirect to home page
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
-      }
+            // Redirect to home page
+            setTimeout(() => {
+              router.push('/');
+            }, 2000);
+          },
+          // Keep cache so user can retry on error (errorToast already shown by the hook)
+        }
+      );
     } catch (error) {
       console.error('Error submitting application:', error);
       // Keep cache so user can retry

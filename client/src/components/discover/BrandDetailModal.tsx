@@ -4,10 +4,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart } from "lucide-react";
 import { Brand } from "@/components/ui/brand-swipe";
-import BrandService from "@/services/brand.service";
+import { useBrandById, useBrandMedia } from "@/hooks/api/useBrands";
 import PinataService from "@/services/pinata.service";
-import { BrandMedia } from "@/types/brand-media.types";
-import { BrandFromAPI } from "@/types/brand.types";
 
 interface BrandDetailModalProps {
   isOpen: boolean;
@@ -30,13 +28,19 @@ export function BrandDetailModal({
   onTriggerSwipeRight,
   onTriggerSwipeLeft,
 }: BrandDetailModalProps) {
-  const [brandDetails, setBrandDetails] = useState<BrandFromAPI | null>(null);
-  const [brandMedia, setBrandMedia] = useState<BrandMedia[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFullscreenImageOpen, setIsFullscreenImageOpen] = useState(false);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  const isFetchEnabled = isOpen && !!brand;
+  const { data: brandDetails = null, isLoading: isLoadingDetails } = useBrandById(brand?.id, {
+    enabled: isFetchEnabled,
+  });
+  const { data: brandMedia = [], isLoading: isLoadingMedia } = useBrandMedia(
+    isFetchEnabled ? brand?.id : undefined
+  );
+  const isLoading = isLoadingDetails || isLoadingMedia;
 
   // Reset selected image when modal closes
   if (isOpen !== prevIsOpen) {
@@ -45,24 +49,6 @@ export function BrandDetailModal({
       setSelectedImageIndex(0);
     }
   }
-
-  // Fetch brand details and media when modal opens
-  useEffect(() => {
-    if (isOpen && brand) {
-      const fetchData = async () => {
-        setIsLoading(true);
-        // Fetch brand details
-        const details = await BrandService.getBrandById(brand.id);
-        setBrandDetails(details);
-
-        // Fetch brand media
-        const media = await BrandService.getBrandMedia(brand.id);
-        setBrandMedia(media);
-        setIsLoading(false);
-      };
-      fetchData();
-    }
-  }, [isOpen, brand]);
 
   // Close on escape key
   useEffect(() => {

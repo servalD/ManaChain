@@ -1,38 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ILikeWithBrand } from "@/types/like.types";
-import LikeService from "@/services/like.service";
+import { useMyLikes, useDeleteLike } from "@/hooks/api/useLikes";
 import PinataService from "@/services/pinata.service";
 import { ExternalLink, MoreHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function UserLikes() {
-  const [likes, setLikes] = useState<ILikeWithBrand[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [dislikingId, setDislikingId] = useState<string | null>(null);
+  const { data: likes = [], isLoading } = useMyLikes();
+  const deleteLike = useDeleteLike();
 
-  const handleDislike = async (likeId: string) => {
-    setDislikingId(likeId);
-    const result = await LikeService.deleteLike(likeId);
-    setDislikingId(null);
-    if (result?.success) {
-      setLikes((prev) => prev.filter((l) => l.likeId !== likeId));
-    }
+  const handleDislike = (likeId: string) => {
+    deleteLike.mutate({ likeId });
   };
-
-  useEffect(() => {
-    const fetchLikes = async () => {
-      setIsLoading(true);
-      const response = await LikeService.getUserLikes();
-      if (response) {
-        setLikes(response);
-      }
-      setIsLoading(false);
-    };
-
-    fetchLikes();
-  }, []);
 
   if (isLoading) {
     return (
@@ -156,10 +135,10 @@ export function UserLikes() {
                         size="sm"
                         className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
                         onClick={() => handleDislike(like.likeId)}
-                        disabled={dislikingId === like.likeId}
+                        disabled={deleteLike.isPending && deleteLike.variables?.likeId === like.likeId}
                         aria-label="Remove from liked"
                       >
-                        {dislikingId === like.likeId ? (
+                        {deleteLike.isPending && deleteLike.variables?.likeId === like.likeId ? (
                           <span className="inline-block w-4 h-4 border-2 border-red-500/50 border-t-red-500 rounded-full animate-spin" />
                         ) : (
                           <>

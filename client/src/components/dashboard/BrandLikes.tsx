@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ILikeWithUser } from "@/types/like.types";
-import LikeService from "@/services/like.service";
+import { useBrandLikes } from "@/hooks/api/useLikes";
 import { Heart } from "lucide-react";
 
 interface BrandLikesProps {
@@ -10,23 +8,7 @@ interface BrandLikesProps {
 }
 
 export function BrandLikes({ brandId }: BrandLikesProps) {
-  const [likes, setLikes] = useState<ILikeWithUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLikes = async () => {
-      setIsLoading(true);
-      const response = await LikeService.getBrandLikes(brandId);
-      if (response) {
-        setLikes(response);
-      }
-      setIsLoading(false);
-    };
-
-    if (brandId) {
-      fetchLikes();
-    }
-  }, [brandId]);
+  const { data: likes = [], isLoading } = useBrandLikes(brandId);
 
   if (isLoading) {
     return (

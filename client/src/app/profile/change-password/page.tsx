@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
-import AuthService from "@/services/auth.service";
+import { logout } from "@/hooks/api/useAuth";
 import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
 
 export default function ChangePasswordPage() {
@@ -20,7 +20,7 @@ export default function ChangePasswordPage() {
           userName={user?.username}
           userAvatarUrl={user?.avatarUrl}
           userRole={user?.role}
-          onLogout={() => AuthService.logout()}
+          onLogout={() => logout()}
           onProfile={() => router.push("/profile")}
         />
         <ChangePasswordForm resetToken={null} />

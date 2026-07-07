@@ -2,9 +2,9 @@
 
 import { toast as sonnerToast } from 'sonner';
 
-type ToastVariant = 'default' | 'success' | 'error' | 'warning';
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning';
 
-interface ToastOptions {
+export interface ToastOptions {
   title: string;
   description?: string;
   variant?: ToastVariant;

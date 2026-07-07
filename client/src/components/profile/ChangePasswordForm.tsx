@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import AuthService from "@/services/auth.service";
+import { useResetPassword, useChangePassword } from "@/hooks/api/useAuth";
 import { Button } from "@/components/ui/button";
 import { getPasswordCriteria, isValidPassword } from "@/utils/validation";
 import { Lock, ArrowLeft } from "lucide-react";
@@ -32,6 +32,8 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const resetPassword = useResetPassword();
+  const changePassword = useChangePassword();
 
   const criteria = getPasswordCriteria(newPassword);
 
@@ -56,16 +58,22 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
     }
 
     setIsSubmitting(true);
-    try {
-      if (isResetFlow && resetToken) {
-        const ok = await AuthService.resetPassword(resetToken, newPassword);
-        if (ok) router.push(redirectTo ?? "/login");
-      } else {
-        const ok = await AuthService.changePassword(newPassword);
-        if (ok) router.push(redirectTo ?? "/profile");
-      }
-    } finally {
-      setIsSubmitting(false);
+    if (isResetFlow && resetToken) {
+      resetPassword.mutate(
+        { data: { token: resetToken, newPassword } },
+        {
+          onSuccess: () => router.push(redirectTo ?? "/login"),
+          onSettled: () => setIsSubmitting(false),
+        }
+      );
+    } else {
+      changePassword.mutate(
+        { data: { newPassword } },
+        {
+          onSuccess: () => router.push(redirectTo ?? "/profile"),
+          onSettled: () => setIsSubmitting(false),
+        }
+      );
     }
   };
 

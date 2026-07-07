@@ -4,7 +4,7 @@ import { Suspense, useRef, useState, useEffect } from "react";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
-import AuthService from "@/services/auth.service";
+import { useLogin } from "@/hooks/api/useAuth";
 import { ApiService } from "@/services/api.service";
 import axios from "axios";
 import { isValidEmail } from "@/utils/validation";
@@ -57,6 +57,7 @@ function LoginPageContent() {
   const searchParams = useSearchParams();
   const toasterRef = useRef<ToasterRef>(null);
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const login = useLogin();
 
   // Handle Google OAuth callback: token + role in URL -> store token and redirect by role
   useEffect(() => {
@@ -152,19 +153,18 @@ function LoginPageContent() {
       return;
     }
 
-    try {
-      const result = await AuthService.login(email, password);
-
-      if (result && result.user) {
-        // Redirect based on user role; brands with passwordChanged=false must set password first
-        const redirectPath = getRedirectPathByRole(result.user.role, result.user);
-        setTimeout(() => {
-          router.push(redirectPath);
-        }, 1000);
+    login.mutate(
+      { data: { email, password } },
+      {
+        onSuccess: (result) => {
+          // Redirect based on user role; brands with passwordChanged=false must set password first
+          const redirectPath = getRedirectPathByRole(result.user.role, result.user);
+          setTimeout(() => {
+            router.push(redirectPath);
+          }, 1000);
+        },
       }
-    } catch (error) {
-      console.error("Login error:", error);
-    }
+    );
   };
 
   const handleGoogleSignIn = () => {

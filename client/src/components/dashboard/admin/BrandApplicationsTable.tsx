@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { BrandApplication } from "@/types/brand-application.types";
-import BrandApplicationService from "@/services/brand-application.service";
+import {
+  useBrandApplicationsList,
+  useApproveBrandApplication,
+  useRejectBrandApplication,
+} from "@/hooks/api/useBrandApplications";
 import PinataService from "@/services/pinata.service";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import AuthService from "@/services/auth.service";
 
 export function BrandApplicationsTable() {
   const router = useRouter();
@@ -20,11 +22,9 @@ export function BrandApplicationsTable() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [limit, setLimit] = useState<number>(10);
-  const [applications, setApplications] = useState<BrandApplication[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState<BrandApplication | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplicationSummary, setSelectedApplicationSummary] = useState<{ brandName: string; contactEmail: string; logoUrl: string | null } | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionNotes, setRejectionNotes] = useState("");
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,66 +46,36 @@ export function BrandApplicationsTable() {
     };
   }, [searchQuery]);
 
-  // Fetch applications when debouncedSearchQuery, statusFilter, or limit changes
-  useEffect(() => {
-    const fetchApplications = async () => {
-      setIsLoading(true);
-      const token = AuthService.getToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
+  const { data, isLoading } = useBrandApplicationsList({
+    limit,
+    offset: 0,
+    status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
+    search: debouncedSearchQuery || undefined,
+  });
+  const applications = data?.applications ?? [];
+  const total = data?.total ?? 0;
 
-      const response = await BrandApplicationService.getAllApplications({
-        limit,
-        offset: 0,
-        status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
-        search: debouncedSearchQuery || undefined,
-      });
+  const approveApplication = useApproveBrandApplication();
+  const rejectApplication = useRejectBrandApplication();
 
-      if (response) {
-        setApplications(response.applications);
-        setTotal(response.total);
-      }
-      setIsLoading(false);
-    };
-
-    fetchApplications();
-  }, [debouncedSearchQuery, statusFilter, limit]);
-
-  const handleApprove = async (applicationId: string) => {
-    try {
-      const response = await BrandApplicationService.approveApplication(applicationId);
-      if (response) {
-        // Refresh applications
-        const token = AuthService.getToken();
-        if (token) {
-          const refreshResponse = await BrandApplicationService.getAllApplications({
-            limit,
-            offset: 0,
-            status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
-            search: debouncedSearchQuery || undefined,
-          });
-          if (refreshResponse) {
-            setApplications(refreshResponse.applications);
-            setTotal(refreshResponse.total);
-          }
-        }
-      }
-    } catch (error) {
-      // Error handling is done in the service
-    }
+  const handleApprove = (applicationId: string) => {
+    approveApplication.mutate({ id: applicationId });
   };
 
-  const handleRejectClick = (application: BrandApplication) => {
-    setSelectedApplication(application);
+  const handleRejectClick = (application: { id: string; brandName: string; contactEmail: string; logoUrl: string | null }) => {
+    setSelectedApplicationId(application.id);
+    setSelectedApplicationSummary({
+      brandName: application.brandName,
+      contactEmail: application.contactEmail,
+      logoUrl: application.logoUrl,
+    });
     setRejectionReason("");
     setRejectionNotes("");
     setRejectModalOpen(true);
   };
 
-  const handleRejectConfirm = async () => {
-    if (!selectedApplication || !rejectionReason.trim()) {
+  const handleRejectConfirm = () => {
+    if (!selectedApplicationId || !rejectionReason.trim()) {
       toast({
         title: "Error",
         description: "Rejection reason is required.",
@@ -114,34 +84,18 @@ export function BrandApplicationsTable() {
       return;
     }
 
-    try {
-      const response = await BrandApplicationService.rejectApplication(
-        selectedApplication.id,
-        { rejectionReason }
-      );
-      if (response) {
-        // Refresh applications
-        const token = AuthService.getToken();
-        if (token) {
-          const refreshResponse = await BrandApplicationService.getAllApplications({
-            limit,
-            offset: 0,
-            status: statusFilter !== "all" ? (statusFilter as 'pending' | 'approved' | 'rejected' | 'needs_review') : undefined,
-            search: debouncedSearchQuery || undefined,
-          });
-          if (refreshResponse) {
-            setApplications(refreshResponse.applications);
-            setTotal(refreshResponse.total);
-          }
-        }
-        setRejectModalOpen(false);
-        setSelectedApplication(null);
-        setRejectionReason("");
-        setRejectionNotes("");
+    rejectApplication.mutate(
+      { id: selectedApplicationId, data: { rejectionReason } },
+      {
+        onSuccess: () => {
+          setRejectModalOpen(false);
+          setSelectedApplicationId(null);
+          setSelectedApplicationSummary(null);
+          setRejectionReason("");
+          setRejectionNotes("");
+        },
       }
-    } catch (error) {
-      // Error handling is done in the service
-    }
+    );
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -353,13 +307,13 @@ export function BrandApplicationsTable() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {selectedApplication && (
+            {selectedApplicationSummary && (
               <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                {selectedApplication.logoUrl ? (
+                {selectedApplicationSummary.logoUrl ? (
                   <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 p-1.5 border border-border">
                     <img
-                      src={PinataService.normalizeIpfsUrl(selectedApplication.logoUrl)}
-                      alt={selectedApplication.brandName}
+                      src={PinataService.normalizeIpfsUrl(selectedApplicationSummary.logoUrl)}
+                      alt={selectedApplicationSummary.brandName}
                       className="w-full h-full object-contain"
                       style={{ maxWidth: '100%', maxHeight: '100%' }}
                       onError={(e) => {
@@ -371,13 +325,13 @@ export function BrandApplicationsTable() {
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-linear-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center shrink-0">
                     <span className="text-sm font-bold text-violet-400">
-                      {selectedApplication.brandName.charAt(0)}
+                      {selectedApplicationSummary.brandName.charAt(0)}
                     </span>
                   </div>
                 )}
                 <div>
-                  <div className="font-semibold text-sm">{selectedApplication.brandName}</div>
-                  <div className="text-xs text-muted-foreground">{selectedApplication.contactEmail}</div>
+                  <div className="font-semibold text-sm">{selectedApplicationSummary.brandName}</div>
+                  <div className="text-xs text-muted-foreground">{selectedApplicationSummary.contactEmail}</div>
                 </div>
               </div>
             )}

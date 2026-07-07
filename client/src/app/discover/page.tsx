@@ -6,15 +6,25 @@ import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
+import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
 import { toast } from "@/lib/toast";
-import AuthService from "@/services/auth.service";
 import { DiscoverHeader, DiscoverContent, DiscoverContentRef } from "@/components/discover";
 import { InvestmentModal } from "@/components/ui/investment-modal";
 import { BrandDetailModal } from "@/components/discover/BrandDetailModal";
-import LikeService from "@/services/like.service";
-import BrandService from "@/services/brand.service";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  likesControllerMyLikes,
+  likesControllerCreate,
+  getLikesControllerMyLikesQueryKey,
+} from "@/api/generated/endpoints/likes/likes";
+import {
+  brandsControllerList,
+  brandsControllerMedia,
+  brandsControllerStats,
+} from "@/api/generated/endpoints/brands/brands";
+import type { BrandResponse } from "@/api/generated/models";
 import PinataService from "@/services/pinata.service";
-import { BrandFromAPI } from "@/types/brand.types";
+import { asAxiosError } from "@/lib/api-error";
 
 export default function DiscoverPage() {
   const router = useRouter();
@@ -29,59 +39,88 @@ export default function DiscoverPage() {
   const [detailModalBrand, setDetailModalBrand] = useState<Brand | null>(null);
   const [imagePosition, setImagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
   const discoverContentRef = useRef<DiscoverContentRef | null>(null);
+  const queryClient = useQueryClient();
+  const updateBlockchainAddress = useUpdateBlockchainAddress();
 
   // Fetch brands from API; use first media image as cover when available (not logo)
+  //
+  // Orchestration nécessitant un fetch séquentiel (likes -> exclude -> brands) puis
+  // un fetch parallèle par marque (media + stats) : pas exprimable proprement avec des
+  // hooks TanStack Query (règles des hooks interdisent leur appel dans une boucle/callback).
+  // On appelle donc directement les fonctions générées par Orval, en reproduisant à la
+  // main les toasts que les anciens services affichaient.
   useEffect(() => {
     const fetchBrands = async () => {
       setIsLoadingBrands(true);
-      const myLikes = await LikeService.getUserLikes();
-      const excludeBrandIds = myLikes?.map((l) => l.brand.id);
-      const response = await BrandService.getAllBrands(50, 0, excludeBrandIds);
 
-      if (response) {
-        const brandsFromApi = response.brands;
-        const [mediaPerBrand, statsPerBrand] = await Promise.all([
-          Promise.all(brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandMedia(b.id))),
-          Promise.all(brandsFromApi.map((b: BrandFromAPI) => BrandService.getBrandStats(b.id))),
-        ]);
-
-        const transformedBrands: Brand[] = brandsFromApi.map((brand: BrandFromAPI, index: number) => {
-          const industry = brand.interests && brand.interests.length > 0
-            ? brand.interests.map((i) => i.label).join(", ")
-            : "General";
-
-          const stats = statsPerBrand[index];
-          const hasToken = !!stats?.tokenSymbol;
-          const tokenSymbol = stats?.tokenSymbol || "N/A";
-          const tokenPrice = stats?.tokenPrice ? parseFloat(stats.tokenPrice) : 0;
-          const holders = stats?.tokenHolders ?? 0;
-          const raised = stats?.totalRaised ? parseFloat(stats.totalRaised) : 0;
-
-          const normalizedLogo = brand.logoUrl ? PinataService.normalizeIpfsUrl(brand.logoUrl) : "";
-          const media = mediaPerBrand[index];
-          const firstImage = media?.length
-            ? PinataService.normalizeIpfsUrl(media[0].imageUrl)
-            : null;
-          const coverImage = firstImage && firstImage !== normalizedLogo ? firstImage : normalizedLogo;
-
-          return {
-            id: brand.id,
-            name: brand.name,
-            logo: normalizedLogo,
-            coverImage,
-            description: brand.description || "No description available.",
-            industry,
-            tokenSymbol,
-            tokenPrice,
-            holders,
-            raised,
-            hasToken,
-          };
+      let excludeBrandIds: string[] | undefined;
+      try {
+        const myLikes = await likesControllerMyLikes();
+        excludeBrandIds = myLikes.map((l) => l.brand.id);
+      } catch (error) {
+        console.error("Error fetching user likes:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch your liked brands.",
+          variant: "error",
         });
-
-        setBrands(transformedBrands);
       }
 
+      let brandsFromApi: BrandResponse[];
+      try {
+        const response = await brandsControllerList({ limit: 50, offset: 0, excludeBrandIds });
+        brandsFromApi = response.brands;
+      } catch (error) {
+        console.error("Error fetching brands:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load brands. Please try again.",
+          variant: "error",
+        });
+        setIsLoadingBrands(false);
+        return;
+      }
+
+      const [mediaPerBrand, statsPerBrand] = await Promise.all([
+        Promise.all(brandsFromApi.map((b) => brandsControllerMedia(b.id).catch(() => []))),
+        Promise.all(brandsFromApi.map((b) => brandsControllerStats(b.id).catch(() => null))),
+      ]);
+
+      const transformedBrands: Brand[] = brandsFromApi.map((brand, index) => {
+        const industry = brand.interests && brand.interests.length > 0
+          ? brand.interests.map((i) => i.label).join(", ")
+          : "General";
+
+        const stats = statsPerBrand[index];
+        const hasToken = !!stats?.tokenSymbol;
+        const tokenSymbol = stats?.tokenSymbol || "N/A";
+        const tokenPrice = stats?.tokenPrice ? parseFloat(stats.tokenPrice) : 0;
+        const holders = stats?.tokenHolders ?? 0;
+        const raised = stats?.totalRaised ? parseFloat(stats.totalRaised) : 0;
+
+        const normalizedLogo = brand.logoUrl ? PinataService.normalizeIpfsUrl(brand.logoUrl) : "";
+        const media = mediaPerBrand[index];
+        const firstImage = media?.length
+          ? PinataService.normalizeIpfsUrl(media[0].imageUrl)
+          : null;
+        const coverImage = firstImage && firstImage !== normalizedLogo ? firstImage : normalizedLogo;
+
+        return {
+          id: brand.id,
+          name: brand.name,
+          logo: normalizedLogo,
+          coverImage,
+          description: brand.description || "No description available.",
+          industry,
+          tokenSymbol,
+          tokenPrice,
+          holders,
+          raised,
+          hasToken,
+        };
+      });
+
+      setBrands(transformedBrands);
       setIsLoadingBrands(false);
     };
 
@@ -90,12 +129,25 @@ export default function DiscoverPage() {
 
   const handleSwipeRight = async (brand: Brand) => {
     // Create like in database with real brand ID
-    const result = await LikeService.createLike(brand.id);
+    try {
+      await likesControllerCreate({ brandId: brand.id });
+      toast({
+        title: "Brand Liked!",
+        description: "You have successfully liked this brand.",
+        variant: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: getLikesControllerMyLikesQueryKey() });
 
-    if (result) {
       // Show investment modal
       setSelectedBrand(brand);
       setIsInvestmentModalOpen(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          asAxiosError(error)?.response?.data?.message || "Failed to like brand. Please try again.",
+        variant: "error",
+      });
     }
   };
 
@@ -123,13 +175,10 @@ export default function DiscoverPage() {
   const handleWalletConnected = async (address: string) => {
     // Reset disconnect flag
     setShouldDisconnectWallet(false);
-    
+
     // Refresh user data to get latest blockchain_address
-    await refreshUser();
-    
-    // Get fresh user data from AuthService
-    const freshUser = await AuthService.getUser();
-    
+    const freshUser = await refreshUser();
+
     if (!freshUser) {
       toast({
         title: "Error",
@@ -164,9 +213,8 @@ export default function DiscoverPage() {
       });
     } else {
       // No blockchain address - save it
-      const success = await AuthService.updateBlockchainAddress(address);
-      
-      if (success) {
+      try {
+        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
         // Refresh user data after saving to update user.blockchainAddress
         await refreshUser();
         setWalletAddress(address);
@@ -175,7 +223,7 @@ export default function DiscoverPage() {
           description: "Your wallet has been connected and saved to your account.",
           variant: "success",
         });
-      } else {
+      } catch {
         // If update failed, trigger disconnect
         setShouldDisconnectWallet(true);
         setWalletAddress(null);
@@ -191,7 +239,7 @@ export default function DiscoverPage() {
 
   const handleLogout = async () => {
     await logout();
-    // Toast is already shown in AuthService.logout
+    // Toast is already shown in logout()
   };
 
   const handleProfile = () => {

@@ -3,7 +3,13 @@ import { ApiService } from "@/services/api.service";
 
 const API_ORIGIN = ApiService.baseURL.replace(/\/api\/?$/, "");
 
-export const axiosInstance = Axios.create({ baseURL: API_ORIGIN });
+export const axiosInstance = Axios.create({
+  baseURL: API_ORIGIN,
+  // Nest attend des clés répétées pour les paramètres tableau
+  // (`excludeBrandIds=a&excludeBrandIds=b`), pas le `excludeBrandIds[]=`
+  // qu'axios produit par défaut.
+  paramsSerializer: { indexes: null },
+});
 
 axiosInstance.interceptors.request.use((config) => {
   const token = typeof window !== "undefined" ? localStorage.getItem("Token") : null;

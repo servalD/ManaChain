@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import { Rocket, Globe2, ChevronDown } from "lucide-react";
-import AuthService from "@/services/auth.service";
-import { ServiceErrorCode } from "@/services/service.result";
+import { checkSession } from "@/hooks/api/useAuth";
 import { useMounted } from "@/hooks/useMounted";
 
 export function Hero() {
@@ -37,14 +36,11 @@ export function Hero() {
   }, []);
 
   const handleDiscoverClick = async () => {
-    const loggedInResult = await AuthService.isLogged();
+    const user = await checkSession();
 
-    if (loggedInResult.errorCode === ServiceErrorCode.success && loggedInResult.result) {
-      const user = loggedInResult.result;
-      if (user.role === "CLIENT") {
-        router.push("/discover");
-        return;
-      }
+    if (user?.role === "CLIENT") {
+      router.push("/discover");
+      return;
     }
 
     router.push("/login");

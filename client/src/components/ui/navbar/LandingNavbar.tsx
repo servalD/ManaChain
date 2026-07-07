@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { User, Menu, X } from "lucide-react";
-import AuthService from "@/services/auth.service";
-import { ServiceErrorCode } from "@/services/service.result";
+import { checkSession } from "@/hooks/api/useAuth";
 
 export function LandingNavbar() {
   const router = useRouter();
@@ -38,13 +37,12 @@ export function LandingNavbar() {
 
   const handleSignInClick = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    
-    const loggedInResult = await AuthService.isLogged();
-    
-    if (loggedInResult.errorCode === ServiceErrorCode.success && loggedInResult.result) {
-      const user = loggedInResult.result;
+
+    const user = await checkSession();
+
+    if (user) {
       const role = user.role;
-      
+
       if (role === 'CLIENT') {
         router.push('/discover');
       } else if (role === 'BRANDUSER') {

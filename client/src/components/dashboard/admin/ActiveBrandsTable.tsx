@@ -6,17 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import PinataService from "@/services/pinata.service";
-import AdminService from "@/services/admin.service";
-import { BrandFromAPI } from "@/types/brand.types";
-import AuthService from "@/services/auth.service";
+import { useAdminActiveBrands } from "@/hooks/api/useAdminUsers";
 
 export function ActiveBrandsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const [brands, setBrands] = useState<BrandFromAPI[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounce search query
@@ -36,34 +31,13 @@ export function ActiveBrandsTable() {
     };
   }, [searchQuery]);
 
-  // Fetch brands when debouncedSearchQuery or limit changes
-  useEffect(() => {
-    const fetchBrands = async () => {
-      setIsLoading(true);
-      const token = AuthService.getToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await AdminService.getActiveBrands(
-        {
-          limit,
-          offset: 0,
-          search: debouncedSearchQuery || undefined,
-        },
-        token
-      );
-
-      if (response) {
-        setBrands(response.brands);
-        setTotal(response.total);
-      }
-      setIsLoading(false);
-    };
-
-    fetchBrands();
-  }, [debouncedSearchQuery, limit]);
+  const { data, isLoading } = useAdminActiveBrands({
+    limit,
+    offset: 0,
+    search: debouncedSearchQuery || undefined,
+  });
+  const brands = data?.brands ?? [];
+  const total = data?.total ?? 0;
 
   const handleBan = (brandId: string) => {
     // TODO: Implement ban functionality
