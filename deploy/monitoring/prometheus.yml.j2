@@ -4,9 +4,11 @@
 #
 # Découverte via dockerswarm_sd (role: tasks) plutôt que le DNS tasks.<svc> :
 # __meta_dockerswarm_node_hostname donne des noms de nœuds lisibles en label
-# `instance` (le DNS Swarm ne donne que des IPs). keep sur network_name=edge
-# pour éviter les doublons de cible (un service peut être attaché à plusieurs
-# réseaux, dont l'ingress interne de Swarm).
+# `instance` (le DNS Swarm ne donne que des IPs). keep sur
+# network_name={{ stack_name }}_edge (Swarm préfixe les réseaux non-external
+# avec le nom de la stack, comme les services) pour éviter les doublons de
+# cible (un service peut être attaché à plusieurs réseaux, dont l'ingress
+# interne de Swarm).
 # ---------------------------------------------------------------------------
 global:
   scrape_interval: 30s
@@ -29,7 +31,7 @@ scrape_configs:
         regex: {{ stack_name }}_node-exporter
         action: keep
       - source_labels: [__meta_dockerswarm_network_name]
-        regex: edge
+        regex: {{ stack_name }}_edge
         action: keep
       - source_labels: [__meta_dockerswarm_node_hostname]
         target_label: instance
@@ -47,7 +49,7 @@ scrape_configs:
         regex: {{ stack_name }}_cadvisor
         action: keep
       - source_labels: [__meta_dockerswarm_network_name]
-        regex: edge
+        regex: {{ stack_name }}_edge
         action: keep
       - source_labels: [__meta_dockerswarm_node_hostname]
         target_label: instance
@@ -65,8 +67,18 @@ scrape_configs:
         regex: {{ stack_name }}_traefik
         action: keep
       - source_labels: [__meta_dockerswarm_network_name]
-        regex: edge
+        regex: {{ stack_name }}_edge
         action: keep
+      # traefik publie 80/443 (mode host) : dockerswarm_sd génère un target
+      # par port publié plutôt que d'utiliser le `port: 8082` ci-dessus (qui
+      # ne s'applique qu'aux tâches SANS port publié) — on garde l'IP déjà
+      # découverte (overlay edge, la seule routable depuis Prometheus — pas
+      # __meta_dockerswarm_node_address, qui est l'IP VNet du nœud) et on
+      # ne change que le port.
+      - source_labels: [__address__]
+        regex: '([^:]+):\d+'
+        target_label: __address__
+        replacement: ${1}:8082
       - source_labels: [__meta_dockerswarm_node_hostname]
         target_label: instance
 
@@ -83,7 +95,7 @@ scrape_configs:
         regex: {{ stack_name }}_back
         action: keep
       - source_labels: [__meta_dockerswarm_network_name]
-        regex: edge
+        regex: {{ stack_name }}_edge
         action: keep
       - source_labels: [__meta_dockerswarm_node_hostname]
         target_label: instance

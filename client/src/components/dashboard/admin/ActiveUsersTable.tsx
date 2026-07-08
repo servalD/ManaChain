@@ -5,17 +5,12 @@ import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
-import AdminService from "@/services/admin.service";
-import { User } from "@/types/admin.types";
-import AuthService from "@/services/auth.service";
+import { useAdminUsersList } from "@/hooks/api/useAdminUsers";
 
 export function ActiveUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const [users, setUsers] = useState<User[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounce search query
@@ -35,34 +30,13 @@ export function ActiveUsersTable() {
     };
   }, [searchQuery]);
 
-  // Fetch users when debouncedSearchQuery or limit changes
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      const token = AuthService.getToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await AdminService.getUsers(
-        {
-          limit,
-          offset: 0,
-          search: debouncedSearchQuery || undefined,
-        },
-        token
-      );
-
-      if (response) {
-        setUsers(response.users);
-        setTotal(response.total);
-      }
-      setIsLoading(false);
-    };
-
-    fetchUsers();
-  }, [debouncedSearchQuery, limit]);
+  const { data, isLoading } = useAdminUsersList({
+    limit,
+    offset: 0,
+    search: debouncedSearchQuery || undefined,
+  });
+  const users = data?.users ?? [];
+  const total = data?.total ?? 0;
 
   const handleBan = (userId: string) => {
     // TODO: Implement ban functionality

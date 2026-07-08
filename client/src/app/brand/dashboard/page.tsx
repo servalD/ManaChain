@@ -5,21 +5,24 @@ import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
+import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
 import { toast } from "@/lib/toast";
-import AuthService from "@/services/auth.service";
-import BrandService from "@/services/brand.service";
+import { useMyBrand } from "@/hooks/api/useBrands";
 import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
 
 export default function BrandDashboardPage() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
+  const updateBlockchainAddress = useUpdateBlockchainAddress();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
-  const [brandId, setBrandId] = useState<string | null>(null);
-  const [hasToken, setHasToken] = useState<boolean>(false);
-  const [isLoadingBrand, setIsLoadingBrand] = useState<boolean>(true);
-  const [brandName, setBrandName] = useState<string>("");
-  const [brandLogo, setBrandLogo] = useState<string | null>(null);
+  const shouldSkipBrandFetch = user?.role === "BRANDUSER" && user?.passwordChanged === false;
+  const { data: brand, isLoading: isLoadingBrand } = useMyBrand({ enabled: !!user && !shouldSkipBrandFetch });
+  // Mock: always set hasToken to true for testing (see BrandService.getBrandStats, historically commented out)
+  const hasToken = !shouldSkipBrandFetch && !!user && !!brand;
+  const brandId = brand?.id ?? null;
+  const brandName = brand?.name ?? "";
+  const brandLogo = brand?.logoUrl ?? null;
 
   useEffect(() => {
     if (user?.role === "BRANDUSER" && user?.passwordChanged === false) {
@@ -28,45 +31,10 @@ export default function BrandDashboardPage() {
     }
   }, [user, router]);
 
-  useEffect(() => {
-    if (user?.role === "BRANDUSER" && user?.passwordChanged === false) {
-      return;
-    }
-    const fetchBrandData = async () => {
-      setIsLoadingBrand(true);
-      try {
-        const brand = await BrandService.getMyBrand();
-        if (brand) {
-          setBrandId(brand.id);
-          setBrandName(brand.name);
-          setBrandLogo(brand.logoUrl);
-          // Mock: always set hasToken to true for testing
-          setHasToken(true);
-          // Check if brand has a token (commented out for mocking)
-          // const stats = await BrandService.getBrandStats(brand.id);
-          // if (stats) {
-          //   setHasToken(!!stats.tokenSymbol);
-          // }
-        }
-      } catch (error) {
-        console.error("Error fetching brand data:", error);
-      } finally {
-        setIsLoadingBrand(false);
-      }
-    };
-
-    if (user) {
-      fetchBrandData();
-    } else {
-      setIsLoadingBrand(false);
-    }
-  }, [user]);
-
   const handleWalletConnected = async (address: string) => {
     setShouldDisconnectWallet(false);
-    await refreshUser();
-    const freshUser = await AuthService.getUser();
-    
+    const freshUser = await refreshUser();
+
     if (!freshUser) {
       toast({
         title: "Error",
@@ -76,7 +44,7 @@ export default function BrandDashboardPage() {
       setShouldDisconnectWallet(true);
       return;
     }
-    
+
     if (freshUser.blockchainAddress) {
       if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
         toast({
@@ -94,8 +62,8 @@ export default function BrandDashboardPage() {
         variant: "success",
       });
     } else {
-      const success = await AuthService.updateBlockchainAddress(address);
-      if (success) {
+      try {
+        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
         await refreshUser();
         setWalletAddress(address);
         toast({
@@ -103,7 +71,7 @@ export default function BrandDashboardPage() {
           description: "Your wallet has been connected and saved to your account.",
           variant: "success",
         });
-      } else {
+      } catch {
         setShouldDisconnectWallet(true);
         setWalletAddress(null);
       }

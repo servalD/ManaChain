@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Image as ImageIcon, Upload, Trash2, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
 import PinataService from "@/services/pinata.service";
-import BrandService from "@/services/brand.service";
-import { BrandMedia } from "@/types/brand-media.types";
+import { useBrandMedia, useConfirmBrandMedia, useRemoveBrandMedia } from "@/hooks/api/useBrands";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PendingMedia {
@@ -24,33 +23,13 @@ interface BrandContentMediaProps {
 
 export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
   const { user } = useAuth();
-  const [confirmedMedia, setConfirmedMedia] = useState<BrandMedia[]>([]);
+  const { data: confirmedMedia = [], isLoading } = useBrandMedia(brandId);
   const [pendingMedia, setPendingMedia] = useState<PendingMedia[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-
-  // Load confirmed media on mount
-  useEffect(() => {
-    if (brandId) {
-      loadConfirmedMedia();
-    }
-  }, [brandId]);
-
-  const loadConfirmedMedia = async () => {
-    if (!brandId) return;
-    
-    setIsLoading(true);
-    try {
-      const media = await BrandService.getBrandMedia(brandId);
-      setConfirmedMedia(media || []);
-    } catch (error) {
-      console.error("Error loading media:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const confirmBrandMedia = useConfirmBrandMedia();
+  const removeBrandMedia = useRemoveBrandMedia();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -118,7 +97,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     }
   };
 
-  const handleConfirmMedia = async (pendingItem: PendingMedia) => {
+  const handleConfirmMedia = (pendingItem: PendingMedia) => {
     if (!brandId) {
       toast({
         title: "Error",
@@ -130,36 +109,31 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
 
     setConfirmingIds((prev) => new Set(prev).add(pendingItem.id));
 
-    try {
-      const confirmed = await BrandService.confirmBrandMedia(
-        brandId,
-        pendingItem.ipfsHash,
-        pendingItem.ipfsUrl
-      );
+    confirmBrandMedia.mutate(
+      { id: brandId, data: { ipfsHash: pendingItem.ipfsHash, imageUrl: pendingItem.ipfsUrl } },
+      {
+        onSuccess: () => {
+          // Remove from pending (confirmed media comes back via query invalidation)
+          setPendingMedia((prev) => prev.filter((item) => item.id !== pendingItem.id));
 
-      if (confirmed) {
-        // Remove from pending and add to confirmed
-        setPendingMedia((prev) => prev.filter((item) => item.id !== pendingItem.id));
-        setConfirmedMedia((prev) => [...prev, confirmed]);
-        
-        // Clean up preview URL
-        URL.revokeObjectURL(pendingItem.previewUrl);
+          // Clean up preview URL
+          URL.revokeObjectURL(pendingItem.previewUrl);
 
-        toast({
-          title: "Media confirmed",
-          description: "Your image has been saved",
-          variant: "success",
-        });
+          toast({
+            title: "Media confirmed",
+            description: "Your image has been saved",
+            variant: "success",
+          });
+        },
+        onSettled: () => {
+          setConfirmingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(pendingItem.id);
+            return next;
+          });
+        },
       }
-    } catch (error) {
-      console.error("Error confirming media:", error);
-    } finally {
-      setConfirmingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(pendingItem.id);
-        return next;
-      });
-    }
+    );
   };
 
   const handleCancelMedia = async (pendingItem: PendingMedia) => {
@@ -186,7 +160,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     }
   };
 
-  const handleDeleteMedia = async (mediaId: string) => {
+  const handleDeleteMedia = (mediaId: string) => {
     if (!brandId) return;
 
     // Find the media to get ipfsHash
@@ -202,35 +176,32 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
 
     setDeletingIds((prev) => new Set(prev).add(mediaId));
 
-    try {
-      // First, unpin from Pinata (frontend)
-      await PinataService.deleteFile(media.ipfsHash);
+    const deleteFromBackend = () => {
+      removeBrandMedia.mutate(
+        { id: brandId, mediaId },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Media deleted",
+              description: "The media item has been removed",
+              variant: "success",
+            });
+          },
+          onSettled: () => {
+            setDeletingIds((prev) => {
+              const next = new Set(prev);
+              next.delete(mediaId);
+              return next;
+            });
+          },
+        }
+      );
+    };
 
-      // Then, delete from DB (backend)
-      const success = await BrandService.deleteBrandMedia(brandId, mediaId);
-      
-      if (success) {
-        setConfirmedMedia((prev) => prev.filter((item) => item.id !== mediaId));
-        toast({
-          title: "Media deleted",
-          description: "The media item has been removed",
-          variant: "success",
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting media:", error);
-      // Still try to remove from DB even if unpin fails
-      const success = await BrandService.deleteBrandMedia(brandId, mediaId);
-      if (success) {
-        setConfirmedMedia((prev) => prev.filter((item) => item.id !== mediaId));
-      }
-    } finally {
-      setDeletingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(mediaId);
-        return next;
-      });
-    }
+    // Unpin from Pinata first (frontend); still delete from DB even if unpin fails.
+    PinataService.deleteFile(media.ipfsHash)
+      .catch((error) => console.error("Error unpinning media from Pinata:", error))
+      .finally(deleteFromBackend);
   };
 
   const formatFileSize = (bytes: number) => {

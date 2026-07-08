@@ -164,6 +164,11 @@ services:
       # dockerswarm_sd_configs a besoin du socket pour découvrir les tâches.
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - prometheus_data:/prometheus
+    # L'image tourne en non-root (uid nobody) par défaut : sans ça, la
+    # lecture du socket échoue en permission denied. group_add n'est pas
+    # supporté par docker stack deploy (contrairement à docker compose) —
+    # root est la façon simple de donner l'accès en mode stack.
+    user: "0"
     networks:
       - edge
     healthcheck:
@@ -254,7 +259,7 @@ services:
         delay: 5s
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     command:
       - --docker_only=true
       - --housekeeping_interval=30s

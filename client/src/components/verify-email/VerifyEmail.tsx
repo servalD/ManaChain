@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import AuthService from "@/services/auth.service";
-import BrandApplicationService from "@/services/brand-application.service";
+import { useVerifyEmail, useResendVerification } from "@/hooks/api/useAuth";
+import { useVerifyBrandApplicationEmail } from "@/hooks/api/useBrandApplications";
 
 interface VerifyEmailProps {
   token: string | null;
@@ -16,49 +16,52 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
+  const verifyBrandEmail = useVerifyBrandApplicationEmail();
+  const verifyUserEmail = useVerifyEmail();
+  const resendVerification = useResendVerification();
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (!token) {
-        setStatus("error");
-        setMessage("Invalid verification link. No token provided.");
-        return;
-      }
+    if (!token) {
+      setStatus("error");
+      setMessage("Invalid verification link. No token provided.");
+      return;
+    }
 
-      try {
-        let result: boolean | null = false;
-        
-        if (type === "user") {
-          result = await AuthService.verifyEmail(token);
-          if (result) {
+    if (type === "user") {
+      verifyUserEmail.mutate(
+        { data: { token } },
+        {
+          onSuccess: () => {
             setStatus("success");
             setMessage("Your email has been successfully verified! You can now log in to your account.");
             // Redirect to login after 3 seconds
             setTimeout(() => {
               router.push("/login");
             }, 3000);
-          } else {
+          },
+          onError: () => {
             setStatus("error");
             setMessage("Verification failed. The link may be invalid or expired.");
-          }
-        } else {
-          // type === "brand"
-          const applicationResult = await BrandApplicationService.verifyEmail(token);
-          if (applicationResult) {
+          },
+        }
+      );
+    } else {
+      // type === "brand"
+      verifyBrandEmail.mutate(
+        { data: { token } },
+        {
+          onSuccess: () => {
             setStatus("success");
             setMessage("Your email has been successfully verified! Your brand application will be reviewed by our team soon.");
-          } else {
+          },
+          onError: () => {
             setStatus("error");
             setMessage("Verification failed. The link may be invalid or expired.");
-          }
+          },
         }
-      } catch (error) {
-        setStatus("error");
-        setMessage("An error occurred during verification. Please try again.");
-      }
-    };
-
-    verifyEmail();
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, type, router]);
 
   const getTitle = () => {
@@ -186,10 +189,10 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
             <p className="text-sm text-muted-foreground">
               Need help?{" "}
               <button
-                onClick={async () => {
+                onClick={() => {
                   const email = prompt("Please enter your email address:");
                   if (email) {
-                    await AuthService.resendVerification(email);
+                    resendVerification.mutate({ data: { email } });
                   }
                 }}
                 className="text-violet-400 hover:text-violet-300 hover:underline transition-colors"

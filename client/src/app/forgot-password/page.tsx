@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AuthService from "@/services/auth.service";
+import { useForgotPassword } from "@/hooks/api/useAuth";
 import { isValidEmail } from "@/utils/validation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -18,6 +18,7 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const forgotPassword = useForgotPassword();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,14 +35,16 @@ export default function ForgotPasswordPage() {
     }
 
     setIsSubmitting(true);
-    try {
-      await AuthService.forgotPassword(email.trim());
-      setSubmitted(true);
-    } catch {
-      setSubmitted(true);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Anti-énumération : on affiche toujours l'écran "submitted", succès ou échec.
+    forgotPassword.mutate(
+      { data: { email: email.trim() } },
+      {
+        onSettled: () => {
+          setSubmitted(true);
+          setIsSubmitting(false);
+        },
+      }
+    );
   };
 
   return (

@@ -5,35 +5,24 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthService from '@/services/auth.service';
-import { IUser } from '@/types/user.types';
+import { checkSession, logout as logoutSession } from '@/hooks/api/useAuth';
+import type { UserResponse } from '@/api/generated/models';
 
 export function useAuth(redirectTo: string = '/login') {
   const router = useRouter();
-  const [user, setUser] = useState<IUser | null>(null);
+  const [user, setUser] = useState<UserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Check if user is logged in
-        const loggedIn = await AuthService.isLogged();
-        
-        if (!loggedIn) {
-          // No token or invalid token
-          router.push(redirectTo);
-          return;
-        }
+        const userData = await checkSession();
 
-        // Get user data
-        const userData = await AuthService.getUser();
-        
         if (userData) {
           setUser(userData);
           setIsAuthenticated(true);
         } else {
-          // Token exists but couldn't get user data
           router.push(redirectTo);
         }
       } catch (error) {
@@ -48,18 +37,20 @@ export function useAuth(redirectTo: string = '/login') {
   }, [router, redirectTo]);
 
   const logout = async () => {
-    await AuthService.logout();
+    logoutSession();
     router.push('/login');
   };
 
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<UserResponse | null> => {
     try {
-      const userData = await AuthService.getUser();
+      const userData = await checkSession();
       if (userData) {
         setUser(userData);
       }
+      return userData;
     } catch (error) {
       console.error('Failed to refresh user data:', error);
+      return null;
     }
   };
 

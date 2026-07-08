@@ -5,20 +5,20 @@ import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
+import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
 import { toast } from "@/lib/toast";
-import AuthService from "@/services/auth.service";
 
 export default function AdminBrandsPage() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
+  const updateBlockchainAddress = useUpdateBlockchainAddress();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
 
   const handleWalletConnected = async (address: string) => {
     setShouldDisconnectWallet(false);
-    await refreshUser();
-    const freshUser = await AuthService.getUser();
-    
+    const freshUser = await refreshUser();
+
     if (!freshUser) {
       toast({
         title: "Error",
@@ -28,7 +28,7 @@ export default function AdminBrandsPage() {
       setShouldDisconnectWallet(true);
       return;
     }
-    
+
     if (freshUser.blockchainAddress) {
       if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
         toast({
@@ -46,8 +46,8 @@ export default function AdminBrandsPage() {
         variant: "success",
       });
     } else {
-      const success = await AuthService.updateBlockchainAddress(address);
-      if (success) {
+      try {
+        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
         await refreshUser();
         setWalletAddress(address);
         toast({
@@ -55,7 +55,7 @@ export default function AdminBrandsPage() {
           description: "Your wallet has been connected and saved to your account.",
           variant: "success",
         });
-      } else {
+      } catch {
         setShouldDisconnectWallet(true);
         setWalletAddress(null);
       }

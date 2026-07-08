@@ -1,12 +1,13 @@
  "use client";
  
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { SignUpPage, Interest, SignUpFormData } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
-import AuthService from "@/services/auth.service";
+import { useRegister } from "@/hooks/api/useAuth";
+import type { RegisterRequestAgeRange } from "@/api/generated/models";
 import { ApiService } from "@/services/api.service";
-import InterestsService from "@/services/interests.service";
+import { useInterests } from "@/hooks/api/useInterests";
 import { toast } from "@/lib/toast";
 import { isValidEmail, isValidPassword } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -14,9 +15,18 @@ import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 export default function RegisterPage() {
   const router = useRouter();
   const toasterRef = useRef<ToasterRef>(null);
-  const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const { data: interestsData, isLoading } = useInterests();
+  const register = useRegister();
+  const availableInterests: Interest[] = useMemo(
+    () =>
+      (interestsData ?? []).map((interest) => ({
+        id: interest.id,
+        label: interest.label || interest.id,
+        icon: interest.icon || "📌",
+      })),
+    [interestsData]
+  );
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -35,40 +45,6 @@ export default function RegisterPage() {
     return () => {
       observer.disconnect();
     };
-  }, []);
-
-  // Load interests from API
-  useEffect(() => {
-    const loadInterests = async () => {
-      try {
-        const interests = await InterestsService.getAllInterests();
-        const formattedInterests: Interest[] = interests.map(interest => ({
-          id: interest.id,
-          label: interest.label || interest.id,
-          icon: interest.icon || "📌",
-        }));
-        setAvailableInterests(formattedInterests);
-      } catch (error) {
-        console.error("Error loading interests:", error);
-        toast({
-          title: "Error loading interests",
-          description: "Using default interests",
-          variant: "warning",
-        });
-        // Fallback to default interests
-        setAvailableInterests([
-          { id: "fashion", label: "Fashion", icon: "👗" },
-          { id: "tech", label: "Technology", icon: "💻" },
-          { id: "food", label: "Food & Drinks", icon: "🍕" },
-          { id: "sports", label: "Sports", icon: "⚽" },
-          { id: "music", label: "Music", icon: "🎵" },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadInterests();
   }, []);
 
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: SignUpFormData) => {
@@ -103,25 +79,26 @@ export default function RegisterPage() {
       return;
     }
 
-    try {
-      const result = await AuthService.register({
-        email: formData.email,
-        username: formData.username,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        password: formData.password,
-        ageRange: formData.ageRange,
-        interests: formData.interests,
-    });
-
-      if (result) {
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
+    register.mutate(
+      {
+        data: {
+          email: formData.email,
+          username: formData.username,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          password: formData.password,
+          ageRange: formData.ageRange as RegisterRequestAgeRange,
+          interests: formData.interests,
+        },
+      },
+      {
+        onSuccess: () => {
+          setTimeout(() => {
+            router.push("/login");
+          }, 1500);
+        },
       }
-    } catch (error) {
-      console.error("Registration error:", error);
-    }
+    );
   };
 
   const handleGoogleSignUp = () => {
