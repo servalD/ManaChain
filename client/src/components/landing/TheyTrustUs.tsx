@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { testimonialsData } from "@/utils/constants"
 import { Card } from "@/components/ui/card"
 import { Icons } from "@/components/ui/icons"
@@ -22,10 +23,14 @@ interface TestimonialsProps {
 
 export function TheyTrustUs({
   testimonials = testimonialsData,
-  className="pb-20 pt-15",
-  title="They Trust Us",
-  description="Discover what our founders and supporters say about Mana Chain"
+  className = "pb-20 pt-15",
+  title,
+  description,
 }: TestimonialsProps) {
+  const t = useTranslations("landing.theyTrustUs")
+  const resolvedTitle = title ?? t("title")
+  const resolvedDescription = description ?? t("description")
+
   const openInNewTab = (url: string) => {
     window.open(url, "_blank")?.focus()
   }
@@ -44,14 +49,14 @@ export function TheyTrustUs({
               containerClassName="mb-4"
               textClassName="text-3xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
             >
-              {title}
+              {resolvedTitle}
             </ScrollFloat>
           </div>
           <p className="text-center text-muted-foreground">
-            {description.split("<br />").map((line, i) => (
+            {resolvedDescription.split("<br />").map((line, i) => (
               <span key={i}>
                 {line}
-                {i !== description.split("<br />").length - 1 && <br />}
+                {i !== resolvedDescription.split("<br />").length - 1 && <br />}
               </span>
             ))}
           </p>

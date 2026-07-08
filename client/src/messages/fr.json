@@ -1,0 +1,217 @@
+{
+  "common": {
+    "loading": "Chargement..."
+  },
+  "localeSwitcher": {
+    "label": "Langue",
+    "en": "EN",
+    "fr": "FR"
+  },
+  "landing": {
+    "navbar": {
+      "home": "Accueil",
+      "howItWorks": "Comment ça marche",
+      "faq": "FAQ",
+      "signIn": "Se connecter",
+      "signUp": "S'inscrire",
+      "applyAsBrand": "Devenir une marque",
+      "userMenuAriaLabel": "Menu utilisateur",
+      "menuAriaLabel": "Menu"
+    },
+    "hero": {
+      "headlineSupport": "Soutenez",
+      "headlineThe": "les",
+      "headlineBrands": "marques",
+      "headlineYou": "auxquelles vous",
+      "headlineBelieveIn": "croyez.",
+      "subtitlePrefix": "Redéfinissez la relation entre",
+      "subtitleRotatingSubjects": ["marques", "créateurs", "artistes", "entreprises"],
+      "subtitleAnd": "et leurs",
+      "subtitleRotatingAudiences": ["communautés", "fans", "supporters", "premiers adeptes"],
+      "descriptionGetA": "Obtenez un",
+      "descriptionCommunityBadge": "badge communautaire",
+      "descriptionMiddle": "pour montrer votre soutien et participer à une nouvelle forme d'",
+      "descriptionAuthenticEngagement": "engagement authentique",
+      "descriptionSuffix": "avec les marques qui vous tiennent à cœur.",
+      "ctaCreateCommunity": "Créer ma communauté",
+      "ctaDiscoverProjects": "Découvrir les projets"
+    },
+    "stats": {
+      "activeCommunities": "Communautés actives",
+      "badgesIssued": "Badges communautaires émis",
+      "eventsOrganized": "Événements organisés",
+      "communityContributions": "Contributions communautaires"
+    },
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "subtitle": "Soutenez les marques auxquelles vous croyez grâce aux badges communautaires et à l'engagement",
+      "steps": {
+        "discover": {
+          "title": "Découvrez des marques",
+          "description": "Parcourez les marques et découvrez des projets qui correspondent à vos centres d'intérêt. Simple, intuitif et amusant.",
+          "benefits": [
+            "Recommandations personnalisées selon vos préférences",
+            "Découvrez des marques et créateurs émergents",
+            "Explorez à votre rythme"
+          ]
+        },
+        "getBadge": {
+          "title": "Obtenez votre badge",
+          "description": "Soutenez les marques qui vous tiennent à cœur et obtenez des unités de leur badge communautaire. Simple, aucune compétence technique requise.",
+          "benefits": [
+            "Montrez votre soutien avec des unités de badge",
+            "Rejoignez la communauté des supporters",
+            "Suivez votre engagement dans le temps"
+          ]
+        },
+        "enjoyBenefits": {
+          "title": "Profitez des avantages",
+          "description": "Accédez à des événements exclusifs, des avantages, et participez à la vie des marques que vous soutenez.",
+          "benefits": [
+            "Accédez à des événements et expériences exclusifs",
+            "Bénéficiez de réductions et avantages de vos marques",
+            "Participez aux décisions et façonnez la communauté"
+          ]
+        }
+      }
+    },
+    "theyTrustUs": {
+      "title": "Ils nous font confiance",
+      "description": "Découvrez ce que nos fondateurs et supporters disent de Mana Chain"
+    },
+    "trustedByBrands": {
+      "title": "Adopté par des marques de premier plan"
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "items": [
+        {
+          "question": "Qu'est-ce qu'un badge communautaire ?",
+          "answer": "Un badge communautaire est une représentation numérique d'une marque ou d'un projet. Vous pouvez détenir des unités d'un badge pour montrer votre niveau d'engagement et bénéficier d'avantages exclusifs. Cela ne constitue pas un investissement."
+        },
+        {
+          "question": "Comment créer mon badge communautaire ?",
+          "answer": "La création est simple et rapide ! Inscrivez-vous, renseignez les informations de votre marque, personnalisez votre badge (nom, symbole, offre), et lancez votre communauté en quelques minutes. Aucune compétence technique requise."
+        },
+        {
+          "question": "Quels sont les avantages pour les supporters ?",
+          "answer": "Les détenteurs de badges (ceux qui possèdent des unités du badge d'une marque) accèdent à des événements exclusifs, des réductions, et peuvent participer à la vie de la marque (par exemple via des votes ou interactions communautaires). Les badges ne promettent aucun rendement financier et n'ont aucune valeur contractuelle : ils permettent de reconnaître et structurer l'engagement dans le temps."
+        },
+        {
+          "question": "Est-ce sécurisé ?",
+          "answer": "Absolument ! Nous utilisons la technologie blockchain pour garantir la sécurité, la transparence et la traçabilité de toutes les transactions. Vos unités de badge et vos fonds sont protégés par des smart contracts audités."
+        },
+        {
+          "question": "ManaChain est-elle une plateforme d'investissement financier ?",
+          "answer": "Non. ManaChain n'est pas une plateforme d'investissement et les badges communautaires ne sont ni conçus ni présentés comme des instruments financiers ou des valeurs mobilières. Ils ne promettent aucun rendement financier et visent à structurer un engagement symbolique et durable entre les marques et leurs communautés."
+        },
+        {
+          "question": "Ai-je besoin de connaissances techniques pour utiliser ManaChain ?",
+          "answer": "Non. L'expérience est conçue pour les utilisateurs du quotidien, pas pour des experts. Vous n'avez pas besoin de comprendre la blockchain, les wallets, ou leur fonctionnement interne. Vous parcourez simplement les marques, soutenez celles qui vous tiennent à cœur, et accédez aux avantages définis par chaque marque."
+        },
+        {
+          "question": "Puis-je arrêter de soutenir une marque plus tard ?",
+          "answer": "Oui. Vous restez libre d'arrêter votre engagement envers une marque à tout moment. Selon la configuration de chaque projet, vous pouvez conserver vos unités de badge ou les transférer. Dans tous les cas, il n'y a aucune obligation de continuer à utiliser la plateforme ou de maintenir un niveau de soutien particulier."
+        },
+        {
+          "question": "Qui peut rejoindre ManaChain en tant que marque ?",
+          "answer": "ManaChain est ouvert aux marques et projets à différents stades de maturité, y compris ceux ayant peu de visibilité ou qui débutent. L'objectif est de les aider à rencontrer des audiences pertinentes, structurer leurs communautés, et transformer un intérêt diffus en un engagement clair et durable."
+        }
+      ]
+    },
+    "footer": {
+      "tagline": "Redéfinir l'engagement communautaire, une marque à la fois.",
+      "platformHeading": "Plateforme",
+      "howItWorks": "Comment ça marche",
+      "discover": "Découvrir",
+      "login": "Connexion",
+      "resourcesHeading": "Ressources",
+      "faq": "FAQ",
+      "documentation": "Documentation",
+      "blog": "Blog",
+      "support": "Support",
+      "followUsHeading": "Suivez-nous",
+      "twitter": "Twitter",
+      "discord": "Discord",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "copyright": "© 2026 Mana Chain. Redéfinir ensemble l'engagement communautaire.",
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "legal": "Mentions légales"
+    }
+  },
+  "auth": {
+    "common": {
+      "welcomeTo": "Bienvenue sur",
+      "orContinueWith": "Ou continuer avec",
+      "continueWithGoogle": "Continuer avec Google",
+      "back": "Retour"
+    },
+    "login": {
+      "description": "Connectez-vous pour accéder à vos badges communautaires et échanger avec vos marques préférées",
+      "loadingFallback": "Chargement...",
+      "toasts": {
+        "usePasswordTitle": "Utilisez votre mot de passe",
+        "usePasswordMessage": "Ce compte utilise un email et un mot de passe. Veuillez vous connecter avec votre mot de passe.",
+        "accessDeniedTitle": "Accès refusé",
+        "accessDeniedMessage": "Vous avez refusé la demande de connexion Google.",
+        "googleFailedTitle": "Échec de la connexion Google",
+        "googleFailedMessage": "Une erreur est survenue. Veuillez réessayer ou vous connecter avec votre mot de passe.",
+        "signedInTitle": "Connecté",
+        "signedInMessage": "Content de vous revoir !",
+        "missingFieldsTitle": "Champs manquants",
+        "missingFieldsMessage": "Veuillez saisir votre email et votre mot de passe.",
+        "invalidEmailTitle": "Email invalide",
+        "invalidEmailMessage": "Veuillez saisir une adresse email valide."
+      }
+    },
+    "register": {
+      "description": "Créez votre compte et découvrez les badges communautaires de vos marques préférées",
+      "loading": "Chargement...",
+      "toasts": {
+        "moreInterestsTitle": "Plus de centres d'intérêt nécessaires",
+        "moreInterestsMessage": "Veuillez sélectionner au moins 3 centres d'intérêt pour continuer.",
+        "tooManyInterestsTitle": "Trop de centres d'intérêt",
+        "tooManyInterestsMessage": "Veuillez sélectionner un maximum de 5 centres d'intérêt.",
+        "ageRangeRequiredTitle": "Tranche d'âge requise",
+        "ageRangeRequiredMessage": "Veuillez sélectionner votre tranche d'âge."
+      }
+    },
+    "signIn": {
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "Saisissez votre adresse email",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "Saisissez votre mot de passe",
+      "keepSignedIn": "Rester connecté",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "signInButton": "Se connecter",
+      "newToPlatform": "Nouveau sur la plateforme ?",
+      "createAccount": "Créer un compte"
+    },
+    "signUp": {
+      "firstNameLabel": "Prénom",
+      "firstNamePlaceholder": "Prénom",
+      "lastNameLabel": "Nom",
+      "lastNamePlaceholder": "Nom",
+      "ageRangeLabel": "Tranche d'âge",
+      "ageRangePlaceholder": "Sélectionnez votre tranche d'âge",
+      "usernameLabel": "Nom d'utilisateur",
+      "usernamePlaceholder": "Choisissez un nom d'utilisateur",
+      "emailLabel": "Adresse email",
+      "emailPlaceholder": "Saisissez votre adresse email",
+      "passwordLabel": "Mot de passe",
+      "passwordPlaceholder": "Créez un mot de passe",
+      "passwordCriteriaLength": "Au moins 8 caractères",
+      "passwordCriteriaDigit": "Au moins un chiffre",
+      "passwordCriteriaSpecial": "Au moins un caractère spécial",
+      "interestsLabel": "Centres d'intérêt",
+      "interestsHint": "(Sélectionnez de 3 à 5)",
+      "interestsMore": "Veuillez sélectionner {count, plural, one {# centre d'intérêt supplémentaire} other {# centres d'intérêt supplémentaires}}",
+      "interestsMax": "Maximum 5 centres d'intérêt sélectionnés",
+      "createAccountButton": "Créer un compte",
+      "alreadyHaveAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter"
+    }
+  }
+}

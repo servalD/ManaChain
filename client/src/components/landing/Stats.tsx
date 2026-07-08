@@ -1,16 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import ElectricBorder from '@/components/ui/electric-border/ElectricBorder';
 import { Users, Calendar, Sparkles, HeartHandshake } from "lucide-react";
 
-const stats = [
-  { label: "Active Communities", value: "847", icon: Users, color: "text-violet-400" },
-  { label: "Community Badges Issued", value: "12.5M", icon: Sparkles, color: "text-fuchsia-400" },
-  { label: "Events Organized", value: "1,234", icon: Calendar, color: "text-indigo-400" },
-  { label: "Community Contributions", value: "8.9M+", icon: HeartHandshake, color: "text-cyan-400" }
-];
-
 export function Stats() {
+  const t = useTranslations("landing.stats");
+
+  const stats = [
+    { label: t('activeCommunities'), value: "847", icon: Users, color: "text-violet-400" },
+    { label: t('badgesIssued'), value: "12.5M", icon: Sparkles, color: "text-fuchsia-400" },
+    { label: t('eventsOrganized'), value: "1,234", icon: Calendar, color: "text-indigo-400" },
+    { label: t('communityContributions'), value: "8.9M+", icon: HeartHandshake, color: "text-cyan-400" }
+  ];
+
   return (
     <section className="py-12 px-6 relative">
       <div className="max-w-7xl mx-auto">

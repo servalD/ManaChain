@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
+  const t = useTranslations("landing.footer");
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
 
   useEffect(() => {
@@ -39,48 +41,48 @@ export function Footer() {
               />
             </h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
-              Redefining community engagement, one brand at a time.
+              {t('tagline')}
             </p>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-violet-400 mb-3 text-sm">Platform</h4>
+            <h4 className="font-semibold text-violet-400 mb-3 text-sm">{t('platformHeading')}</h4>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li><a href="#features" className="hover:text-foreground transition-colors pointer-events-auto">How It Works</a></li>
-              <li><a href="/discover" className="hover:text-foreground transition-colors pointer-events-auto">Discover</a></li>
-              <li><a href="/login" className="hover:text-foreground transition-colors pointer-events-auto">Login</a></li>
+              <li><a href="#features" className="hover:text-foreground transition-colors pointer-events-auto">{t('howItWorks')}</a></li>
+              <li><a href="/discover" className="hover:text-foreground transition-colors pointer-events-auto">{t('discover')}</a></li>
+              <li><a href="/login" className="hover:text-foreground transition-colors pointer-events-auto">{t('login')}</a></li>
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-fuchsia-400 mb-3 text-sm">Resources</h4>
+            <h4 className="font-semibold text-fuchsia-400 mb-3 text-sm">{t('resourcesHeading')}</h4>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li><a href="#faq" className="hover:text-foreground transition-colors pointer-events-auto">FAQ</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Documentation</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Blog</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Support</a></li>
+              <li><a href="#faq" className="hover:text-foreground transition-colors pointer-events-auto">{t('faq')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('documentation')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('blog')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('support')}</a></li>
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-indigo-400 mb-3 text-sm">Follow Us</h4>
+            <h4 className="font-semibold text-indigo-400 mb-3 text-sm">{t('followUsHeading')}</h4>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Twitter</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Discord</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">LinkedIn</a></li>
-              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Instagram</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('twitter')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('discord')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('linkedin')}</a></li>
+              <li><a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('instagram')}</a></li>
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t border-border pt-6 text-center">
           <p className="text-muted-foreground text-xs">
-            © 2026 Mana Chain. Redefining community engagement together.
+            {t('copyright')}
           </p>
           <div className="flex justify-center gap-4 mt-3 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">Legal</a>
+            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('privacy')}</a>
+            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('terms')}</a>
+            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('legal')}</a>
           </div>
         </div>
       </div>

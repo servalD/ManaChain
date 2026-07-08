@@ -1,0 +1,217 @@
+{
+  "common": {
+    "loading": "Loading..."
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "en": "EN",
+    "fr": "FR"
+  },
+  "landing": {
+    "navbar": {
+      "home": "Home",
+      "howItWorks": "How It Works",
+      "faq": "FAQ",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "applyAsBrand": "Apply as a Brand",
+      "userMenuAriaLabel": "User menu",
+      "menuAriaLabel": "Menu"
+    },
+    "hero": {
+      "headlineSupport": "Support",
+      "headlineThe": "the",
+      "headlineBrands": "brands",
+      "headlineYou": "you",
+      "headlineBelieveIn": "believe in.",
+      "subtitlePrefix": "Redefine the relationship between",
+      "subtitleRotatingSubjects": ["brands", "creators", "artists", "companies"],
+      "subtitleAnd": "and their",
+      "subtitleRotatingAudiences": ["communities", "fans", "supporters", "early adopters"],
+      "descriptionGetA": "Get a",
+      "descriptionCommunityBadge": "community badge",
+      "descriptionMiddle": "to show your support and take part in a new form of",
+      "descriptionAuthenticEngagement": "authentic engagement",
+      "descriptionSuffix": "with the brands you care about.",
+      "ctaCreateCommunity": "Create My Community",
+      "ctaDiscoverProjects": "Discover Projects"
+    },
+    "stats": {
+      "activeCommunities": "Active Communities",
+      "badgesIssued": "Community Badges Issued",
+      "eventsOrganized": "Events Organized",
+      "communityContributions": "Community Contributions"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "Support the brands you believe in through community badges and engagement",
+      "steps": {
+        "discover": {
+          "title": "Discover Brands",
+          "description": "Swipe through brands and discover projects that match your interests. Simple, intuitive, and fun.",
+          "benefits": [
+            "Personalized recommendations based on your preferences",
+            "Discover emerging brands and creators",
+            "Explore at your own pace"
+          ]
+        },
+        "getBadge": {
+          "title": "Get Your Badge",
+          "description": "Support the brands you care about and get units of their community badge. Simple, no technical skills required.",
+          "benefits": [
+            "Show your support with badge units",
+            "Join the community of supporters",
+            "Track your engagement over time"
+          ]
+        },
+        "enjoyBenefits": {
+          "title": "Enjoy Benefits",
+          "description": "Access exclusive events, perks, and take part in the life of the brands you support.",
+          "benefits": [
+            "Access exclusive events and experiences",
+            "Get discounts and perks from your brands",
+            "Participate in decisions and shape the community"
+          ]
+        }
+      }
+    },
+    "theyTrustUs": {
+      "title": "They Trust Us",
+      "description": "Discover what our founders and supporters say about Mana Chain"
+    },
+    "trustedByBrands": {
+      "title": "Trusted by World-Class Brands"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "What is a community badge?",
+          "answer": "A community badge is a digital representation of a brand or project. You can hold units of a badge to show your level of engagement and benefit from exclusive advantages. It does not constitute an investment."
+        },
+        {
+          "question": "How can I create my community badge?",
+          "answer": "Creation is simple and fast! Sign up, fill in your brand information, customize your badge (name, symbol, supply), and launch your community in minutes. No technical skills required."
+        },
+        {
+          "question": "How do supporters benefit?",
+          "answer": "Badge holders (those who hold units of a brand's badge) access exclusive events, discounts, and can take part in the life of the brand (for example through votes or community interactions). Badges do not promise any financial return nor are legally binding in any way: they are a way to recognize and structure engagement over time."
+        },
+        {
+          "question": "Is it secure?",
+          "answer": "Absolutely! We use blockchain technology to ensure security, transparency and traceability of all transactions. Your badge units and funds are protected by audited smart contracts."
+        },
+        {
+          "question": "Is ManaChain a financial investment platform?",
+          "answer": "No. ManaChain is not an investment platform and community badges are not designed or presented as financial instruments or securities. They do not promise any financial return and are meant to structure symbolic, long-term engagement between brands and their communities."
+        },
+        {
+          "question": "Do I need technical knowledge to use ManaChain?",
+          "answer": "No. The experience is designed for everyday users, not experts. You don't need to understand blockchain, wallets, or how it works under the hood. You simply browse brands, support the ones you care about, and access the benefits defined by each brand."
+        },
+        {
+          "question": "Can I stop supporting a brand later?",
+          "answer": "Yes. You remain free to stop engaging with a brand at any time. Depending on how each project is configured, you may still hold your badge units or transfer them. In all cases, there is no obligation to continue using the platform or to maintain a specific level of support."
+        },
+        {
+          "question": "Who can join ManaChain as a brand?",
+          "answer": "ManaChain is open to brands and projects at different stages of maturity, including those with low visibility or just starting out. The goal is to help them meet relevant audiences, structure their communities, and turn diffuse interest into a clear, long-term engagement path."
+        }
+      ]
+    },
+    "footer": {
+      "tagline": "Redefining community engagement, one brand at a time.",
+      "platformHeading": "Platform",
+      "howItWorks": "How It Works",
+      "discover": "Discover",
+      "login": "Login",
+      "resourcesHeading": "Resources",
+      "faq": "FAQ",
+      "documentation": "Documentation",
+      "blog": "Blog",
+      "support": "Support",
+      "followUsHeading": "Follow Us",
+      "twitter": "Twitter",
+      "discord": "Discord",
+      "linkedin": "LinkedIn",
+      "instagram": "Instagram",
+      "copyright": "© 2026 Mana Chain. Redefining community engagement together.",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "legal": "Legal"
+    }
+  },
+  "auth": {
+    "common": {
+      "welcomeTo": "Welcome to",
+      "orContinueWith": "Or continue with",
+      "continueWithGoogle": "Continue with Google",
+      "back": "Back"
+    },
+    "login": {
+      "description": "Sign in to access your community badges and engage with your favorite brands",
+      "loadingFallback": "Loading...",
+      "toasts": {
+        "usePasswordTitle": "Use your password",
+        "usePasswordMessage": "This account uses email and password. Please sign in with your password.",
+        "accessDeniedTitle": "Access denied",
+        "accessDeniedMessage": "You declined the Google sign-in request.",
+        "googleFailedTitle": "Google sign-in failed",
+        "googleFailedMessage": "Something went wrong. Please try again or sign in with your password.",
+        "signedInTitle": "Signed in",
+        "signedInMessage": "Welcome back!",
+        "missingFieldsTitle": "Missing fields",
+        "missingFieldsMessage": "Please enter your email and password.",
+        "invalidEmailTitle": "Invalid email",
+        "invalidEmailMessage": "Please enter a valid email address."
+      }
+    },
+    "register": {
+      "description": "Create your account and discover community badges from your favorite brands",
+      "loading": "Loading...",
+      "toasts": {
+        "moreInterestsTitle": "More interests needed",
+        "moreInterestsMessage": "Please select at least 3 interests to continue.",
+        "tooManyInterestsTitle": "Too many interests",
+        "tooManyInterestsMessage": "Please select a maximum of 5 interests.",
+        "ageRangeRequiredTitle": "Age range required",
+        "ageRangeRequiredMessage": "Please select your age range."
+      }
+    },
+    "signIn": {
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "keepSignedIn": "Keep me signed in",
+      "resetPassword": "Reset password",
+      "signInButton": "Sign In",
+      "newToPlatform": "New to our platform?",
+      "createAccount": "Create Account"
+    },
+    "signUp": {
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "First name",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "Last name",
+      "ageRangeLabel": "Age Range",
+      "ageRangePlaceholder": "Select your age range",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Choose a username",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Create a password",
+      "passwordCriteriaLength": "At least 8 characters",
+      "passwordCriteriaDigit": "At least one digit",
+      "passwordCriteriaSpecial": "At least one special character",
+      "interestsLabel": "Interests",
+      "interestsHint": "(Select 3 to 5)",
+      "interestsMore": "Please select {count, plural, one {# more interest} other {# more interests}}",
+      "interestsMax": "Maximum 5 interests selected",
+      "createAccountButton": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In"
+    }
+  }
+}

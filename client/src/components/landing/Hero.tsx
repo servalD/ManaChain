@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import RotatingText from "@/components/ui/rotating-text/RotatingText";
 import { Rocket, Globe2, ChevronDown } from "lucide-react";
@@ -10,6 +11,7 @@ import { checkSession } from "@/hooks/api/useAuth";
 import { useMounted } from "@/hooks/useMounted";
 
 export function Hero() {
+  const t = useTranslations("landing.hero");
   const mounted = useMounted();
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg"); // Default to light mode logo (avoid hydration mismatch)
   const router = useRouter();
@@ -58,16 +60,16 @@ export function Hero() {
               <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-foreground tracking-tighter leading-[1.1]" style={{
                 fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif'
               }}>
-                Support<br />
+                {t('headlineSupport')}<br />
                 <span className="whitespace-nowrap">
-                  the{' '}
+                  {t('headlineThe')}{' '}
                   <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                    brands
+                    {t('headlineBrands')}
                   </span>
-                  {' '}you
+                  {' '}{t('headlineYou')}
                 </span>
                 <br />
-                believe in.
+                {t('headlineBelieveIn')}
               </h1>
             </div>
 
@@ -75,11 +77,11 @@ export function Hero() {
             <div className={`transition-all duration-1000 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               <h2 className="text-xl md:text-3xl lg:text-4xl font-bold leading-tight">
                 <span className="text-foreground">
-                  Redefine the relationship between{' '}
+                  {t('subtitlePrefix')}{' '}
                 </span>
                 <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
                   <RotatingText
-                    texts={['brands', 'creators', 'artists', 'companies']}
+                    texts={t.raw('subtitleRotatingSubjects') as string[]}
                     rotationInterval={2500}
                     staggerDuration={0.02}
                     staggerFrom="first"
@@ -90,11 +92,11 @@ export function Hero() {
                 </span>
                 <br />
                 <span className="text-foreground">
-                  and their{' '}
+                  {t('subtitleAnd')}{' '}
                 </span>
                 <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent inline-block">
                   <RotatingText
-                    texts={['communities', 'fans', 'supporters', 'early adopters']}
+                    texts={t.raw('subtitleRotatingAudiences') as string[]}
                     rotationInterval={2500}
                     staggerDuration={0.02}
                     staggerFrom="first"
@@ -111,7 +113,7 @@ export function Hero() {
               <Link href="/brand-application" className="pointer-events-auto">
                 <Button variant="gradient" size="lg" className="rounded-full text-base px-8 py-6 font-semibold w-full sm:w-auto">
                   <Rocket className="mr-2 h-5 w-5" />
-                  Create My Community
+                  {t('ctaCreateCommunity')}
                 </Button>
               </Link>
             <Button
@@ -121,7 +123,7 @@ export function Hero() {
               onClick={handleDiscoverClick}
             >
                 <Globe2 className="mr-2 h-5 w-5" />
-                Discover Projects
+                {t('ctaDiscoverProjects')}
               </Button>
             </div>
           </div>
@@ -142,8 +144,8 @@ export function Hero() {
 
               {/* Description */}
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                Get a <span style={{ color: '#FFD700' }} className="font-semibold">community badge</span>{" "}
-                to show your support and take part in a new form of <span className="text-fuchsia-400 font-semibold">authentic engagement</span> with the brands you care about.
+                {t('descriptionGetA')} <span style={{ color: '#FFD700' }} className="font-semibold">{t('descriptionCommunityBadge')}</span>{" "}
+                {t('descriptionMiddle')} <span className="text-fuchsia-400 font-semibold">{t('descriptionAuthenticEngagement')}</span> {t('descriptionSuffix')}
               </p>
 
               {/* Decorative elements */}
