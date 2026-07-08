@@ -1,6 +1,7 @@
  "use client";
  
 import React, { useRef, useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { SignUpPage, Interest, SignUpFormData } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
@@ -11,6 +12,7 @@ import { useInterests } from "@/hooks/api/useInterests";
 import { toast } from "@/lib/toast";
 import { isValidEmail, isValidPassword } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,6 +20,8 @@ export default function RegisterPage() {
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
   const { data: interestsData, isLoading } = useInterests();
   const register = useRegister();
+  const t = useTranslations("auth.register");
+  const tCommon = useTranslations("auth.common");
   const availableInterests: Interest[] = useMemo(
     () =>
       (interestsData ?? []).map((interest) => ({
@@ -53,8 +57,8 @@ export default function RegisterPage() {
     // Validate interests (min 3, max 5)
     if (!formData.interests || formData.interests.length < 3) {
       toast({
-        title: "More interests needed",
-        description: "Please select at least 3 interests to continue.",
+        title: t("toasts.moreInterestsTitle"),
+        description: t("toasts.moreInterestsMessage"),
         variant: "warning",
       });
       return;
@@ -62,8 +66,8 @@ export default function RegisterPage() {
 
     if (formData.interests.length > 5) {
       toast({
-        title: "Too many interests",
-        description: "Please select a maximum of 5 interests.",
+        title: t("toasts.tooManyInterestsTitle"),
+        description: t("toasts.tooManyInterestsMessage"),
         variant: "warning",
     });
       return;
@@ -72,8 +76,8 @@ export default function RegisterPage() {
     // Validate age range
     if (!formData.ageRange) {
       toast({
-        title: "Age range required",
-        description: "Please select your age range.",
+        title: t("toasts.ageRangeRequiredTitle"),
+        description: t("toasts.ageRangeRequiredMessage"),
         variant: "warning",
       });
       return;
@@ -113,7 +117,7 @@ export default function RegisterPage() {
   if (isLoading) {
     return (
       <div className="bg-background min-h-screen flex items-center justify-center">
-        <div className="text-foreground text-xl">Loading...</div>
+        <div className="text-foreground text-xl">{t("loading")}</div>
       </div>
     );
   }
@@ -121,9 +125,10 @@ export default function RegisterPage() {
   return (
     <div className="bg-background relative">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
-      {/* Theme Toggler */}
-      <div className="fixed top-6 right-6 z-50">
-        <AnimatedThemeToggler 
+      {/* Theme Toggler & Language Switcher */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
+        <AnimatedThemeToggler
           className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
         />
       </div>
@@ -131,7 +136,7 @@ export default function RegisterPage() {
         title={
           <div className="flex flex-col items-center justify-center gap-3">
             <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-              Welcome to
+              {tCommon("welcomeTo")}
             </span>
             <img
               src={logoSrc}
@@ -140,7 +145,7 @@ export default function RegisterPage() {
             />
           </div>
         }
-        description="Create your account and discover community badges from your favorite brands"
+        description={t("description")}
         heroImageSrc="/event.png"
         interests={availableInterests}
         onSignUp={handleSignUp}

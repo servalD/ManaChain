@@ -1,6 +1,9 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Eye, EyeOff, Check, ArrowLeft, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getPasswordCriteria } from '@/utils/validation';
 
 // --- HELPER COMPONENTS (ICONS) ---
@@ -100,7 +103,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [password, setPassword] = useState('');
-  
+  const t = useTranslations('auth.signUp');
+  const tCommon = useTranslations('auth.common');
+
   // Password validation criteria
   const passwordCriteria = getPasswordCriteria(password);
 
@@ -139,12 +144,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
       {/* Left column: sign-up form */}
       <section className="flex-1 flex items-start justify-center p-8 bg-transparent overflow-y-auto relative">
         {/* Back Button */}
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group z-10"
         >
           <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-sm font-medium">Back</span>
+          <span className="text-sm font-medium">{tCommon('back')}</span>
         </Link>
 
         <div className="w-full max-w-md py-8 my-auto">
@@ -156,26 +161,26 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               {/* First Name & Last Name */}
               <div className="animate-element animate-delay-400 grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">First Name</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('firstNameLabel')}</label>
                   <GlassInputWrapper>
-                    <input 
-                      name="firstName" 
-                      type="text" 
+                    <input
+                      name="firstName"
+                      type="text"
                       required
-                      placeholder="First name" 
-                      className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50" 
+                      placeholder={t('firstNamePlaceholder')}
+                      className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50"
                     />
                   </GlassInputWrapper>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Last Name</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t('lastNameLabel')}</label>
                   <GlassInputWrapper>
-                    <input 
-                      name="lastName" 
-                      type="text" 
+                    <input
+                      name="lastName"
+                      type="text"
                       required
-                      placeholder="Last name" 
-                      className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50" 
+                      placeholder={t('lastNamePlaceholder')}
+                      className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50"
                     />
                   </GlassInputWrapper>
                 </div>
@@ -183,15 +188,15 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
 
               {/* Age Range */}
               <div className="animate-element animate-delay-475">
-                <label className="text-sm font-medium text-muted-foreground">Age Range</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('ageRangeLabel')}</label>
                 <div className="relative">
                   <GlassInputWrapper>
-                    <select 
-                      name="ageRange" 
+                    <select
+                      name="ageRange"
                       required
                       className="w-full bg-transparent text-sm p-4 pr-10 rounded-2xl focus:outline-none text-foreground appearance-none cursor-pointer [&>option]:bg-popover [&>option]:text-foreground"
                     >
-                      <option value="" className="bg-popover text-muted-foreground">Select your age range</option>
+                      <option value="" className="bg-popover text-muted-foreground">{t('ageRangePlaceholder')}</option>
                       <option value="18-24">18-24</option>
                       <option value="25-34">25-34</option>
                       <option value="35-44">35-44</option>
@@ -206,45 +211,45 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
 
               {/* Username */}
               <div className="animate-element animate-delay-350">
-                <label className="text-sm font-medium text-muted-foreground">Username</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('usernameLabel')}</label>
                 <GlassInputWrapper>
-                  <input 
-                    name="username" 
-                    type="text" 
+                  <input
+                    name="username"
+                    type="text"
                     required
-                    placeholder="Choose a username" 
-                    className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50" 
+                    placeholder={t('usernamePlaceholder')}
+                    className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50"
                   />
                 </GlassInputWrapper>
               </div>
 
               {/* Email */}
               <div className="animate-element animate-delay-300">
-                <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('emailLabel')}</label>
                 <GlassInputWrapper>
-                  <input 
-                    name="email" 
-                    type="email" 
+                  <input
+                    name="email"
+                    type="email"
                     required
-                    placeholder="Enter your email address" 
-                    className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50" 
+                    placeholder={t('emailPlaceholder')}
+                    className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50"
                   />
                 </GlassInputWrapper>
               </div>
 
               {/* Password */}
               <div className="animate-element animate-delay-450">
-                <label className="text-sm font-medium text-muted-foreground">Password</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('passwordLabel')}</label>
                 <GlassInputWrapper>
                   <div className="relative">
-                    <input 
-                      name="password" 
-                      type={showPassword ? 'text' : 'password'} 
+                    <input
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
-                      placeholder="Create a password" 
+                      placeholder={t('passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50" 
+                      className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground/50"
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center">
                       {showPassword ? <EyeOff className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" /> : <Eye className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />}
@@ -259,7 +264,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                       ) : (
                         <X className="h-3.5 w-3.5 shrink-0" />
                       )}
-                      <span>At least 8 characters</span>
+                      <span>{t('passwordCriteriaLength')}</span>
                     </div>
                     <div className={`flex items-center gap-2 text-xs transition-colors ${passwordCriteria.digit ? 'text-green-400' : 'text-muted-foreground'}`}>
                       {passwordCriteria.digit ? (
@@ -267,7 +272,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                       ) : (
                         <X className="h-3.5 w-3.5 shrink-0" />
                       )}
-                      <span>At least one digit</span>
+                      <span>{t('passwordCriteriaDigit')}</span>
                     </div>
                     <div className={`flex items-center gap-2 text-xs transition-colors ${passwordCriteria.special ? 'text-green-400' : 'text-muted-foreground'}`}>
                       {passwordCriteria.special ? (
@@ -275,7 +280,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                       ) : (
                         <X className="h-3.5 w-3.5 shrink-0" />
                       )}
-                      <span>At least one special character</span>
+                      <span>{t('passwordCriteriaSpecial')}</span>
                     </div>
                   </div>
                 )}
@@ -284,7 +289,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               {/* Interests Selection */}
               <div className="animate-element animate-delay-500">
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  Interests <span className="text-violet-400">(Select 3 to 5)</span>
+                  {t('interestsLabel')} <span className="text-violet-400">{t('interestsHint')}</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {interests.map((interest) => (
@@ -298,20 +303,20 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                 </div>
                 {selectedInterests.length > 0 && selectedInterests.length < 3 && (
                   <p className="text-xs text-amber-400 mt-2">
-                    Please select {3 - selectedInterests.length} more interest{3 - selectedInterests.length > 1 ? 's' : ''}
+                    {t('interestsMore', { count: 3 - selectedInterests.length })}
                   </p>
                 )}
                 {selectedInterests.length >= 5 && (
                   <p className="text-xs text-amber-400 mt-2">
-                    Maximum 5 interests selected
+                    {t('interestsMax')}
                   </p>
                 )}
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={selectedInterests.length < 3 || selectedInterests.length > 5}
-                className="animate-element animate-delay-600 w-full rounded-2xl py-4 font-medium transition-all disabled:cursor-not-allowed hover:scale-[1.02] disabled:hover:scale-100" 
+                className="animate-element animate-delay-600 w-full rounded-2xl py-4 font-medium transition-all disabled:cursor-not-allowed hover:scale-[1.02] disabled:hover:scale-100"
                 style={{
                   background: (selectedInterests.length >= 3 && selectedInterests.length <= 5) ? 'linear-gradient(to right, #7c3aed, #a855f7)' : 'rgb(100, 100, 100)',
                   color: 'white',
@@ -319,22 +324,22 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
                   boxShadow: (selectedInterests.length >= 3 && selectedInterests.length <= 5) ? '0 4px 14px 0 rgba(124, 58, 237, 0.39)' : 'none'
                 }}
               >
-                Create Account
+                {t('createAccountButton')}
               </button>
             </form>
 
             <div className="animate-element animate-delay-700 relative flex items-center justify-center">
               <span className="w-full border-t border-border"></span>
-              <span className="px-4 text-sm text-muted-foreground bg-background absolute">Or continue with</span>
+              <span className="px-4 text-sm text-muted-foreground bg-background absolute">{tCommon('orContinueWith')}</span>
             </div>
 
             <button onClick={onGoogleSignUp} className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-accent/50 transition-colors text-foreground">
                 <GoogleIcon />
-                Continue with Google
+                {tCommon('continueWithGoogle')}
             </button>
 
             <p className="animate-element animate-delay-900 text-center text-sm text-muted-foreground">
-              Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); onSignIn?.(); }} className="text-violet-400 hover:underline transition-colors">Sign In</a>
+              {t('alreadyHaveAccount')} <a href="#" onClick={(e) => { e.preventDefault(); onSignIn?.(); }} className="text-violet-400 hover:underline transition-colors">{t('signIn')}</a>
             </p>
           </div>
         </div>

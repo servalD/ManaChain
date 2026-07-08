@@ -4,10 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { User, Menu, X } from "lucide-react";
 import { checkSession } from "@/hooks/api/useAuth";
+import { useTranslations } from "next-intl";
 
 export function LandingNavbar() {
+  const t = useTranslations("landing.navbar");
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -119,21 +122,21 @@ export function LandingNavbar() {
               className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
               onClick={(e) => handleSmoothScroll(e, 'hero')}
             >
-              Home
+              {t('home')}
             </Link>
-            <Link 
-              href="#how-it-works" 
+            <Link
+              href="#how-it-works"
               className="text-sm font-medium text-foreground/80 hover:text-indigo-400 transition-colors"
               onClick={(e) => handleSmoothScroll(e, 'how-it-works')}
             >
-              How It Works
+              {t('howItWorks')}
             </Link>
-            <Link 
-              href="#faq" 
+            <Link
+              href="#faq"
               className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
               onClick={(e) => handleSmoothScroll(e, 'faq')}
             >
-              FAQ
+              {t('faq')}
             </Link>
           </div>
 
@@ -144,11 +147,11 @@ export function LandingNavbar() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
-                aria-label="User menu"
+                aria-label={t('userMenuAriaLabel')}
               >
                 <User className="h-5 w-5" />
               </button>
-              
+
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-40 bg-popover/95 backdrop-blur-md border border-border rounded-lg shadow-lg overflow-hidden">
                   <Link
@@ -159,28 +162,31 @@ export function LandingNavbar() {
                       handleSignInClick(e);
                     }}
                   >
-                    Sign in
+                    {t('signIn')}
                   </Link>
                   <Link
                     href="/register"
                     className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign up
+                    {t('signUp')}
                   </Link>
-                  <Link 
-                    href="/brand-application" 
+                  <Link
+                    href="/brand-application"
                     className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Apply as a Brand
+                    {t('applyAsBrand')}
                   </Link>
                 </div>
               )}
             </div>
 
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Toggler */}
-            <AnimatedThemeToggler 
+            <AnimatedThemeToggler
               className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground [&>svg]:h-5 [&>svg]:w-5"
             />
           </div>
@@ -208,7 +214,7 @@ export function LandingNavbar() {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
-                aria-label="User menu"
+                aria-label={t('userMenuAriaLabel')}
               >
                 <User className="h-4 w-4" />
               </button>
@@ -222,28 +228,31 @@ export function LandingNavbar() {
                       handleSignInClick(e);
                     }}
                   >
-                    Sign in
+                    {t('signIn')}
                   </Link>
                   <Link
                     href="/register"
                     className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors "
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign up
+                    {t('signUp')}
                   </Link>
-                  <Link 
-                    href="/brand-application" 
+                  <Link
+                    href="/brand-application"
                     className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Apply as a Brand
+                    {t('applyAsBrand')}
                   </Link>
                 </div>
               )}
             </div>
 
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Toggler */}
-            <AnimatedThemeToggler 
+            <AnimatedThemeToggler
               className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground [&>svg]:h-4 [&>svg]:w-4"
             />
 
@@ -251,7 +260,7 @@ export function LandingNavbar() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
-              aria-label="Menu"
+              aria-label={t('menuAriaLabel')}
             >
               {isMobileMenuOpen ? (
                 <X className="h-4 w-4" />
@@ -274,27 +283,27 @@ export function LandingNavbar() {
                   handleSmoothScroll(e, 'hero');
                 }}
               >
-                Home
+                {t('home')}
               </Link>
-              <Link 
-                href="#how-it-works" 
+              <Link
+                href="#how-it-works"
                 className="text-sm font-medium text-foreground/80 hover:text-indigo-400 transition-colors"
                 onClick={(e) => {
                   setIsMobileMenuOpen(false);
                   handleSmoothScroll(e, 'how-it-works');
                 }}
               >
-                How It Works
+                {t('howItWorks')}
               </Link>
-              <Link 
-                href="#faq" 
+              <Link
+                href="#faq"
                 className="text-sm font-medium text-foreground/80 hover:text-violet-400 transition-colors"
                 onClick={(e) => {
                   setIsMobileMenuOpen(false);
                   handleSmoothScroll(e, 'faq');
                 }}
               >
-                FAQ
+                {t('faq')}
               </Link>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Layers, Search, Zap } from "lucide-react";
 import type React from "react";
+import { useTranslations } from "next-intl";
 import ScrollFloat from "@/components/ui/scroll-float/scroll-float";
 
 // The main props for the HowItWorks component
@@ -78,45 +79,32 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
   className,
   ...props
 }) => {
+  const t = useTranslations("landing.howItWorks");
+
   const stepsData = [
     {
       icon: <Search className="h-6 w-6" />,
-      title: "Discover Brands",
-      description:
-        "Swipe through brands and discover projects that match your interests. Simple, intuitive, and fun.",
-      benefits: [
-        "Personalized recommendations based on your preferences",
-        "Discover emerging brands and creators",
-        "Explore at your own pace",
-      ],
+      title: t('steps.discover.title'),
+      description: t('steps.discover.description'),
+      benefits: t.raw('steps.discover.benefits') as string[],
       color: "text-violet-500",
       iconBgColor: "bg-violet-500/20",
       dotColor: "bg-violet-500",
     },
     {
       icon: <Zap className="h-6 w-6" />,
-      title: "Get Your Badge",
-      description:
-        "Support the brands you care about and get units of their community badge. Simple, no technical skills required.",
-      benefits: [
-        "Show your support with badge units",
-        "Join the community of supporters",
-        "Track your engagement over time",
-      ],
+      title: t('steps.getBadge.title'),
+      description: t('steps.getBadge.description'),
+      benefits: t.raw('steps.getBadge.benefits') as string[],
       color: "text-fuchsia-500",
       iconBgColor: "bg-fuchsia-500/20",
       dotColor: "bg-fuchsia-500",
     },
     {
       icon: <Layers className="h-6 w-6" />,
-      title: "Enjoy Benefits",
-      description:
-        "Access exclusive events, perks, and take part in the life of the brands you support.",
-      benefits: [
-        "Access exclusive events and experiences",
-        "Get discounts and perks from your brands",
-        "Participate in decisions and shape the community",
-      ],
+      title: t('steps.enjoyBenefits.title'),
+      description: t('steps.enjoyBenefits.description'),
+      benefits: t.raw('steps.enjoyBenefits.benefits') as string[],
       color: "text-indigo-500",
       iconBgColor: "bg-indigo-500/20",
       dotColor: "bg-indigo-500",
@@ -141,10 +129,10 @@ export const HowItWorks: React.FC<HowItWorksProps> = ({
             containerClassName="mb-4"
             textClassName="text-3xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent"
           >
-            How it works
+            {t('title')}
           </ScrollFloat>
           <p className="mt-4 text-lg text-muted-foreground">
-            Support the brands you believe in through community badges and engagement
+            {t('subtitle')}
           </p>
         </div>
 

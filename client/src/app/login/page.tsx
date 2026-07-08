@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useRef, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
@@ -9,6 +10,7 @@ import { ApiService } from "@/services/api.service";
 import axios from "axios";
 import { isValidEmail } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
 const sampleTestimonials: Testimonial[] = [
   {
@@ -32,9 +34,10 @@ const sampleTestimonials: Testimonial[] = [
 ];
 
 function LoginPageFallback() {
+  const t = useTranslations("auth.login");
   return (
     <div className="bg-background relative min-h-screen flex items-center justify-center">
-      <div className="text-muted-foreground">Loading...</div>
+      <div className="text-muted-foreground">{t("loadingFallback")}</div>
     </div>
   );
 }
@@ -58,6 +61,8 @@ function LoginPageContent() {
   const toasterRef = useRef<ToasterRef>(null);
   const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
   const login = useLogin();
+  const t = useTranslations("auth.login");
+  const tCommon = useTranslations("auth.common");
 
   // Handle Google OAuth callback: token + role in URL -> store token and redirect by role
   useEffect(() => {
@@ -68,22 +73,22 @@ function LoginPageContent() {
     if (error) {
       if (error === "use_password") {
         toasterRef.current?.show({
-          title: "Use your password",
-          message: "This account uses email and password. Please sign in with your password.",
+          title: t("toasts.usePasswordTitle"),
+          message: t("toasts.usePasswordMessage"),
           variant: "warning",
           duration: 5000,
         });
       } else if (error === "access_denied") {
         toasterRef.current?.show({
-          title: "Access denied",
-          message: "You declined the Google sign-in request.",
+          title: t("toasts.accessDeniedTitle"),
+          message: t("toasts.accessDeniedMessage"),
           variant: "warning",
           duration: 4000,
         });
       } else {
         toasterRef.current?.show({
-          title: "Google sign-in failed",
-          message: "Something went wrong. Please try again or sign in with your password.",
+          title: t("toasts.googleFailedTitle"),
+          message: t("toasts.googleFailedMessage"),
           variant: "error",
           duration: 5000,
         });
@@ -95,15 +100,15 @@ function LoginPageContent() {
       localStorage.setItem("Token", token);
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       toasterRef.current?.show({
-        title: "Signed in",
-        message: "Welcome back!",
+        title: t("toasts.signedInTitle"),
+        message: t("toasts.signedInMessage"),
         variant: "success",
         duration: 2000,
       });
       const redirectPath = getRedirectPathByRole(role);
       router.replace(redirectPath);
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, t]);
 
   useEffect(() => {
     const checkDarkMode = () => {
@@ -134,8 +139,8 @@ function LoginPageContent() {
 
     if (!email || !password) {
       toasterRef.current?.show({
-        title: 'Missing fields',
-        message: 'Please enter your email and password.',
+        title: t('toasts.missingFieldsTitle'),
+        message: t('toasts.missingFieldsMessage'),
         variant: 'warning',
         duration: 3000,
       });
@@ -145,8 +150,8 @@ function LoginPageContent() {
     // Validate email format
     if (!isValidEmail(email)) {
       toasterRef.current?.show({
-        title: 'Invalid email',
-        message: 'Please enter a valid email address.',
+        title: t('toasts.invalidEmailTitle'),
+        message: t('toasts.invalidEmailMessage'),
         variant: 'error',
         duration: 3000,
       });
@@ -183,9 +188,10 @@ function LoginPageContent() {
   return (
     <div className="bg-background relative">
       <Toaster ref={toasterRef} defaultPosition="top-right" />
-      {/* Theme Toggler */}
-      <div className="fixed top-6 right-6 z-50">
-        <AnimatedThemeToggler 
+      {/* Theme Toggler & Language Switcher */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
+        <AnimatedThemeToggler
           className="p-2 rounded-lg bg-card/50 backdrop-blur-md border border-border hover:bg-accent transition-colors text-foreground"
         />
       </div>
@@ -193,7 +199,7 @@ function LoginPageContent() {
         title={
           <div className="flex flex-col items-center justify-center gap-3">
             <span className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-              Welcome to
+              {tCommon("welcomeTo")}
             </span>
             <img
               src={logoSrc}
@@ -202,7 +208,7 @@ function LoginPageContent() {
             />
           </div>
         }
-        description="Sign in to access your community badges and engage with your favorite brands"
+        description={t("description")}
         heroImageSrc="/event.png"
         testimonials={sampleTestimonials}
         onSignIn={handleSignIn}

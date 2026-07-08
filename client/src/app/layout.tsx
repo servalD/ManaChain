@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { Toaster as SonnerToaster } from "sonner";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Web3Provider } from "@/components/Web3Provider";
 import "./globals.css";
 
@@ -21,13 +23,15 @@ export const metadata: Metadata = {
   description: "Redefine the relationship between brands and communities. Create your community token, unite your audience, and generate revenue differently.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -50,14 +54,16 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} antialiased font-sans`}
       >
-        <Web3Provider>
-          {children}
-          <SonnerToaster 
-            position="top-right"
-            richColors
-            closeButton
-          />
-        </Web3Provider>
+        <NextIntlClientProvider>
+          <Web3Provider>
+            {children}
+            <SonnerToaster
+              position="top-right"
+              richColors
+              closeButton
+            />
+          </Web3Provider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
