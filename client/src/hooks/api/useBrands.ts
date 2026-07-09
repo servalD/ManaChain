@@ -8,7 +8,9 @@ import {
   getBrandsControllerMediaQueryKey,
   getBrandsControllerConfirmBrandMediaMutationOptions,
   getBrandsControllerRemoveMediaMutationOptions,
+  getBrandsControllerListForWhitelistQueryOptions,
 } from "@/api/generated/endpoints/brands/brands";
+import type { BrandsControllerListForWhitelistParams } from "@/api/generated/models";
 import { asAxiosError } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
@@ -18,6 +20,19 @@ export function useMyBrand(options?: { enabled?: boolean }) {
   return useToastQuery({
     ...getBrandsControllerMyBrandQueryOptions(),
     enabled: options?.enabled ?? true,
+  });
+}
+
+/** Marques + adresse blockchain du propriétaire, admin only (whitelist on-chain). */
+export function useBrandsForWhitelist(params?: BrandsControllerListForWhitelistParams) {
+  return useToastQuery({
+    ...getBrandsControllerListForWhitelistQueryOptions(params),
+    errorToast: (error) => ({
+      title: "Error",
+      description:
+        asAxiosError(error)?.response?.data?.message || "Failed to load brands.",
+      variant: "error",
+    }),
   });
 }
 

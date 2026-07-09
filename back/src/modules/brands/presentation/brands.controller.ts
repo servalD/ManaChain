@@ -29,6 +29,7 @@ import { GetBrandUseCase } from '../application/use-cases/get-brand.use-case';
 import { GetBrandByUserUseCase } from '../application/use-cases/get-brand-by-user.use-case';
 import { ListBrandsUseCase } from '../application/use-cases/list-brands.use-case';
 import { ListActiveBrandsUseCase } from '../application/use-cases/list-active-brands.use-case';
+import { ListBrandsForWhitelistUseCase } from '../application/use-cases/list-brands-for-whitelist.use-case';
 import { UpdateBrandUseCase } from '../application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from '../application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from '../application/use-cases/get-brand-stats.use-case';
@@ -44,6 +45,7 @@ import {
   BrandResponse,
   BrandStatsResponse,
   PaginatedBrandsResponse,
+  PaginatedBrandWhitelistResponse,
   toBrandMediaResponse,
   toBrandResponse,
 } from './brand.presenter';
@@ -57,6 +59,7 @@ export class BrandsController {
     private readonly getBrandByUser: GetBrandByUserUseCase,
     private readonly listBrands: ListBrandsUseCase,
     private readonly listActiveBrands: ListActiveBrandsUseCase,
+    private readonly listBrandsForWhitelist: ListBrandsForWhitelistUseCase,
     private readonly updateBrand: UpdateBrandUseCase,
     private readonly deleteBrand: DeleteBrandUseCase,
     private readonly getBrandStats: GetBrandStatsUseCase,
@@ -102,6 +105,27 @@ export class BrandsController {
   ): Promise<PaginatedBrandsResponse> {
     const { brands, total } = await this.listActiveBrands.execute(query);
     return { brands: brands.map(toBrandResponse), total };
+  }
+
+  @Get('admin/whitelist')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      "Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)",
+  })
+  @ApiOkResponse({ type: PaginatedBrandWhitelistResponse })
+  async listForWhitelist(
+    @Query() query: ListBrandsQuery,
+  ): Promise<PaginatedBrandWhitelistResponse> {
+    const { brands, total } = await this.listBrandsForWhitelist.execute(query);
+    return {
+      brands: brands.map((entry) => ({
+        brand: toBrandResponse(entry.brand),
+        ownerBlockchainAddress: entry.ownerBlockchainAddress,
+      })),
+      total,
+    };
   }
 
   @Get('me')

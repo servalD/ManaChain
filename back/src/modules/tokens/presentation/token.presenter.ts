@@ -54,6 +54,21 @@ export class PortfolioEntryResponse {
   @ApiProperty({ type: TokenResponse }) token: TokenResponse;
 }
 
+export class PaginatedTokenTransactionsResponse {
+  @ApiProperty({ type: TokenTransactionResponse, isArray: true })
+  transactions: TokenTransactionResponse[];
+  @ApiProperty() total: number;
+}
+
+export class PaginatedTokenHoldersResponse {
+  @ApiProperty({ type: TokenHolderResponse, isArray: true }) holders: TokenHolderResponse[];
+  @ApiProperty() total: number;
+}
+
+export class TokenBalanceResponse {
+  @ApiProperty() balance: number;
+}
+
 export const toTokenResponse = (
   t: Token,
   chainInfo?: TokenChainInfo,

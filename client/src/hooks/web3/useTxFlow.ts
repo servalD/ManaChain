@@ -15,7 +15,8 @@ type WriteFunctionArgs<TAbi extends Abi, TFunctionName extends WriteFunctionName
 
 interface UseTxFlowOptions<TAbi extends Abi> {
   abi: TAbi;
-  address: Address;
+  /** `undefined` tant que l'adresse n'est pas encore connue (ex. contrat pas encore déployé) — `write()` échoue proprement dans ce cas. */
+  address: Address | undefined;
   /** Appelé une fois la transaction minée. Invalidation de queries + polling API côté appelant. */
   onConfirmed?: (receipt: TransactionReceipt) => void | Promise<void>;
 }
@@ -62,6 +63,10 @@ export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed }: UseTx
       functionName: TFunctionName,
       args: WriteFunctionArgs<TAbi, TFunctionName>,
     ) => {
+      if (!address) {
+        setWriteError(new Error("Contract address is not available yet"));
+        return;
+      }
       setWriteError(null);
       confirmedHashRef.current = null;
       try {

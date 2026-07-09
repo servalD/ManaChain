@@ -5,6 +5,7 @@
  * Documentation de l’API ManaChain
  * OpenAPI spec version: 1.0
  */
+import type { TokenSaleResponse } from './tokenSaleResponse';
 
 export interface TokenResponse {
   id: string;
@@ -19,4 +20,10 @@ export interface TokenResponse {
   /** @nullable */
   nftSymbol: string | null;
   createdAt: string;
+  /** @nullable */
+  supportTokenAddress: string | null;
+  /** @nullable */
+  vaultAddress: string | null;
+  /** @nullable */
+  sale: TokenSaleResponse | null;
 }

@@ -33,6 +33,7 @@ import { GetBrandUseCase } from './application/use-cases/get-brand.use-case';
 import { GetBrandByUserUseCase } from './application/use-cases/get-brand-by-user.use-case';
 import { ListBrandsUseCase } from './application/use-cases/list-brands.use-case';
 import { ListActiveBrandsUseCase } from './application/use-cases/list-active-brands.use-case';
+import { ListBrandsForWhitelistUseCase } from './application/use-cases/list-brands-for-whitelist.use-case';
 import { UpdateBrandUseCase } from './application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from './application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from './application/use-cases/get-brand-stats.use-case';
@@ -96,6 +97,7 @@ import { InterestsController } from './presentation/interests.controller';
     GetBrandByUserUseCase,
     ListBrandsUseCase,
     ListActiveBrandsUseCase,
+    ListBrandsForWhitelistUseCase,
     UpdateBrandUseCase,
     DeleteBrandUseCase,
     GetBrandStatsUseCase,

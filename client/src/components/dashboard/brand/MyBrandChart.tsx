@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatUnits } from "viem";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { Users, Heart, Coins, DollarSign, Image as ImageIcon, Scissors, MoreHorizontal } from "lucide-react";
+import { Users, Heart, Coins, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import PinataService from "@/services/pinata.service";
+import { TokenSetupWizard } from "./TokenSetupWizard";
+import { useTokenHoldersCount } from "@/hooks/api/useTokens";
+import type { TokenResponse } from "@/api/generated/models";
 
 // Mock data generator for holders and likes over time
 const generateMockData = (days: number, hasToken: boolean) => {
@@ -47,19 +51,13 @@ const timeRanges = [
 interface MyBrandChartProps {
   brandId: string;
   hasToken?: boolean;
+  token?: TokenResponse;
   brandName?: string;
   brandLogo?: string | null;
 }
 
-// Mock token data
-const mockTokenData = {
-  symbol: "BRAND",
-  totalSupply: 1000000,
-  holders: 150,
-  basePrice: 0.50,
-};
-
-export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand", brandLogo = null }: MyBrandChartProps) {
+export function MyBrandChart({ brandId, hasToken = false, token, brandName = "My Brand", brandLogo = null }: MyBrandChartProps) {
+  const { data: holdersPage } = useTokenHoldersCount(token?.id, { enabled: hasToken });
   const [selectedRange, setSelectedRange] = useState<number>(30);
   const [axisColor, setAxisColor] = useState<string>("#ffffff");
   const data = generateMockData(selectedRange, hasToken);
@@ -211,109 +209,8 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
           </ResponsiveContainer>
         </div>
 
-        {/* NFT Creation Interface */}
-        <div className="border border-border rounded-lg p-6 space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Create & Fractionalize Your NFT</h3>
-            <p className="text-sm text-muted-foreground">
-              Create a unique NFT representing your brand and fractionalize it into badges for your community.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Step 1: Create NFT */}
-            <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center">
-                  <ImageIcon className="h-5 w-5 text-violet-500" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">Step 1: Create NFT</h4>
-                  <p className="text-xs text-muted-foreground">Upload your brand NFT</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">NFT Name</label>
-                  <input
-                    type="text"
-                    placeholder="My Brand NFT"
-                    disabled
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">NFT Description</label>
-                  <textarea
-                    placeholder="Describe your brand NFT..."
-                    disabled
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Upload Image</label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                    <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF up to 10MB</p>
-                  </div>
-                </div>
-                <Button disabled className="w-full" variant="outline">
-                  Create NFT
-                </Button>
-              </div>
-            </div>
-
-            {/* Step 2: Fractionalize */}
-            <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-fuchsia-500/20 flex items-center justify-center">
-                  <Scissors className="h-5 w-5 text-fuchsia-500" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">Step 2: Fractionalize</h4>
-                  <p className="text-xs text-muted-foreground">Split NFT into tokens</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Badge Symbol</label>
-                  <input
-                    type="text"
-                    placeholder="BRAND"
-                    disabled
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Total Supply</label>
-                  <input
-                    type="number"
-                    placeholder="1000000"
-                    disabled
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Base Price (USD)</label>
-                  <input
-                    type="number"
-                    placeholder="0.50"
-                    step="0.01"
-                    disabled
-                    className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-                <Button disabled className="w-full" variant="outline">
-                  Fractionalize NFT
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Token setup wizard — état dérivé de la chaîne, voir TokenSetupWizard */}
+        <TokenSetupWizard brandId={brandId} />
       </div>
     );
   }
@@ -497,17 +394,23 @@ export function MyBrandChart({ brandId, hasToken = false, brandName = "My Brand"
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <Coins className="h-4 w-4 text-violet-500" />
-                    <span className="font-semibold text-sm">{mockTokenData.symbol}</span>
+                    <span className="font-semibold text-sm">{token?.symbol ?? "—"}</span>
                   </div>
                 </td>
                 <td className="p-4 text-right">
-                  <span className="font-semibold text-sm">{mockTokenData.totalSupply.toLocaleString()}</span>
+                  <span className="font-semibold text-sm">
+                    {(token?.totalSupply ?? 0).toLocaleString()}
+                  </span>
                 </td>
                 <td className="p-4 text-right">
-                  <span className="font-semibold text-sm">{mockTokenData.holders.toLocaleString()}</span>
+                  <span className="font-semibold text-sm">{(holdersPage?.total ?? 0).toLocaleString()}</span>
                 </td>
                 <td className="p-4 text-right">
-                  <span className="font-semibold text-sm">${mockTokenData.basePrice.toFixed(2)}</span>
+                  <span className="font-semibold text-sm">
+                    {token?.sale
+                      ? `$${formatUnits(BigInt(token.sale.pricePerToken), 6)}`
+                      : `$${token?.currentPrice ?? "0"}`}
+                  </span>
                 </td>
                 <td className="p-4">
                   <div className="flex items-center justify-end">

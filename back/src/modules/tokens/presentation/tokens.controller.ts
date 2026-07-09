@@ -19,10 +19,11 @@ import { GetMyPortfolioUseCase } from '../application/use-cases/get-my-portfolio
 import { PaginationQuery } from '../application/dto/pagination.query';
 import { GetTokenChainInfoUseCase } from '../../chain-sync/application/get-token-chain-info.use-case';
 import {
+  PaginatedTokenHoldersResponse,
+  PaginatedTokenTransactionsResponse,
   PortfolioEntryResponse,
-  TokenHolderResponse,
+  TokenBalanceResponse,
   TokenResponse,
-  TokenTransactionResponse,
   toHolderResponse,
   toPortfolioEntryResponse,
   toTokenResponse,
@@ -64,10 +65,11 @@ export class TokensController {
   @Get('my/transactions')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mes transactions' })
+  @ApiOkResponse({ type: PaginatedTokenTransactionsResponse })
   async myTransactions(
     @CurrentUser() user: User,
     @Query() query: PaginationQuery,
-  ): Promise<{ transactions: TokenTransactionResponse[]; total: number }> {
+  ): Promise<PaginatedTokenTransactionsResponse> {
     const { transactions, total } = await this.listMyTransactions.execute(
       user.id,
       query.limit,
@@ -91,10 +93,11 @@ export class TokensController {
   @Get(':id/holders')
   @ApiOperation({ summary: "Détenteurs d'un token" })
   @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: PaginatedTokenHoldersResponse })
   async holders(
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: PaginationQuery,
-  ): Promise<{ holders: TokenHolderResponse[]; total: number }> {
+  ): Promise<PaginatedTokenHoldersResponse> {
     const { holders, total } = await this.listHolders.execute(
       id,
       query.limit,
@@ -107,10 +110,11 @@ export class TokensController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mon solde pour un token' })
   @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: TokenBalanceResponse })
   async balance(
     @CurrentUser() user: User,
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<{ balance: number }> {
+  ): Promise<TokenBalanceResponse> {
     return { balance: await this.getMyBalance.execute(user.id, id) };
   }
 
@@ -118,10 +122,11 @@ export class TokensController {
   @Get(':id/transactions')
   @ApiOperation({ summary: "Transactions d'un token" })
   @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: PaginatedTokenTransactionsResponse })
   async tokenTransactions(
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: PaginationQuery,
-  ): Promise<{ transactions: TokenTransactionResponse[]; total: number }> {
+  ): Promise<PaginatedTokenTransactionsResponse> {
     const { transactions, total } = await this.listTokenTransactions.execute(
       id,
       query.limit,

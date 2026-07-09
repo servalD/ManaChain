@@ -29,9 +29,11 @@ import type {
   BrandResponse,
   BrandStatsResponse,
   BrandsControllerListActiveParams,
+  BrandsControllerListForWhitelistParams,
   BrandsControllerListParams,
   ConfirmMediaRequest,
   CreateBrandRequest,
+  PaginatedBrandWhitelistResponse,
   PaginatedBrandsResponse,
   UpdateBrandRequest
 } from '../../models';
@@ -296,6 +298,99 @@ export function useBrandsControllerListActive<TData = Awaited<ReturnType<typeof 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBrandsControllerListActiveQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)
+ */
+export const brandsControllerListForWhitelist = (
+    params?: BrandsControllerListForWhitelistParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaginatedBrandWhitelistResponse>(
+      {url: `/api/brands/admin/whitelist`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandsControllerListForWhitelistQueryKey = (params?: BrandsControllerListForWhitelistParams,) => {
+    return [
+    `/api/brands/admin/whitelist`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBrandsControllerListForWhitelistQueryOptions = <TData = Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError = ErrorType<unknown>>(params?: BrandsControllerListForWhitelistParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBrandsControllerListForWhitelistQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>> = ({ signal }) => brandsControllerListForWhitelist(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BrandsControllerListForWhitelistQueryResult = NonNullable<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>>
+export type BrandsControllerListForWhitelistQueryError = ErrorType<unknown>
+
+
+export function useBrandsControllerListForWhitelist<TData = Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError = ErrorType<unknown>>(
+ params: undefined |  BrandsControllerListForWhitelistParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerListForWhitelist>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerListForWhitelist>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerListForWhitelist<TData = Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerListForWhitelistParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerListForWhitelist>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerListForWhitelist>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerListForWhitelist<TData = Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerListForWhitelistParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)
+ */
+
+export function useBrandsControllerListForWhitelist<TData = Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerListForWhitelistParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerListForWhitelist>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBrandsControllerListForWhitelistQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

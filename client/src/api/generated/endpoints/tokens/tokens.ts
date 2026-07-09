@@ -6,34 +6,29 @@
  * OpenAPI spec version: 1.0
  */
 import {
-  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
-  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
-  UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
-  CreateTokenRequest,
+  PaginatedTokenHoldersResponse,
+  PaginatedTokenTransactionsResponse,
   PortfolioEntryResponse,
-  PurchaseRequest,
+  TokenBalanceResponse,
   TokenResponse,
   TokensControllerHoldersParams,
   TokensControllerMyTransactionsParams,
-  TokensControllerTokenTransactionsParams,
-  TransferRequest,
-  UpdatePriceRequest
+  TokensControllerTokenTransactionsParams
 } from '../../models';
 
 import { customInstance } from '../../../../lib/api/mutator';
@@ -58,70 +53,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
 };
 
 /**
- * @summary Créer le token de sa marque
- */
-export const tokensControllerCreate = (
-    createTokenRequest: CreateTokenRequest,
- signal?: AbortSignal
-) => {
-
-
-      return customInstance<TokenResponse>(
-      {url: `/api/tokens`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createTokenRequest, signal
-    },
-      );
-    }
-
-
-
-
-export const getTokensControllerCreateMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerCreate>>, TError,{data: CreateTokenRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof tokensControllerCreate>>, TError,{data: CreateTokenRequest}, TContext> => {
-
-const mutationKey = ['tokensControllerCreate'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tokensControllerCreate>>, {data: CreateTokenRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  tokensControllerCreate(data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TokensControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof tokensControllerCreate>>>
-    export type TokensControllerCreateMutationBody = CreateTokenRequest
-    export type TokensControllerCreateMutationError = ErrorType<unknown>
-
-    /**
- * @summary Créer le token de sa marque
- */
-export const useTokensControllerCreate = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerCreate>>, TError,{data: CreateTokenRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof tokensControllerCreate>>,
-        TError,
-        {data: CreateTokenRequest},
-        TContext
-      > => {
-      return useMutation(getTokensControllerCreateMutationOptions(options), queryClient);
-    }
-    /**
  * @summary Token d'une marque
  */
 export const tokensControllerByBrand = (
@@ -222,7 +153,7 @@ export const tokensControllerMyTransactions = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<PaginatedTokenTransactionsResponse>(
       {url: `/api/tokens/my/transactions`, method: 'GET',
         params, signal
     },
@@ -408,7 +339,7 @@ export const tokensControllerHolders = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<PaginatedTokenHoldersResponse>(
       {url: `/api/tokens/${id}/holders`, method: 'GET',
         params, signal
     },
@@ -507,7 +438,7 @@ export const tokensControllerBalance = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<TokenBalanceResponse>(
       {url: `/api/tokens/${id}/balance`, method: 'GET', signal
     },
       );
@@ -600,7 +531,7 @@ export const tokensControllerTokenTransactions = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<PaginatedTokenTransactionsResponse>(
       {url: `/api/tokens/${id}/transactions`, method: 'GET',
         params, signal
     },
@@ -691,201 +622,6 @@ export function useTokensControllerTokenTransactions<TData = Awaited<ReturnType<
 
 
 /**
- * @summary Mettre à jour le prix (propriétaire)
- */
-export const tokensControllerSetPrice = (
-    id: string,
-    updatePriceRequest: UpdatePriceRequest,
- signal?: AbortSignal
-) => {
-
-
-      return customInstance<TokenResponse>(
-      {url: `/api/tokens/${id}/price`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updatePriceRequest, signal
-    },
-      );
-    }
-
-
-
-
-export const getTokensControllerSetPriceMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerSetPrice>>, TError,{id: string;data: UpdatePriceRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof tokensControllerSetPrice>>, TError,{id: string;data: UpdatePriceRequest}, TContext> => {
-
-const mutationKey = ['tokensControllerSetPrice'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tokensControllerSetPrice>>, {id: string;data: UpdatePriceRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  tokensControllerSetPrice(id,data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TokensControllerSetPriceMutationResult = NonNullable<Awaited<ReturnType<typeof tokensControllerSetPrice>>>
-    export type TokensControllerSetPriceMutationBody = UpdatePriceRequest
-    export type TokensControllerSetPriceMutationError = ErrorType<unknown>
-
-    /**
- * @summary Mettre à jour le prix (propriétaire)
- */
-export const useTokensControllerSetPrice = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerSetPrice>>, TError,{id: string;data: UpdatePriceRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof tokensControllerSetPrice>>,
-        TError,
-        {id: string;data: UpdatePriceRequest},
-        TContext
-      > => {
-      return useMutation(getTokensControllerSetPriceMutationOptions(options), queryClient);
-    }
-    /**
- * @summary Transférer des tokens
- */
-export const tokensControllerTransferTokens = (
-    id: string,
-    transferRequest: TransferRequest,
- signal?: AbortSignal
-) => {
-
-
-      return customInstance<void>(
-      {url: `/api/tokens/${id}/transfer`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: transferRequest, signal
-    },
-      );
-    }
-
-
-
-
-export const getTokensControllerTransferTokensMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerTransferTokens>>, TError,{id: string;data: TransferRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof tokensControllerTransferTokens>>, TError,{id: string;data: TransferRequest}, TContext> => {
-
-const mutationKey = ['tokensControllerTransferTokens'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tokensControllerTransferTokens>>, {id: string;data: TransferRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  tokensControllerTransferTokens(id,data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TokensControllerTransferTokensMutationResult = NonNullable<Awaited<ReturnType<typeof tokensControllerTransferTokens>>>
-    export type TokensControllerTransferTokensMutationBody = TransferRequest
-    export type TokensControllerTransferTokensMutationError = ErrorType<unknown>
-
-    /**
- * @summary Transférer des tokens
- */
-export const useTokensControllerTransferTokens = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerTransferTokens>>, TError,{id: string;data: TransferRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof tokensControllerTransferTokens>>,
-        TError,
-        {id: string;data: TransferRequest},
-        TContext
-      > => {
-      return useMutation(getTokensControllerTransferTokensMutationOptions(options), queryClient);
-    }
-    /**
- * @summary Acheter des tokens
- */
-export const tokensControllerPurchaseTokens = (
-    id: string,
-    purchaseRequest: PurchaseRequest,
- signal?: AbortSignal
-) => {
-
-
-      return customInstance<void>(
-      {url: `/api/tokens/${id}/purchase`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: purchaseRequest, signal
-    },
-      );
-    }
-
-
-
-
-export const getTokensControllerPurchaseTokensMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>, TError,{id: string;data: PurchaseRequest}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>, TError,{id: string;data: PurchaseRequest}, TContext> => {
-
-const mutationKey = ['tokensControllerPurchaseTokens'];
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>, {id: string;data: PurchaseRequest}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  tokensControllerPurchaseTokens(id,data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type TokensControllerPurchaseTokensMutationResult = NonNullable<Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>>
-    export type TokensControllerPurchaseTokensMutationBody = PurchaseRequest
-    export type TokensControllerPurchaseTokensMutationError = ErrorType<unknown>
-
-    /**
- * @summary Acheter des tokens
- */
-export const useTokensControllerPurchaseTokens = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>, TError,{id: string;data: PurchaseRequest}, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof tokensControllerPurchaseTokens>>,
-        TError,
-        {id: string;data: PurchaseRequest},
-        TContext
-      > => {
-      return useMutation(getTokensControllerPurchaseTokensMutationOptions(options), queryClient);
-    }
-    /**
  * @summary Token par id
  */
 export const tokensControllerGetOne = (

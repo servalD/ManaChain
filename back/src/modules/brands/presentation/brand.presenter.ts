@@ -35,6 +35,17 @@ export class PaginatedBrandsResponse {
   @ApiProperty() total: number;
 }
 
+export class BrandWhitelistEntryResponse {
+  @ApiProperty({ type: BrandResponse }) brand: BrandResponse;
+  @ApiProperty({ type: String, nullable: true }) ownerBlockchainAddress: string | null;
+}
+
+export class PaginatedBrandWhitelistResponse {
+  @ApiProperty({ type: BrandWhitelistEntryResponse, isArray: true })
+  brands: BrandWhitelistEntryResponse[];
+  @ApiProperty() total: number;
+}
+
 export class BrandStatsResponse {
   @ApiProperty() tokenHolders: number;
   @ApiProperty() totalRaised: string;

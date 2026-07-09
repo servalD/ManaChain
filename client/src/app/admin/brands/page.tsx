@@ -6,6 +6,7 @@ import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
+import { BrandWhitelistTable } from "@/components/dashboard";
 
 export default function AdminBrandsPage() {
   const router = useRouter();
@@ -48,9 +49,12 @@ export default function AdminBrandsPage() {
                 Browse Brands
               </span>
             </h1>
-            <p className="text-muted-foreground">
-              Manage and review brand applications here.
+            <p className="text-muted-foreground mb-8">
+              Whitelist a brand on-chain to let it deploy its token module. Connect your
+              operator wallet above — the transaction reverts if it doesn&apos;t hold the
+              operator role on ManaAdmin.
             </p>
+            <BrandWhitelistTable />
           </div>
         </div>
       </div>

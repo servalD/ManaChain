@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
 import { useMyBrand } from "@/hooks/api/useBrands";
+import { useTokenByBrand } from "@/hooks/api/useTokens";
 import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
 
 export default function BrandDashboardPage() {
@@ -16,8 +17,8 @@ export default function BrandDashboardPage() {
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
   const shouldSkipBrandFetch = user?.role === "BRANDUSER" && user?.passwordChanged === false;
   const { data: brand, isLoading: isLoadingBrand } = useMyBrand({ enabled: !!user && !shouldSkipBrandFetch });
-  // Mock: always set hasToken to true for testing (see BrandService.getBrandStats, historically commented out)
-  const hasToken = !shouldSkipBrandFetch && !!user && !!brand;
+  const { data: token } = useTokenByBrand(brand?.id);
+  const hasToken = !!token;
   const brandId = brand?.id ?? null;
   const brandName = brand?.name ?? "";
   const brandLogo = brand?.logoUrl ?? null;
@@ -73,7 +74,7 @@ export default function BrandDashboardPage() {
               </div>
             ) : brandId ? (
               <>
-                <MyBrandChart brandId={brandId} hasToken={hasToken} brandName={brandName} brandLogo={brandLogo} />
+                <MyBrandChart brandId={brandId} hasToken={hasToken} token={token} brandName={brandName} brandLogo={brandLogo} />
                 <BrandEvents />
                 <BrandContentMedia brandId={brandId} />
                 <BrandNotifications />
