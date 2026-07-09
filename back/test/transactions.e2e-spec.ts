@@ -5,8 +5,6 @@ import { UserRepository } from '../src/modules/users/domain/user.repository';
 import { BrandRepository } from '../src/modules/brands/domain/brand.repository';
 import { TokenRepository } from '../src/modules/tokens/domain/token.repository';
 import { TokenHolderRepository } from '../src/modules/tokens/domain/token-holder.repository';
-import { TransferTokensUseCase } from '../src/modules/tokens/application/use-cases/transfer-tokens.use-case';
-import { InsufficientBalanceError } from '../src/modules/tokens/domain/token.errors';
 
 const brandFields = {
   country: 'FR',
@@ -56,6 +54,10 @@ describe('Atomic transactions (e2e)', () => {
   });
 
   it('serializes concurrent debits — no lost update', async () => {
+    // Le verrou pessimiste (getBalanceForUpdate) est le mécanisme partagé par
+    // tout écrivain de token_holder — aujourd'hui chain-sync (Erc20TransferHandler),
+    // avant la bascule les use-cases purchase/transfer off-chain. On exerce
+    // directement la primitive plutôt qu'un use-case précis.
     const brandUser = await seedUser(ctx, {
       email: 'lockbrand@test.dev',
       username: 'lockbrand',
@@ -66,8 +68,6 @@ describe('Atomic transactions (e2e)', () => {
       email: 'sender@test.dev',
       username: 'sender',
     });
-    const r1 = await seedUser(ctx, { email: 'r1@test.dev', username: 'rcv1' });
-    const r2 = await seedUser(ctx, { email: 'r2@test.dev', username: 'rcv2' });
 
     const brand = await ctx.app
       .get(BrandRepository)
@@ -80,26 +80,25 @@ describe('Atomic transactions (e2e)', () => {
     });
 
     const holders = ctx.app.get(TokenHolderRepository);
+    const runner = ctx.app.get(TransactionRunner);
     await holders.setBalance(sender.id, token.id, 50);
 
+    const debit = (amount: number) =>
+      runner.run(async () => {
+        const balance = await holders.getBalanceForUpdate(sender.id, token.id);
+        if (balance < amount) throw new Error('insufficient balance');
+        await holders.setBalance(sender.id, token.id, balance - amount);
+      });
+
     // Deux débits de 30 en parallèle : un seul peut passer (solde 50).
-    const transfer = ctx.app.get(TransferTokensUseCase);
-    const results = await Promise.allSettled([
-      transfer.execute(sender, token.id, r1.id, 30),
-      transfer.execute(sender, token.id, r2.id, 30),
-    ]);
+    const results = await Promise.allSettled([debit(30), debit(30)]);
 
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
     const rejected = results.filter((r) => r.status === 'rejected');
     expect(fulfilled).toHaveLength(1);
     expect(rejected).toHaveLength(1);
-    expect(rejected[0].reason).toBeInstanceOf(InsufficientBalanceError);
 
-    // Aucune valeur perdue : émetteur 50 → 20, un seul destinataire crédité de 30.
+    // Aucune valeur perdue : un seul débit de 30 a pu passer (50 -> 20).
     expect(await holders.getBalance(sender.id, token.id)).toBe(20);
-    const received =
-      (await holders.getBalance(r1.id, token.id)) +
-      (await holders.getBalance(r2.id, token.id));
-    expect(received).toBe(30);
   });
 });

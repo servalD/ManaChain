@@ -10,6 +10,8 @@ import {
 import { Role } from '../src/shared/enums/role.enum';
 import { BrandRepository } from '../src/modules/brands/domain/brand.repository';
 import { TokenRepository } from '../src/modules/tokens/domain/token.repository';
+import { TokenHolderRepository } from '../src/modules/tokens/domain/token-holder.repository';
+import { TokenTransactionRepository } from '../src/modules/tokens/domain/token-transaction.repository';
 import { User } from '../src/modules/users/domain/user';
 
 const brandFields = {
@@ -21,10 +23,12 @@ const brandFields = {
 };
 
 /**
- * Chemin métier complet contre la vraie DB : achat/transfert de tokens puis
- * statistiques marque. Couvre le SQL brut introduit au point 1 (colonne
- * `price_per_token`, `TypeOrmBrandTokenStatsReader`, `TypeOrmBrandBanReader`) et
- * la délégation `BrandLookup → BrandRepository`, non testés en unitaire.
+ * Chemin métier complet contre la vraie DB : lectures (holders, transactions,
+ * stats marque) sur des données d'achat/transfert seedées directement via les
+ * repositories — depuis la bascule chain-sync, ces écritures sont pilotées par
+ * les events on-chain, plus par une route HTTP. Couvre le SQL brut (colonne
+ * `price_per_token`, `TypeOrmBrandTokenStatsReader`, `TypeOrmBrandBanReader`),
+ * non testé en unitaire.
  */
 describe('Tokens & brand stats (e2e)', () => {
   let ctx: E2EContext;
@@ -73,32 +77,45 @@ describe('Tokens & brand stats (e2e)', () => {
     await destroyE2EApp(ctx);
   });
 
-  it('records purchases with their unit price', async () => {
-    await http()
-      .post(`/api/tokens/${tokenId}/purchase`)
-      .set(...bearer(signToken(ctx, buyer1)))
-      .send({ amount: 100, pricePerToken: '1.50' })
-      .expect(200);
+  it('seeds purchases and a transfer as chain-sync would (direct repository writes)', async () => {
+    const holders = ctx.app.get(TokenHolderRepository);
+    const transactions = ctx.app.get(TokenTransactionRepository);
 
-    await http()
-      .post(`/api/tokens/${tokenId}/purchase`)
-      .set(...bearer(signToken(ctx, buyer2)))
-      .send({ amount: 50, pricePerToken: '2.00' })
-      .expect(200);
+    await transactions.record({
+      tokenId,
+      fromUserId: null,
+      toUserId: buyer1.id,
+      amount: 100,
+      transactionType: 'purchase',
+      pricePerToken: 1.5,
+    });
+    await transactions.record({
+      tokenId,
+      fromUserId: null,
+      toUserId: buyer2.id,
+      amount: 50,
+      transactionType: 'purchase',
+      pricePerToken: 2.0,
+    });
+    await holders.setBalance(buyer1.id, tokenId, 100);
+    await holders.setBalance(buyer2.id, tokenId, 50);
 
     const balance = await http()
       .get(`/api/tokens/${tokenId}/balance`)
       .set(...bearer(signToken(ctx, buyer1)))
       .expect(200);
     expect((balance.body as { balance: number }).balance).toBe(100);
-  });
 
-  it('transfers tokens between holders', async () => {
-    await http()
-      .post(`/api/tokens/${tokenId}/transfer`)
-      .set(...bearer(signToken(ctx, buyer1)))
-      .send({ toUserId: buyer2.id, amount: 30 })
-      .expect(200);
+    // Transfert P2P (équivalent d'un Transfer ERC-20 buyer1 -> buyer2).
+    await transactions.record({
+      tokenId,
+      fromUserId: buyer1.id,
+      toUserId: buyer2.id,
+      amount: 30,
+      transactionType: 'transfer',
+    });
+    await holders.setBalance(buyer1.id, tokenId, 70);
+    await holders.setBalance(buyer2.id, tokenId, 80);
 
     const b1 = await http()
       .get(`/api/tokens/${tokenId}/balance`)
