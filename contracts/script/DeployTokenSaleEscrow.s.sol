@@ -4,7 +4,6 @@ pragma solidity ^0.8.33;
 import {console} from "forge-std/Script.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TokenSaleEscrow} from "../src/brand/TokenSaleEscrow.sol";
-import {BaseStablecoins} from "../src/constants/BaseStablecoins.sol";
 import {DeployConfig} from "./helpers/DeployConfig.sol";
 
 /**
@@ -27,10 +26,7 @@ contract DeployTokenSaleEscrow is DeployConfig {
         address brand = readBrandCfg().addr;
         address manaAdmin = readDeployed("manaAdminProxy");
         address supportToken = readDeployed("supportToken");
-
-        address usdc = block.chainid == BaseStablecoins.CHAIN_ID_BASE_MAINNET
-            ? BaseStablecoins.USDC_BASE_MAINNET
-            : BaseStablecoins.USDC_BASE_TESTNET;
+        address usdc = readDeployed("mockUSDC");
 
         vm.startBroadcast();
         TokenSaleEscrow escrow = new TokenSaleEscrow(

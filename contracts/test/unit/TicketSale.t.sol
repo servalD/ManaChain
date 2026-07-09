@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {TicketSale} from "../../src/events/TicketSale.sol";
 import {EventTickets} from "../../src/events/EventTickets.sol";
-import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {MockUSDC} from "../../src/mocks/MockUSDC.sol";
 import {ManaRoles} from "../../src/constants/ManaRoles.sol";
 
 contract TicketSaleTest is Test {
@@ -24,13 +24,7 @@ contract TicketSaleTest is Test {
     uint256 public endTime;
 
     function setUp() public {
-        vm.chainId(84532);
-
-        // Etch a fresh MockUSDC at the canonical Base Sepolia USDC address
         usdc = new MockUSDC();
-        address usdcAddr = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-        vm.etch(usdcAddr, address(usdc).code);
-        usdc = MockUSDC(usdcAddr);
 
         // Deploy EventTickets
         EventTickets impl = new EventTickets();
@@ -51,13 +45,7 @@ contract TicketSaleTest is Test {
             endTime
         );
 
-        // —— Manual mint to TicketSale ——
-        // Mock onERC1155Received to bypass ERC1155InvalidReceiver error
-        vm.mockCall(
-            address(sale),
-            abi.encodeWithSignature("onERC1155Received(address,address,uint256,uint256,bytes)"),
-            abi.encode(bytes4(0xf23a6e61))
-        );
+        // Mint tickets to the sale contract (TicketSale is an ERC1155Holder)
         vm.prank(brand);
         tickets.mint(address(sale), tokenId, 100);
 
@@ -65,7 +53,7 @@ contract TicketSaleTest is Test {
         vm.prank(brand);
         sale.setPrice(tokenId, TICKET_PRICE);
 
-        // Give alice USDC using deal (works with vm.etch'd contracts)
+        // Give alice USDC
         deal(address(usdc), alice, 10_000e6);
     }
 
@@ -162,20 +150,17 @@ contract TicketSaleTest is Test {
         sale.buy(99, 1); // tokenId 99 never had price set
     }
 
-    /// @dev H-1 SECURITY: payment is taken BEFORE checking ticket balance.
-    ///      Revert still occurs (thanks to nonReentrant + EVM revert), but
-    ///      the token transfer happened first — violating CEI pattern.
+    /// @dev H-1 SECURITY: ticket stock is checked BEFORE any payment transfer (CEI).
     function test_buy_insufficientTickets_noMoneyLost() public {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(sale), 2000e6);
 
-        // 100 tickets in contract; try to buy 101
+        // 100 tickets in contract; try to buy 101 — reverts before touching USDC
         vm.expectRevert(TicketSale.TicketSaleInsufficientBalance.selector);
         sale.buy(tokenId, 101);
         vm.stopPrank();
 
-        // EVM revert means no USDC was actually lost, but order is wrong (H-1)
         assertEq(usdc.balanceOf(alice), 10_000e6); // Alice's USDC unchanged
     }
 

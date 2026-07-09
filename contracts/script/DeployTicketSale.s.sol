@@ -5,7 +5,6 @@ import {console} from "forge-std/Script.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {TicketSale} from "../src/events/TicketSale.sol";
-import {BaseStablecoins} from "../src/constants/BaseStablecoins.sol";
 import {DeployConfig} from "./helpers/DeployConfig.sol";
 
 /**
@@ -36,9 +35,7 @@ contract DeployTicketSale is DeployConfig {
             paymentToken   = address(0);
             effectiveFeeBps = 0;
         } else {
-            paymentToken = block.chainid == BaseStablecoins.CHAIN_ID_BASE_MAINNET
-                ? BaseStablecoins.USDC_BASE_MAINNET
-                : BaseStablecoins.USDC_BASE_TESTNET;
+            paymentToken = readDeployed("mockUSDC");
             effectiveFeeBps = uint16(adminCfg.feePrimaryBps);
         }
 

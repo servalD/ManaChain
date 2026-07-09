@@ -5,15 +5,15 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {BaseStablecoins} from "../constants/BaseStablecoins.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
 /**
  * @title TicketSale
  * @author Mana Chain
- * @notice Primary sale of event tickets (ERC-1155). Payment in USDC only (Base) or free (price 0). Funds to brand minus platform fee.
- * @dev Brand must mint tickets to this contract before sale. Payment token must be USDC on Base or address(0) for free-only events.
+ * @notice Primary sale of event tickets (ERC-1155). Payment in the platform stablecoin or free (price 0). Funds to brand minus platform fee.
+ * @dev Brand must mint tickets to this contract before sale — TicketSale is an ERC1155Holder so safe mints/transfers to it are accepted. The payment token is injected at deployment (pinned by SaleFactory for platform-recognized sales) or address(0) for free-only events.
  */
-contract TicketSale is ReentrancyGuard {
+contract TicketSale is ReentrancyGuard, ERC1155Holder {
     using SafeERC20 for IERC20;
 
     IERC1155 public immutable eventTickets;
@@ -43,7 +43,7 @@ contract TicketSale is ReentrancyGuard {
 
     /**
      * @param eventTickets_ ERC-1155 event tickets contract. This contract must hold the tickets to sell (brand mints to this).
-     * @param paymentToken_ USDC on Base (see BaseStablecoins) or address(0) for free-only event (all prices must be 0).
+     * @param paymentToken_ Platform stablecoin (6 decimals) or address(0) for free-only event (all prices must be 0).
      * @param brand_ Address that receives proceeds (minus fee).
      * @param feeRecipient_ Platform fee recipient.
      * @param feeBps_ Fee in basis points (e.g. 500 = 5%). Max 10000.
@@ -63,8 +63,6 @@ contract TicketSale is ReentrancyGuard {
             address(eventTickets_) == address(0) || brand_ == address(0) || feeRecipient_ == address(0)
         ) revert TicketSaleInvalidConfig();
         if (endTime_ <= startTime_ || feeBps_ > 10000) revert TicketSaleInvalidConfig();
-        if (address(paymentToken_) != address(0) && address(paymentToken_) != BaseStablecoins.getUSDC())
-            revert TicketSaleOnlyUSDCOrFree();
         if (address(paymentToken_) == address(0) && feeBps_ != 0) revert TicketSaleInvalidConfig();
 
         eventTickets = eventTickets_;
@@ -74,14 +72,6 @@ contract TicketSale is ReentrancyGuard {
         feeBps = feeBps_;
         startTime = startTime_;
         endTime = endTime_;
-    }
-
-    /**
-     * @notice Call once after deployment so this contract can transfer tickets it holds to buyers.
-     * @dev Brand must mint tickets to this contract, then call this (or anyone can call it once).
-     */
-    function approveTicketTransfer() external {
-        eventTickets.setApprovalForAll(address(this), true);
     }
 
     /**
@@ -105,6 +95,10 @@ contract TicketSale is ReentrancyGuard {
         uint256 price = _pricePerTicket[tokenId];
         uint256 cost = price * quantity;
 
+        // Checks-effects-interactions (audit H-1): verify ticket stock BEFORE taking payment.
+        uint256 balance = eventTickets.balanceOf(address(this), tokenId);
+        if (balance < quantity) revert TicketSaleInsufficientBalance();
+
         if (cost > 0) {
             if (address(paymentToken) == address(0)) revert TicketSaleOnlyUSDCOrFree();
             paymentToken.safeTransferFrom(msg.sender, address(this), cost);
@@ -114,8 +108,6 @@ contract TicketSale is ReentrancyGuard {
             if (toBrand > 0) paymentToken.safeTransfer(brand, toBrand);
         }
 
-        uint256 balance = eventTickets.balanceOf(address(this), tokenId);
-        if (balance < quantity) revert TicketSaleInsufficientBalance();
         eventTickets.safeTransferFrom(address(this), msg.sender, tokenId, quantity, "");
 
         emit Bought(msg.sender, tokenId, quantity, cost);

@@ -21,14 +21,16 @@
     "pricePerToken": "1000000",
     "totalForSale": "1000000000000000000000",
     "startTime": 1700000000,
-    "endTime": 1700086400
+    "endTime": 4102444800
   },
   "ticketSale": {
     "startTime": 1700000000,
-    "endTime": 1700086400,
+    "endTime": 4102444800,
     "freeEvent": false
   },
   "deployed": {
+    "mockUSDC": "0x0000000000000000000000000000000000000000",
+    "saleFactory": "0x0000000000000000000000000000000000000000",
     "manaAdminImpl": "0xD224f60AD8c365Ebc0077C503DF34e1Da02AFBC5",
     "manaAdminProxy": "0x1135B39a2BD02E7489136cc4895D62ACC9a21b6E",
     "genesisNFTImpl": "0x0B3Db9210F80e8890c1323e04b1D961ec7261A36",

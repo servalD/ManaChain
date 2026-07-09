@@ -131,18 +131,18 @@ contract FractionalVaultTest is Test {
         vault.burnSupport(alice, 50e18);
     }
 
-    /// @dev C-2 SECURITY: TDD Test — Must revert if no approval is given
+    /// @dev C-2 SECURITY: burning a third party's tokens requires their allowance to the vault
     function test_burnSupport_withoutApproval() public {
         vm.prank(brandOwner);
         vault.mintSupport(alice, 100e18);
 
-        // Owner burns alice's tokens without alice's approval -> MUST REVERT
+        // Owner burns alice's tokens without alice's approval -> reverts (ERC20InsufficientAllowance)
         vm.prank(brandOwner);
-        vm.expectRevert(); // Expect revert. Currently fails the test since contract is vulnerable!
+        vm.expectRevert();
         vault.burnSupport(alice, 100e18);
     }
 
-    /// @dev Documenting standard functionality (even though approval isn't actually required yet)
+    /// @dev C-2: with the holder's approval, the vault pulls then burns
     function test_burnSupport_withApproval() public {
         vm.prank(brandOwner);
         vault.mintSupport(alice, 100e18);

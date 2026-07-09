@@ -6,6 +6,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {BrandSupportToken} from "./BrandSupportToken.sol";
+import {ISaleFactory} from "../interfaces/ISaleFactory.sol";
 
 /**
  * @title FractionalVault
@@ -26,6 +27,7 @@ contract FractionalVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     error FractionalVaultNFTAlreadyDeposited();
     error FractionalVaultInsufficientBalance();
     error FractionalVaultUnauthorized();
+    error FractionalVaultGenesisNotDeposited();
 
     event SupportTokenSet(address indexed token);
     event GenesisDeposited(address indexed nft, uint256 indexed tokenId);
@@ -33,6 +35,7 @@ contract FractionalVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event SupportBurned(address indexed from, uint256 amount);
     event VaultBalanceBurned(uint256 amount);
     event EscrowSet(address indexed escrow);
+    event SaleOpened(address indexed escrow);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -84,6 +87,38 @@ contract FractionalVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @notice Opens a primary sale in one transaction: deploys the escrow via the SaleFactory,
+     *         funds it with `totalForSale` support tokens and links it for the refund flow.
+     * @dev Requires the Genesis NFT to be locked first (support tokens are its fractions).
+     *      The factory authenticates this vault against the BrandFactory registry.
+     * @param factory Platform SaleFactory.
+     * @param pricePerToken Price in payment-token units (6 decimals) per whole support token.
+     * @param totalForSale Support tokens for sale, in base units (18 decimals). Minted to the escrow (cap enforced by the token).
+     * @param startTime Sale start timestamp.
+     * @param endTime Sale end timestamp.
+     * @return escrow The deployed TokenSaleEscrow.
+     */
+    function openSale(
+        ISaleFactory factory,
+        uint256 pricePerToken,
+        uint256 totalForSale,
+        uint256 startTime,
+        uint256 endTime
+    ) external onlyOwner returns (address escrow) {
+        if (address(factory) == address(0)) revert FractionalVaultZeroAddress();
+        if (address(_supportToken) == address(0)) revert FractionalVaultTokenNotSet();
+        if (address(_genesisNFT) == address(0)) revert FractionalVaultGenesisNotDeposited();
+
+        escrow = factory.deployTokenSale(owner(), pricePerToken, totalForSale, startTime, endTime);
+        _supportToken.mint(escrow, totalForSale);
+        _escrow = escrow;
+
+        emit SupportMinted(escrow, totalForSale);
+        emit EscrowSet(escrow);
+        emit SaleOpened(escrow);
+    }
+
+    /**
      * @notice Mints support tokens to `to`. Only owner (brand).
      * @param to Recipient.
      * @param amount Amount to mint.
@@ -96,7 +131,7 @@ contract FractionalVault is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     /**
      * @notice Burns support tokens from `from`. Only owner. Use for buyback or other flows.
-     * @param from Address whose tokens to burn (must have balance and no approval needed: vault is trusted).
+     * @param from Address whose tokens to burn. Unless `from` is the caller, `from` must have approved this vault for `amount` (audit C-2: holder consent required).
      * @param amount Amount to burn.
      */
     function burnSupport(address from, uint256 amount) external onlyOwner {

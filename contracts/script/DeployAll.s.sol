@@ -4,33 +4,39 @@ pragma solidity ^0.8.33;
 import {console} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ManaAdmin} from "../src/access/ManaAdmin.sol";
 import {ManaRoles} from "../src/constants/ManaRoles.sol";
 import {BrandGenesisNFT} from "../src/brand/BrandGenesisNFT.sol";
 import {FractionalVault} from "../src/brand/FractionalVault.sol";
 import {BrandSupportToken} from "../src/brand/BrandSupportToken.sol";
-import {TokenSaleEscrow} from "../src/brand/TokenSaleEscrow.sol";
 import {EventTickets} from "../src/events/EventTickets.sol";
-import {TicketSale} from "../src/events/TicketSale.sol";
-import {BrandFactory, IManaAdmin as IBrandAdmin} from "../src/factory/BrandFactory.sol";
-import {EventFactory, IManaAdmin as IEventAdmin} from "../src/factory/EventFactory.sol";
-import {BaseStablecoins} from "../src/constants/BaseStablecoins.sol";
+import {BrandFactory} from "../src/factory/BrandFactory.sol";
+import {EventFactory} from "../src/factory/EventFactory.sol";
+import {SaleFactory} from "../src/factory/SaleFactory.sol";
+import {IManaAdmin} from "../src/interfaces/IManaAdmin.sol";
+import {ISaleFactory} from "../src/interfaces/ISaleFactory.sol";
+import {MockUSDC} from "../src/mocks/MockUSDC.sol";
 import {DeployConfig} from "./helpers/DeployConfig.sol";
 
 /**
- * @notice One-shot deployment: core infra + brand module + event + token sale + ticket sale.
+ * @notice One-shot deployment: core infra + brand module + genesis lock + token sale
+ *         (via vault.openSale) + event module + ticket sale (via SaleFactory).
+ *         This is the platform's canonical flow — the indexer discovers the sales
+ *         through the SaleFactory events.
  *
  * The broadcaster (private key used) acts as the deployer for everything.
- * BrandFactory and EventFactory require msg.sender == brand, so the broadcaster
- * is used for those calls. If brand.address differs from the broadcaster, ownership
- * and roles are transferred to brand.address at the end of the script.
+ * The factories require msg.sender == brand, so the broadcaster is used as the
+ * brand for those calls. If brand.address differs from the broadcaster, ownership
+ * and roles are transferred to brand.address at the end — note that the sales
+ * deployed here still pay proceeds to the broadcaster in that case; real brand
+ * flows go through the app.
  *
  * Reads:  config/deploy.json → all sections
  * Writes: config/deploy.json → deployed.* (all addresses)
  *
- * Run (Base Sepolia):
- *   forge script script/DeployAll.s.sol --rpc-url base_sepolia --broadcast --verify -vvvv
+ * Run (Fuji):
+ *   forge script script/DeployAll.s.sol --rpc-url fuji --broadcast --verify -vvvv
  */
 contract DeployAll is DeployConfig {
     function run() external {
@@ -40,15 +46,14 @@ contract DeployAll is DeployConfig {
         TokenSaleCfg memory tokenSaleCfg = readTokenSaleCfg();
         TicketSaleCfg memory ticketSaleCfg = readTicketSaleCfg();
 
-        address usdc = block.chainid == BaseStablecoins.CHAIN_ID_BASE_MAINNET
-            ? BaseStablecoins.USDC_BASE_MAINNET
-            : BaseStablecoins.USDC_BASE_TESTNET;
-
         vm.startBroadcast();
 
         // msg.sender in broadcast == the account signing transactions.
         // All factory calls must use broadcaster as `brand` (factories enforce msg.sender == brand).
         address broadcaster = msg.sender;
+
+        // ── 0. Platform stablecoin (testnet faucet token) ─────────────
+        address usdc = address(new MockUSDC());
 
         // ── 1. ManaAdmin ──────────────────────────────────────────────
         // Initialize with broadcaster so fee/whitelist calls work in this batch.
@@ -69,14 +74,20 @@ contract DeployAll is DeployConfig {
 
         // ── 3. Factories ──────────────────────────────────────────────
         BrandFactory brandFactory = new BrandFactory(
-            IBrandAdmin(address(manaAdmin)),
+            IManaAdmin(address(manaAdmin)),
             address(genesisNFTImpl),
             address(vaultImpl),
             address(supportTokenImpl)
         );
         EventFactory eventFactory = new EventFactory(
-            IEventAdmin(address(manaAdmin)),
+            IManaAdmin(address(manaAdmin)),
             address(eventTicketsImpl)
+        );
+        SaleFactory saleFactory = new SaleFactory(
+            IManaAdmin(address(manaAdmin)),
+            brandFactory,
+            eventFactory,
+            IERC20(usdc)
         );
 
         // ── 4. Whitelist broadcaster so factories accept the call ─────
@@ -93,30 +104,25 @@ contract DeployAll is DeployConfig {
             brandCfg.totalSupplyCap
         );
 
-        // ── 6. Event module ───────────────────────────────────────────
-        address eventTickets = eventFactory.deployEventModule(broadcaster, eventCfg.uri);
+        // ── 6. Genesis NFT: mint and lock into the vault ──────────────
+        BrandGenesisNFT(genesisNFT).mint(broadcaster, 1, "ipfs://genesis", brandCfg.tokenImageUri);
+        BrandGenesisNFT(genesisNFT).approve(vault, 1);
+        FractionalVault(vault).depositGenesis(IERC721(genesisNFT), 1);
 
-        // ── 7. Token sale escrow ──────────────────────────────────────
-        TokenSaleEscrow tokenSaleEscrow = new TokenSaleEscrow(
-            IERC20(supportToken),
-            IERC20(usdc),
-            brandCfg.addr,          // proceeds go to intended brand
-            address(manaAdmin),
-            adminCfg.feeRecipient,
+        // ── 7. Token sale: deploy + fund + link in one call ───────────
+        address tokenSaleEscrow = FractionalVault(vault).openSale(
+            ISaleFactory(address(saleFactory)),
             tokenSaleCfg.pricePerToken,
             tokenSaleCfg.totalForSale,
             tokenSaleCfg.startTime,
-            tokenSaleCfg.endTime,
-            uint16(adminCfg.feePrimaryBps)
+            tokenSaleCfg.endTime
         );
 
-        // ── 8. Ticket sale ────────────────────────────────────────────
-        TicketSale ticketSale = new TicketSale(
-            IERC1155(eventTickets),
-            IERC20(ticketSaleCfg.freeEvent ? address(0) : usdc),
-            brandCfg.addr,          // proceeds go to intended brand
-            adminCfg.feeRecipient,
-            ticketSaleCfg.freeEvent ? 0 : uint16(adminCfg.feePrimaryBps),
+        // ── 8. Event module + ticket sale via SaleFactory ─────────────
+        address eventTickets = eventFactory.deployEventModule(broadcaster, eventCfg.uri);
+        address ticketSale = saleFactory.deployTicketSale(
+            eventTickets,
+            ticketSaleCfg.freeEvent,
             ticketSaleCfg.startTime,
             ticketSaleCfg.endTime
         );
@@ -155,6 +161,7 @@ contract DeployAll is DeployConfig {
         vm.stopBroadcast();
 
         // ── Persist all addresses ─────────────────────────────────────
+        writeDeployed("mockUSDC",         usdc);
         writeDeployed("manaAdminImpl",    address(manaAdminImpl));
         writeDeployed("manaAdminProxy",   address(manaAdmin));
         writeDeployed("genesisNFTImpl",   address(genesisNFTImpl));
@@ -163,27 +170,30 @@ contract DeployAll is DeployConfig {
         writeDeployed("eventTicketsImpl", address(eventTicketsImpl));
         writeDeployed("brandFactory",     address(brandFactory));
         writeDeployed("eventFactory",     address(eventFactory));
+        writeDeployed("saleFactory",      address(saleFactory));
         writeDeployed("genesisNFT",       genesisNFT);
         writeDeployed("vault",            vault);
         writeDeployed("supportToken",     supportToken);
         writeDeployed("eventTickets",     eventTickets);
-        writeDeployed("tokenSaleEscrow",  address(tokenSaleEscrow));
-        writeDeployed("ticketSale",       address(ticketSale));
+        writeDeployed("tokenSaleEscrow",  tokenSaleEscrow);
+        writeDeployed("ticketSale",       ticketSale);
 
         console.log("=== DeployAll ===");
         console.log("Chain:              ", block.chainid);
         console.log("Broadcaster:        ", broadcaster);
         console.log("Admin:              ", adminCfg.addr);
         console.log("Brand:              ", brandCfg.addr);
+        console.log("MockUSDC:           ", usdc);
         console.log("ManaAdmin proxy:    ", address(manaAdmin));
         console.log("BrandFactory:       ", address(brandFactory));
         console.log("EventFactory:       ", address(eventFactory));
+        console.log("SaleFactory:        ", address(saleFactory));
         console.log("Genesis NFT:        ", genesisNFT);
         console.log("Vault:              ", vault);
         console.log("Support Token:      ", supportToken);
         console.log("Event Tickets:      ", eventTickets);
-        console.log("TokenSaleEscrow:    ", address(tokenSaleEscrow));
-        console.log("TicketSale:         ", address(ticketSale));
+        console.log("TokenSaleEscrow:    ", tokenSaleEscrow);
+        console.log("TicketSale:         ", ticketSale);
         console.log("Addresses saved to  config/deploy.json");
     }
 }
