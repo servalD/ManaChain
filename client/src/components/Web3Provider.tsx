@@ -6,7 +6,7 @@ import { createConfig, WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { asAxiosError } from "@/lib/api-error";
 import { http } from "viem";
-import { sepolia } from "viem/chains";
+import { avalancheFuji } from "viem/chains";
 import { EthereumWalletConnectors } from "@dynamic-labs/ethereum";
 import { ReactNode } from "react";
 
@@ -15,11 +15,12 @@ interface Web3ProviderProps {
 }
 
 // Configuration Wagmi
+// http() sans argument retombe sur le RPC public Fuji défini par viem/chains.
 const config = createConfig({
-  chains: [sepolia],
+  chains: [avalancheFuji],
   multiInjectedProviderDiscovery: false,
   transports: {
-    [sepolia.id]: http(),
+    [avalancheFuji.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
   },
 });
 
