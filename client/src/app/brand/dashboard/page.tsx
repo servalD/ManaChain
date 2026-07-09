@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
-import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
+import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
 import { useMyBrand } from "@/hooks/api/useBrands";
 import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
@@ -13,9 +13,7 @@ import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from
 export default function BrandDashboardPage() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const updateBlockchainAddress = useUpdateBlockchainAddress();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
+  const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
   const shouldSkipBrandFetch = user?.role === "BRANDUSER" && user?.passwordChanged === false;
   const { data: brand, isLoading: isLoadingBrand } = useMyBrand({ enabled: !!user && !shouldSkipBrandFetch });
   // Mock: always set hasToken to true for testing (see BrandService.getBrandStats, historically commented out)
@@ -30,58 +28,6 @@ export default function BrandDashboardPage() {
       return;
     }
   }, [user, router]);
-
-  const handleWalletConnected = async (address: string) => {
-    setShouldDisconnectWallet(false);
-    const freshUser = await refreshUser();
-
-    if (!freshUser) {
-      toast({
-        title: "Error",
-        description: "Unable to verify user data. Please try again.",
-        variant: "error",
-      });
-      setShouldDisconnectWallet(true);
-      return;
-    }
-
-    if (freshUser.blockchainAddress) {
-      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
-        toast({
-          title: "Wallet Already Connected",
-          description: "You already have a different wallet connected to your account.",
-          variant: "error",
-        });
-        setShouldDisconnectWallet(true);
-        return;
-      }
-      setWalletAddress(address);
-      toast({
-        title: "Wallet Connected",
-        description: "Your registered wallet has been connected successfully.",
-        variant: "success",
-      });
-    } else {
-      try {
-        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
-        await refreshUser();
-        setWalletAddress(address);
-        toast({
-          title: "Wallet Connected & Saved",
-          description: "Your wallet has been connected and saved to your account.",
-          variant: "success",
-        });
-      } catch {
-        setShouldDisconnectWallet(true);
-        setWalletAddress(null);
-      }
-    }
-  };
-
-  const handleWalletDisconnected = () => {
-    setWalletAddress(null);
-    setShouldDisconnectWallet(false);
-  };
 
   const handleLogout = async () => {
     await logout();

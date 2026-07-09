@@ -6,7 +6,7 @@ import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
-import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
+import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
 import { DiscoverHeader, DiscoverContent, DiscoverContentRef } from "@/components/discover";
 import { InvestmentModal } from "@/components/ui/investment-modal";
@@ -29,10 +29,9 @@ import { asAxiosError } from "@/lib/api-error";
 export default function DiscoverPage() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
+  const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
   const [isInvestmentModalOpen, setIsInvestmentModalOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -40,7 +39,6 @@ export default function DiscoverPage() {
   const [imagePosition, setImagePosition] = useState<{ x: number; y: number; width: number; height: number } | undefined>(undefined);
   const discoverContentRef = useRef<DiscoverContentRef | null>(null);
   const queryClient = useQueryClient();
-  const updateBlockchainAddress = useUpdateBlockchainAddress();
 
   // Fetch brands from API; use first media image as cover when available (not logo)
   //
@@ -170,71 +168,6 @@ export default function DiscoverPage() {
     setIsDetailModalOpen(false);
     setDetailModalBrand(null);
     setImagePosition(undefined);
-  };
-
-  const handleWalletConnected = async (address: string) => {
-    // Reset disconnect flag
-    setShouldDisconnectWallet(false);
-
-    // Refresh user data to get latest blockchain_address
-    const freshUser = await refreshUser();
-
-    if (!freshUser) {
-      toast({
-        title: "Error",
-        description: "Unable to verify user data. Please try again.",
-        variant: "error",
-      });
-      setShouldDisconnectWallet(true);
-      return;
-    }
-    
-    // Check if user already has a blockchain address
-    if (freshUser.blockchainAddress) {
-      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
-        // Different wallet - show error and trigger disconnect
-        toast({
-          title: "Wallet Already Connected",
-          description: "You already have a different wallet connected to your account. Please use your registered wallet or contact support.",
-          variant: "error",
-        });
-        
-        // Trigger disconnect
-        setShouldDisconnectWallet(true);
-        return;
-      }
-      
-      // Same wallet - just update local state
-      setWalletAddress(address);
-      toast({
-        title: "Wallet Connected",
-        description: "Your registered wallet has been connected successfully.",
-        variant: "success",
-      });
-    } else {
-      // No blockchain address - save it
-      try {
-        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
-        // Refresh user data after saving to update user.blockchainAddress
-        await refreshUser();
-        setWalletAddress(address);
-        toast({
-          title: "Wallet Connected & Saved",
-          description: "Your wallet has been connected and saved to your account.",
-          variant: "success",
-        });
-      } catch {
-        // If update failed, trigger disconnect
-        setShouldDisconnectWallet(true);
-        setWalletAddress(null);
-      }
-    }
-  };
-
-  const handleWalletDisconnected = () => {
-    setWalletAddress(null);
-    setShouldDisconnectWallet(false);
-    console.log("Wallet disconnected");
   };
 
   const handleLogout = async () => {

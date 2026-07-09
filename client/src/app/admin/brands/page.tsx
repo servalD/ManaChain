@@ -1,71 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
-import { useUpdateBlockchainAddress } from "@/hooks/api/useAuth";
+import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
 
 export default function AdminBrandsPage() {
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
-  const updateBlockchainAddress = useUpdateBlockchainAddress();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [shouldDisconnectWallet, setShouldDisconnectWallet] = useState(false);
-
-  const handleWalletConnected = async (address: string) => {
-    setShouldDisconnectWallet(false);
-    const freshUser = await refreshUser();
-
-    if (!freshUser) {
-      toast({
-        title: "Error",
-        description: "Unable to verify user data. Please try again.",
-        variant: "error",
-      });
-      setShouldDisconnectWallet(true);
-      return;
-    }
-
-    if (freshUser.blockchainAddress) {
-      if (freshUser.blockchainAddress.toLowerCase() !== address.toLowerCase()) {
-        toast({
-          title: "Wallet Already Connected",
-          description: "You already have a different wallet connected to your account.",
-          variant: "error",
-        });
-        setShouldDisconnectWallet(true);
-        return;
-      }
-      setWalletAddress(address);
-      toast({
-        title: "Wallet Connected",
-        description: "Your registered wallet has been connected successfully.",
-        variant: "success",
-      });
-    } else {
-      try {
-        await updateBlockchainAddress.mutateAsync({ data: { blockchainAddress: address } });
-        await refreshUser();
-        setWalletAddress(address);
-        toast({
-          title: "Wallet Connected & Saved",
-          description: "Your wallet has been connected and saved to your account.",
-          variant: "success",
-        });
-      } catch {
-        setShouldDisconnectWallet(true);
-        setWalletAddress(null);
-      }
-    }
-  };
-
-  const handleWalletDisconnected = () => {
-    setWalletAddress(null);
-    setShouldDisconnectWallet(false);
-  };
+  const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
 
   const handleLogout = async () => {
     await logout();
