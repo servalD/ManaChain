@@ -46,6 +46,23 @@ export const envSchema = z.object({
 
   // Sentry (crash reporting). Vide/absent → Sentry désactivé (voir instrument.ts).
   SENTRY_DSN: z.string().optional(),
+
+  // chain-sync (miroir SQL de la chaîne). Défaut false : les e2e existants ne
+  // démarrent pas le poller (aucune dépendance à un RPC/anvil).
+  CHAIN_SYNC_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  CHAIN_RPC_URL: z.string().optional(),
+  CHAIN_ID: z.coerce.number().int().positive().default(43113),
+  CHAIN_SYNC_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
+  CHAIN_SYNC_CONFIRMATIONS: z.coerce.number().int().nonnegative().default(2),
+  CHAIN_SYNC_START_BLOCK: z.coerce.number().int().nonnegative().default(0),
+  MANA_ADMIN_ADDRESS: z.string().optional(),
+  BRAND_FACTORY_ADDRESS: z.string().optional(),
+  SALE_FACTORY_ADDRESS: z.string().optional(),
+  EVENT_FACTORY_ADDRESS: z.string().optional(),
+  USDC_ADDRESS: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

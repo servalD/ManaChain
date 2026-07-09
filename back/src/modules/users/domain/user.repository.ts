@@ -90,6 +90,8 @@ export abstract class UserRepository {
   abstract findByBlockchainAddress(address: string): Promise<User | null>;
   abstract updateProfile(id: string, fields: UpdateUserFields): Promise<User>;
   abstract updateBlockchainAddress(id: string, address: string): Promise<User>;
+  /** RGPD (D9) : efface le lien blockchain de l'utilisateur (suppression de compte). */
+  abstract clearBlockchainAddress(id: string): Promise<void>;
 
   // --- Auth (jalon 2) ---
   abstract findByEmail(email: string): Promise<User | null>;

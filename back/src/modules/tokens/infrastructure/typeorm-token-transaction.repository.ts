@@ -20,17 +20,33 @@ export class TypeOrmTokenTransactionRepository extends TokenTransactionRepositor
   }
 
   async record(params: RecordTransactionParams): Promise<void> {
-    await this.repository.save(
-      this.repository.create({
-        tokenId: params.tokenId,
-        fromUserId: params.fromUserId,
-        toUserId: params.toUserId,
-        amount: String(params.amount),
-        transactionType: params.transactionType,
-        pricePerToken:
-          params.pricePerToken != null ? String(params.pricePerToken) : null,
-      }),
-    );
+    const entity = {
+      tokenId: params.tokenId,
+      fromUserId: params.fromUserId,
+      toUserId: params.toUserId,
+      amount: String(params.amount),
+      transactionType: params.transactionType,
+      pricePerToken:
+        params.pricePerToken != null ? String(params.pricePerToken) : null,
+      txHash: params.txHash ?? null,
+      logIndex: params.logIndex ?? null,
+      blockNumber:
+        params.blockNumber != null ? String(params.blockNumber) : null,
+      fromAddress: params.fromAddress ?? null,
+      toAddress: params.toAddress ?? null,
+    };
+    if (params.txHash != null) {
+      // Idempotence chain-sync : rejouer le même (txHash, logIndex) ne doit
+      // jamais créer de doublon (contrainte unique partielle en DB).
+      await this.repository
+        .createQueryBuilder()
+        .insert()
+        .values(entity)
+        .orIgnore()
+        .execute();
+      return;
+    }
+    await this.repository.save(this.repository.create(entity));
   }
 
   async listByToken(
@@ -69,6 +85,11 @@ export class TypeOrmTokenTransactionRepository extends TokenTransactionRepositor
     return { transactions: entities.map((e) => this.toDomain(e)), total };
   }
 
+  async unlinkUser(userId: string): Promise<void> {
+    await this.repository.update({ fromUserId: userId }, { fromUserId: null });
+    await this.repository.update({ toUserId: userId }, { toUserId: null });
+  }
+
   private toDomain(e: TokenTransactionOrmEntity): TokenTransaction {
     return new TokenTransaction(
       e.id,
@@ -79,6 +100,11 @@ export class TypeOrmTokenTransactionRepository extends TokenTransactionRepositor
       e.transactionType,
       e.pricePerToken != null ? Number(e.pricePerToken) : null,
       e.createdAt,
+      e.txHash,
+      e.logIndex,
+      e.blockNumber,
+      e.fromAddress,
+      e.toAddress,
     );
   }
 }

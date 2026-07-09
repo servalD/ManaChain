@@ -81,6 +81,10 @@ export class TypeOrmUserRepository extends UserRepository {
     return this.getOrThrow(id);
   }
 
+  async clearBlockchainAddress(id: string): Promise<void> {
+    await this.repository.update({ id }, { blockchainAddress: null });
+  }
+
   // --- Auth ---
 
   async findByEmail(email: string): Promise<User | null> {

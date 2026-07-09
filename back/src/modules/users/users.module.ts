@@ -22,7 +22,7 @@ import { UsersController } from './presentation/users.controller';
     GetMyInterestsUseCase,
     UpdateMyInterestsUseCase,
   ],
-  // UserRepository est consommé par le module auth (guard global).
+  // UserRepository est consommé par le module auth (guard global) et chain-sync.
   exports: [UserRepository],
 })
 export class UsersModule {}

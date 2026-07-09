@@ -18,8 +18,8 @@ export class TokenTransactionOrmEntity {
   @Column({ type: 'uuid', nullable: true })
   fromUserId: string | null;
 
-  @Column({ type: 'uuid' })
-  toUserId: string;
+  @Column({ type: 'uuid', nullable: true })
+  toUserId: string | null;
 
   @Column({ type: 'decimal', precision: 20, scale: 8 })
   amount: string;
@@ -33,4 +33,20 @@ export class TokenTransactionOrmEntity {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  /** Identité de l'event on-chain source (chain-sync). Null pour les lignes historiques. */
+  @Column({ type: 'text', nullable: true })
+  txHash: string | null;
+
+  @Column({ type: 'int', nullable: true })
+  logIndex: number | null;
+
+  @Column({ type: 'bigint', nullable: true })
+  blockNumber: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  fromAddress: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  toAddress: string | null;
 }

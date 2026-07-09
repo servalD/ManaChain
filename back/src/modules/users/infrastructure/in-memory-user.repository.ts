@@ -115,6 +115,11 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve(this.cloneWith(id, { blockchainAddress: address }));
   }
 
+  clearBlockchainAddress(id: string): Promise<void> {
+    this.cloneWith(id, { blockchainAddress: null });
+    return Promise.resolve();
+  }
+
   // --- Auth ---
 
   findByEmail(email: string): Promise<User | null> {

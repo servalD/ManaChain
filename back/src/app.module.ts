@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { validateEnv } from './infrastructure/config/env.validation';
@@ -14,6 +16,7 @@ import { HealthController } from './health.controller';
 import { LikesModule } from './modules/likes/likes.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { TokensModule } from './modules/tokens/tokens.module';
+import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
 
 @Module({
   imports: [
@@ -22,6 +25,10 @@ import { TokensModule } from './modules/tokens/tokens.module';
       isGlobal: true,
       validate: validateEnv,
     }),
+    // Premier module du back à utiliser le scheduling (chain-sync.service.ts).
+    ScheduleModule.forRoot(),
+    // Découple UpdateBlockchainAddressUseCase (users) du rattrapage chain-sync.
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     MetricsModule,
     UsersModule,
@@ -29,6 +36,7 @@ import { TokensModule } from './modules/tokens/tokens.module';
     LikesModule,
     BrandsModule,
     TokensModule,
+    ChainSyncModule,
   ],
   controllers: [HealthController],
   providers: [

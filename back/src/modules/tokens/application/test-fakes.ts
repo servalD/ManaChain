@@ -11,8 +11,6 @@ import {
   RecordTransactionParams,
   TokenTransactionRepository,
 } from '../domain/token-transaction.repository';
-import { BrandLookup } from '../domain/brand-lookup';
-import { BlockchainGateway } from '../domain/blockchain-gateway';
 import { TransactionRunner } from '../../../shared/application/transaction-runner';
 
 /** Exécute le bloc sans vraie transaction (les fakes in-memory suffisent). */
@@ -130,41 +128,16 @@ export class InMemoryTokenTransactionRepository extends TokenTransactionReposito
   listByUser(): Promise<{ transactions: TokenTransaction[]; total: number }> {
     return Promise.resolve({ transactions: [], total: 0 });
   }
-}
-
-export class FakeBrandLookup extends BrandLookup {
-  private readonly byOwner = new Map<string, string>();
-  private readonly owners = new Map<string, string>();
-  seedBrand(brandId: string, ownerId: string): void {
-    this.byOwner.set(ownerId, brandId);
-    this.owners.set(brandId, ownerId);
-  }
-  findBrandIdByOwner(userId: string): Promise<string | null> {
-    return Promise.resolve(this.byOwner.get(userId) ?? null);
-  }
-  findOwnerId(brandId: string): Promise<string | null> {
-    return Promise.resolve(this.owners.get(brandId) ?? null);
-  }
-}
-
-export class FakeBlockchainGateway extends BlockchainGateway {
-  readonly purchases: unknown[] = [];
-  readonly transfers: unknown[] = [];
-  onTokensPurchased(
-    tokenId: string,
-    userId: string,
-    amount: number,
-  ): Promise<void> {
-    this.purchases.push({ tokenId, userId, amount });
-    return Promise.resolve();
-  }
-  onTokensTransferred(
-    tokenId: string,
-    fromUserId: string,
-    toUserId: string,
-    amount: number,
-  ): Promise<void> {
-    this.transfers.push({ tokenId, fromUserId, toUserId, amount });
+  readonly unlinked: string[] = [];
+  unlinkUser(userId: string): Promise<void> {
+    this.unlinked.push(userId);
+    for (const [i, params] of this.recorded.entries()) {
+      this.recorded[i] = {
+        ...params,
+        fromUserId: params.fromUserId === userId ? null : params.fromUserId,
+        toUserId: params.toUserId === userId ? null : params.toUserId,
+      };
+    }
     return Promise.resolve();
   }
 }

@@ -14,6 +14,9 @@ import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-m
 import { BrandTokenOrmEntity } from '../../modules/tokens/infrastructure/brand-token.orm-entity';
 import { TokenHolderOrmEntity } from '../../modules/tokens/infrastructure/token-holder.orm-entity';
 import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/token-transaction.orm-entity';
+import { ChainSyncCursorOrmEntity } from '../../modules/chain-sync/infrastructure/chain-sync-cursor.orm-entity';
+import { BrandContractsOrmEntity } from '../../modules/chain-sync/infrastructure/brand-contracts.orm-entity';
+import { TokenSaleOrmEntity } from '../../modules/chain-sync/infrastructure/token-sale.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -54,6 +57,9 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
           BrandTokenOrmEntity,
           TokenHolderOrmEntity,
           TokenTransactionOrmEntity,
+          ChainSyncCursorOrmEntity,
+          BrandContractsOrmEntity,
+          TokenSaleOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),
