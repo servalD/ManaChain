@@ -17,6 +17,18 @@ import {
   GetLogsParams,
   ReadContractParams,
 } from '../domain/chain-reader';
+import {
+  CreateEventContractsParams,
+  EventContractsRepository,
+} from '../domain/event-contracts.repository';
+import { EventContracts } from '../domain/event-contracts';
+import { EventTicketTypeRepository } from '../domain/event-ticket-type.repository';
+import { EventTicketType } from '../domain/event-ticket-type';
+import {
+  EventTicketPurchaseRepository,
+  RecordEventTicketPurchaseParams,
+} from '../domain/event-ticket-purchase.repository';
+import { EventTicketPurchase } from '../domain/event-ticket-purchase';
 
 export class FakeTransactionRunner extends TransactionRunner {
   run<T>(work: () => Promise<T>): Promise<T> {
@@ -151,6 +163,121 @@ export class InMemoryTokenSaleRepository extends TokenSaleRepository {
   }
   listAllEscrowAddresses(): Promise<string[]> {
     return Promise.resolve([...this.rows.values()].map((r) => r.escrowAddress));
+  }
+}
+
+export class InMemoryEventContractsRepository extends EventContractsRepository {
+  private readonly rows = new Map<string, EventContracts>();
+
+  seed(partial: Partial<EventContracts> = {}): EventContracts {
+    const now = new Date();
+    const row = new EventContracts(
+      partial.eventTicketsAddress ?? `0xeventtickets${this.rows.size}`,
+      partial.brandAddress ?? '0xbrand',
+      partial.ticketSaleAddress ?? null,
+      partial.deployTxHash ?? '0xtx',
+      partial.blockNumber ?? 1n,
+      partial.createdAt ?? now,
+      partial.updatedAt ?? now,
+    );
+    this.rows.set(row.eventTicketsAddress, row);
+    return row;
+  }
+
+  findByEventTicketsAddress(
+    eventTicketsAddress: string,
+  ): Promise<EventContracts | null> {
+    return Promise.resolve(this.rows.get(eventTicketsAddress) ?? null);
+  }
+  create(params: CreateEventContractsParams): Promise<EventContracts> {
+    return Promise.resolve(this.seed(params));
+  }
+  setTicketSaleAddress(
+    eventTicketsAddress: string,
+    ticketSaleAddress: string,
+  ): Promise<void> {
+    const row = this.rows.get(eventTicketsAddress);
+    if (row) this.seed({ ...row, ticketSaleAddress });
+    return Promise.resolve();
+  }
+  listEventTicketsAddresses(): Promise<string[]> {
+    return Promise.resolve([...this.rows.keys()]);
+  }
+  listTicketSaleAddresses(): Promise<string[]> {
+    return Promise.resolve(
+      [...this.rows.values()]
+        .map((r) => r.ticketSaleAddress)
+        .filter((a): a is string => !!a),
+    );
+  }
+}
+
+export class InMemoryEventTicketTypeRepository extends EventTicketTypeRepository {
+  private readonly rows = new Map<string, EventTicketType>();
+  private key(eventId: string, tokenId: string): string {
+    return `${eventId}:${tokenId}`;
+  }
+
+  seed(
+    partial: Partial<EventTicketType> & { id?: string } = {},
+  ): EventTicketType {
+    const now = new Date();
+    const row = new EventTicketType(
+      partial.id ?? randomUUID(),
+      partial.eventId ?? randomUUID(),
+      partial.tokenId ?? '1',
+      partial.price ?? '0',
+      partial.mintedQuantity ?? 0,
+      partial.createdAt ?? now,
+      partial.updatedAt ?? now,
+    );
+    this.rows.set(this.key(row.eventId, row.tokenId), row);
+    return row;
+  }
+
+  findByEventAndToken(
+    eventId: string,
+    tokenId: string,
+  ): Promise<EventTicketType | null> {
+    return Promise.resolve(this.rows.get(this.key(eventId, tokenId)) ?? null);
+  }
+  async upsertPrice(
+    eventId: string,
+    tokenId: string,
+    price: string,
+  ): Promise<void> {
+    const existing = await this.findByEventAndToken(eventId, tokenId);
+    this.seed({ ...existing, eventId, tokenId, price });
+  }
+  async increaseMinted(
+    eventId: string,
+    tokenId: string,
+    amount: number,
+  ): Promise<void> {
+    const existing = await this.findByEventAndToken(eventId, tokenId);
+    this.seed({
+      ...existing,
+      eventId,
+      tokenId,
+      mintedQuantity: (existing?.mintedQuantity ?? 0) + amount,
+    });
+  }
+  listByEvent(eventId: string): Promise<EventTicketType[]> {
+    return Promise.resolve(
+      [...this.rows.values()].filter((r) => r.eventId === eventId),
+    );
+  }
+}
+
+export class InMemoryEventTicketPurchaseRepository extends EventTicketPurchaseRepository {
+  readonly recorded: RecordEventTicketPurchaseParams[] = [];
+
+  record(params: RecordEventTicketPurchaseParams): Promise<void> {
+    this.recorded.push(params);
+    return Promise.resolve();
+  }
+  listByUser(): Promise<{ purchases: EventTicketPurchase[]; total: number }> {
+    return Promise.resolve({ purchases: [], total: 0 });
   }
 }
 

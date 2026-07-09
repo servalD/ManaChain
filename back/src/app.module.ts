@@ -16,6 +16,7 @@ import { HealthController } from './health.controller';
 import { LikesModule } from './modules/likes/likes.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { TokensModule } from './modules/tokens/tokens.module';
+import { EventsModule } from './modules/events/events.module';
 import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
     LikesModule,
     BrandsModule,
     TokensModule,
+    EventsModule,
     ChainSyncModule,
   ],
   controllers: [HealthController],

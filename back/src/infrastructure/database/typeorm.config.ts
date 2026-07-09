@@ -13,6 +13,10 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
 import { ChainSyncCursorOrmEntity } from '../../modules/chain-sync/infrastructure/chain-sync-cursor.orm-entity';
 import { BrandContractsOrmEntity } from '../../modules/chain-sync/infrastructure/brand-contracts.orm-entity';
 import { TokenSaleOrmEntity } from '../../modules/chain-sync/infrastructure/token-sale.orm-entity';
+import { EventContractsOrmEntity } from '../../modules/chain-sync/infrastructure/event-contracts.orm-entity';
+import { EventTicketTypeOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-type.orm-entity';
+import { EventTicketPurchaseOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-purchase.orm-entity';
+import { EventOrmEntity } from '../../modules/events/infrastructure/event.orm-entity';
 
 // DataSource autonome utilisé UNIQUEMENT par la CLI TypeORM (migration:generate
 // / run / revert). L'app, elle, passe par DatabaseModule. Garder les deux alignés.
@@ -41,6 +45,10 @@ export default new DataSource({
     ChainSyncCursorOrmEntity,
     BrandContractsOrmEntity,
     TokenSaleOrmEntity,
+    EventContractsOrmEntity,
+    EventTicketTypeOrmEntity,
+    EventTicketPurchaseOrmEntity,
+    EventOrmEntity,
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
   namingStrategy: new SnakeNamingStrategy(),

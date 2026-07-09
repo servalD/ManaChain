@@ -3,6 +3,7 @@ import {
   FakeChainReader,
   FakeTransactionRunner,
   InMemoryBrandContractsRepository,
+  InMemoryEventContractsRepository,
   InMemorySyncCursorRepository,
   InMemoryTokenSaleRepository,
 } from './test-fakes';
@@ -41,11 +42,15 @@ class RecordingHandler implements ChainEventHandler {
   }
 }
 
-function setup(handlers: ChainEventHandler[] = []) {
+function setup(
+  handlers: ChainEventHandler[] = [],
+  ticketHandlers: ChainEventHandler[] = [],
+) {
   const chainReader = new FakeChainReader();
   const cursor = new InMemorySyncCursorRepository();
   const brandContracts = new InMemoryBrandContractsRepository();
   const tokenSales = new InMemoryTokenSaleRepository();
+  const eventContracts = new InMemoryEventContractsRepository();
   const lagGauge = { set: jest.fn() } as unknown as Gauge<string>;
   const scheduler = {} as SchedulerRegistry;
 
@@ -57,10 +62,20 @@ function setup(handlers: ChainEventHandler[] = []) {
     new FakeTransactionRunner(),
     brandContracts,
     tokenSales,
+    eventContracts,
     handlers,
+    ticketHandlers,
     lagGauge,
   );
-  return { service, chainReader, cursor, brandContracts, tokenSales, lagGauge };
+  return {
+    service,
+    chainReader,
+    cursor,
+    brandContracts,
+    tokenSales,
+    eventContracts,
+    lagGauge,
+  };
 }
 
 describe('ChainSyncService', () => {
@@ -128,5 +143,45 @@ describe('ChainSyncService', () => {
     await service.tick();
     expect(handler.received).toHaveLength(1);
     expect(await cursor.getLastProcessedBlock('main')).toBe(8n);
+  });
+
+  it('dispatches "Bought" from TokenSaleEscrow and TicketSale to their own handler without collision', async () => {
+    const tokenBought = new RecordingHandler('Bought');
+    const ticketBought = new RecordingHandler('Bought');
+    const { service, chainReader, tokenSales, eventContracts } = setup(
+      [tokenBought],
+      [ticketBought],
+    );
+    tokenSales.seed({ escrowAddress: '0xescrow' });
+    eventContracts.seed({
+      eventTicketsAddress: '0xtickets',
+      ticketSaleAddress: '0xticketsale',
+    });
+    chainReader.blockNumber = 10n;
+    chainReader.logs = [
+      {
+        eventName: 'Bought',
+        address: '0xescrow',
+        args: { buyer: '0xbuyer', amount: 1n, paid: 1n },
+        transactionHash: '0xtx1',
+        blockNumber: 5n,
+        logIndex: 0,
+      },
+      {
+        eventName: 'Bought',
+        address: '0xticketsale',
+        args: { buyer: '0xbuyer', tokenId: 1n, quantity: 1n, paid: 1n },
+        transactionHash: '0xtx2',
+        blockNumber: 5n,
+        logIndex: 1,
+      },
+    ];
+
+    await service.tick();
+
+    expect(tokenBought.received).toHaveLength(1);
+    expect(tokenBought.received[0].address).toBe('0xescrow');
+    expect(ticketBought.received).toHaveLength(1);
+    expect(ticketBought.received[0].address).toBe('0xticketsale');
   });
 });

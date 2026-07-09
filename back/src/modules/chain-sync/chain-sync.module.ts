@@ -3,11 +3,15 @@ import { makeGaugeProvider } from '@willsoto/nestjs-prometheus';
 import { UsersModule } from '../users/users.module';
 import { BrandsModule } from '../brands/brands.module';
 import { TokensModule } from '../tokens/tokens.module';
+import { EventsModule } from '../events/events.module';
 import { ChainRegistryModule } from './infrastructure/chain-registry.module';
 import { TokenSaleRepository } from './domain/token-sale.repository';
 import { BrandContractsRepository } from './domain/brand-contracts.repository';
 import { ChainEventHandler } from './domain/chain-event-handler';
-import { CHAIN_EVENT_HANDLERS } from './application/chain-event-handlers.token';
+import {
+  CHAIN_EVENT_HANDLERS,
+  TICKET_EVENT_HANDLERS,
+} from './application/chain-event-handlers.token';
 import { BrandModuleDeployedHandler } from './application/handlers/brand-module-deployed.handler';
 import { TokenSaleDeployedHandler } from './application/handlers/token-sale-deployed.handler';
 import { BoughtHandler } from './application/handlers/bought.handler';
@@ -15,6 +19,11 @@ import { RefundClaimedHandler } from './application/handlers/refund-claimed.hand
 import { Erc20TransferHandler } from './application/handlers/erc20-transfer.handler';
 import { SaleStatusHandler } from './application/handlers/sale-status.handler';
 import { BrandFlagHandler } from './application/handlers/brand-flag.handler';
+import { EventModuleDeployedHandler } from './application/handlers/event-module-deployed.handler';
+import { TicketSaleDeployedHandler } from './application/handlers/ticket-sale-deployed.handler';
+import { PriceSetHandler } from './application/handlers/price-set.handler';
+import { TicketsMintedHandler } from './application/handlers/tickets-minted.handler';
+import { TicketBoughtHandler } from './application/handlers/ticket-bought.handler';
 import { ChainSyncService } from './application/chain-sync.service';
 import { ReconcileUserChainDataUseCase } from './application/reconcile-user-chain-data.use-case';
 import { UnlinkUserChainDataUseCase } from './application/unlink-user-chain-data.use-case';
@@ -105,6 +114,8 @@ const chainEventHandlersProvider: Provider = {
     saleCancelledByBrand: SaleStatusHandler,
     brandWhitelisted: BrandFlagHandler,
     brandBlacklisted: BrandFlagHandler,
+    eventModuleDeployed: EventModuleDeployedHandler,
+    ticketSaleDeployed: TicketSaleDeployedHandler,
   ): ChainEventHandler[] => [
     brandModuleDeployed,
     tokenSaleDeployed,
@@ -116,6 +127,8 @@ const chainEventHandlersProvider: Provider = {
     saleCancelledByBrand,
     brandWhitelisted,
     brandBlacklisted,
+    eventModuleDeployed,
+    ticketSaleDeployed,
   ],
   inject: [
     BrandModuleDeployedHandler,
@@ -128,22 +141,49 @@ const chainEventHandlersProvider: Provider = {
     SALE_CANCELLED_BY_BRAND,
     BRAND_WHITELISTED,
     BRAND_BLACKLISTED,
+    EventModuleDeployedHandler,
+    TicketSaleDeployedHandler,
   ],
 };
 
 /**
- * Miroir SQL de la chaîne (voir `temp-plan/phase-2-back-chain-sync.md`). Lit
- * Fuji en lecture seule via `ChainReader` (viem) ; n'écrit jamais on-chain.
+ * Groupe séparé : `TicketSale.Bought` partage son nom avec
+ * `TokenSaleEscrow.Bought` (dispatché via `CHAIN_EVENT_HANDLERS` ci-dessus) —
+ * les deux ne peuvent pas cohabiter dans une seule map de dispatch (voir
+ * `chain-sync.service.ts`).
+ */
+const ticketEventHandlersProvider: Provider = {
+  provide: TICKET_EVENT_HANDLERS,
+  useFactory: (
+    priceSet: PriceSetHandler,
+    ticketsMinted: TicketsMintedHandler,
+    ticketBought: TicketBoughtHandler,
+  ): ChainEventHandler[] => [priceSet, ticketsMinted, ticketBought],
+  inject: [PriceSetHandler, TicketsMintedHandler, TicketBoughtHandler],
+};
+
+/**
+ * Miroir SQL de la chaîne (voir `temp-plan/phase-2-back-chain-sync.md` et
+ * `phase-4-events-tickets.md`). Lit Fuji en lecture seule via `ChainReader`
+ * (viem) ; n'écrit jamais on-chain.
  *
- * Dépend de `UsersModule`/`BrandsModule`/`TokensModule` (un seul sens : ces
- * modules n'importent pas `ChainSyncModule` en retour) — les ports purs de
- * chain-sync dont ils ont besoin (`BrandContractsRepository`/`TokenSaleRepository`
- * /`ChainReader`) viennent de `ChainRegistryModule` (`@Global()`), et le
- * rattrapage déclenché par `PUT /users/me/blockchain-address` passe par un
- * event (`UserBlockchainAddressLinkedListener`), pas par une injection directe.
+ * Dépend de `UsersModule`/`BrandsModule`/`TokensModule`/`EventsModule` (un
+ * seul sens : ces modules n'importent pas `ChainSyncModule` en retour) — les
+ * ports purs de chain-sync dont ils ont besoin (`BrandContractsRepository`/
+ * `TokenSaleRepository`/`EventContractsRepository`/`EventTicketTypeRepository`
+ * /`EventTicketPurchaseRepository`/`ChainReader`) viennent de
+ * `ChainRegistryModule` (`@Global()`), et le rattrapage déclenché par
+ * `PUT /users/me/blockchain-address` passe par un event
+ * (`UserBlockchainAddressLinkedListener`), pas par une injection directe.
  */
 @Module({
-  imports: [ChainRegistryModule, UsersModule, BrandsModule, TokensModule],
+  imports: [
+    ChainRegistryModule,
+    UsersModule,
+    BrandsModule,
+    TokensModule,
+    EventsModule,
+  ],
   controllers: [ChainSyncController],
   providers: [
     BrandModuleDeployedHandler,
@@ -151,9 +191,15 @@ const chainEventHandlersProvider: Provider = {
     BoughtHandler,
     RefundClaimedHandler,
     Erc20TransferHandler,
+    EventModuleDeployedHandler,
+    TicketSaleDeployedHandler,
+    PriceSetHandler,
+    TicketsMintedHandler,
+    TicketBoughtHandler,
     ...saleStatusHandlerProviders,
     ...brandFlagHandlerProviders,
     chainEventHandlersProvider,
+    ticketEventHandlersProvider,
     makeGaugeProvider({
       name: 'chain_sync_lag_blocks',
       help: 'Blocks between the safe chain tip and the last block processed by chain-sync',

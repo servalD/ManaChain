@@ -18,6 +18,7 @@ export const brandFactoryAbi = parseAbi([
 
 export const saleFactoryAbi = parseAbi([
   'event TokenSaleDeployed(address indexed brand, address indexed escrow, address indexed supportToken, uint256 pricePerToken, uint256 totalForSale, uint256 startTime, uint256 endTime)',
+  'event TicketSaleDeployed(address indexed brand, address indexed ticketSale, address indexed eventTickets, address paymentToken, uint256 startTime, uint256 endTime)',
 ]);
 
 export const tokenSaleEscrowAbi = parseAbi([
@@ -26,6 +27,19 @@ export const tokenSaleEscrowAbi = parseAbi([
   'event SaleCancelledByAdmin()',
   'event SaleCancelledByBrand()',
   'event RefundClaimed(address indexed user, uint256 tokenAmount, uint256 refundAmount)',
+]);
+
+export const eventFactoryAbi = parseAbi([
+  'event EventModuleDeployed(address indexed brand, address indexed eventTickets)',
+]);
+
+export const eventTicketsAbi = parseAbi([
+  'event TicketsMinted(address indexed to, uint256 indexed tokenId, uint256 amount)',
+]);
+
+export const ticketSaleAbi = parseAbi([
+  'event PriceSet(uint256 indexed tokenId, uint256 price)',
+  'event Bought(address indexed buyer, uint256 indexed tokenId, uint256 quantity, uint256 paid)',
 ]);
 
 export const erc20Abi = parseAbi([
