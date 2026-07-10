@@ -15,7 +15,7 @@ import {
  * transport partagé {@link EmailSender}. Construit les URLs front à partir du token.
  */
 @Injectable()
-export class NodemailerMailer extends Mailer {
+export class EmailMailer extends Mailer {
   constructor(
     private readonly config: ConfigService<Env, true>,
     private readonly sender: EmailSender,

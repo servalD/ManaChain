@@ -79,21 +79,18 @@ services:
       DATABASE_USER: "{{ database_user }}"
       DATABASE_SSL: "true"
       APP_JWT_EXPIRES_IN: 7d
-      # Vides ("") → mode simulation des emails, comme en dev.
-      SMTP_HOST: "{{ smtp_host | default('') }}"
-      SMTP_PORT: "{{ smtp_port | default('587') }}"
-      SMTP_USER: "{{ smtp_user | default('') }}"
+      # Vide ("") → mode simulation des emails, comme en dev.
       EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
       SENTRY_DSN: "{{ sentry_dsn_back | default('') }}"
       DATABASE_PASSWORD_FILE: /run/secrets/database_password
       APP_JWT_SECRET_FILE: /run/secrets/app_jwt_secret
-      SMTP_PASS_FILE: /run/secrets/smtp_pass
+      RESEND_API_KEY_FILE: /run/secrets/resend_api_key
       GOOGLE_CLIENT_SECRET_FILE: /run/secrets/google_client_secret
     secrets:
       - database_password
       - app_jwt_secret
-      - smtp_pass
+      - resend_api_key
       - google_client_secret
     networks:
       - edge
@@ -346,7 +343,7 @@ secrets:
     external: true
   app_jwt_secret:
     external: true
-  smtp_pass:
+  resend_api_key:
     external: true
   google_client_secret:
     external: true

@@ -12,7 +12,7 @@ import { OAuthProvider } from './application/ports/oauth-provider.port';
 import { BcryptPasswordHasher } from './infrastructure/bcrypt-password-hasher';
 import { JwtAppTokenService } from './infrastructure/jwt-app-token.service';
 import { CryptoTokenGenerator } from './infrastructure/crypto-token-generator';
-import { NodemailerMailer } from './infrastructure/email/nodemailer-mailer';
+import { EmailMailer } from './infrastructure/email/email-mailer';
 import { GoogleOAuthProvider } from './infrastructure/google-oauth.provider';
 // Use-cases
 import { AuthenticateBearerUseCase } from './application/use-cases/authenticate-bearer.use-case';
@@ -38,7 +38,7 @@ import { GoogleCallbackUseCase } from './application/use-cases/google-callback.u
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
     { provide: AppTokenService, useClass: JwtAppTokenService },
     { provide: SecureTokenGenerator, useClass: CryptoTokenGenerator },
-    { provide: Mailer, useClass: NodemailerMailer },
+    { provide: Mailer, useClass: EmailMailer },
     { provide: OAuthProvider, useClass: GoogleOAuthProvider },
     // Use-cases
     AuthenticateBearerUseCase,

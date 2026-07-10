@@ -4,7 +4,7 @@
 #   ansible-vault encrypt vault.yml
 # deploy.yml se lance ensuite avec --ask-vault-pass.
 vault_app_jwt_secret: "change-me-64-random-chars"
-vault_smtp_pass: ""
+vault_resend_api_key: ""
 vault_google_client_secret: ""
 vault_pinata_jwt: ""
 # Monitoring : login admin Grafana natif + bot Telegram (alerting).

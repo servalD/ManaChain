@@ -92,7 +92,7 @@ candidature marque) ; vérifier qu'aucun flux actuel ne le fait
 |---|---|---|
 | **Dynamic Labs** (`@dynamic-labs/*`, `Web3Provider.tsx`) | Widget de connexion wallet côté client — l'adresse publique transite par leur SDK ; email seulement si l'utilisateur choisit une méthode de connexion email via leur widget (à confirmer selon la config de l'environnement Dynamic utilisé, `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) ; vérifier leur DPA avant mise en prod si pas déjà signé |
 | **Pinata** (IPFS pinning) | Fichiers uploadés (avatars, logos, médias, métadonnées JSON) | À vérifier dans leur DPA — infrastructure IPFS distribuée par nature |
-| **SMTP provider** (`back/.env` → `SMTP_HOST`) | Email, contenu des emails transactionnels (vérification, reset password, notifications candidature) | Dépend du provider choisi en prod (non fixé dans ce repo — `SMTP_HOST` vide = mode simulation) |
+| **Resend** (`back/.env` → `RESEND_API_KEY`) | Email, contenu des emails transactionnels (vérification, reset password, notifications candidature) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) ; vérifier leur DPA avant mise en prod si pas déjà signé (`RESEND_API_KEY` vide = mode simulation) |
 | **Sentry** (`SENTRY_DSN`) | Stack traces, contexte de requête (à auditer pour s'assurer qu'aucun PII n'y fuite — email/mot de passe ne doivent jamais apparaître dans un message d'exception) | Selon la région du projet Sentry configuré |
 
 **Backlog** : registre des sous-traitants formalisé + DPA signés avant toute mise en

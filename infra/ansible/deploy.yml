@@ -33,13 +33,13 @@
       community.docker.docker_secret:
         name: "{{ item.name }}"
         # `default(' ', true)` : un secret Swarm ne peut pas être vide — un
-        # espace suffit pour les optionnels non configurés (SMTP, Google…).
+        # espace suffit pour les optionnels non configurés (Resend, Google…).
         data: "{{ item.data | default(' ', true) }}"
         state: present
       loop:
         - { name: database_password, data: "{{ database_password }}" }
         - { name: app_jwt_secret, data: "{{ vault_app_jwt_secret }}" }
-        - { name: smtp_pass, data: "{{ vault_smtp_pass }}" }
+        - { name: resend_api_key, data: "{{ vault_resend_api_key }}" }
         - { name: google_client_secret, data: "{{ vault_google_client_secret }}" }
         - { name: pinata_jwt, data: "{{ vault_pinata_jwt }}" }
         - { name: grafana_admin_password, data: "{{ vault_grafana_admin_password }}" }

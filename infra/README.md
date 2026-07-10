@@ -80,12 +80,12 @@ ansible-playbook provision.yml     # Docker, ufw, fail2ban, swarm init/join
 
 ```bash
 cd infra/ansible
-cp vault.yml.example vault.yml     # JWT, SMTP, Google OAuth, Pinata, rclone offsite
+cp vault.yml.example vault.yml     # JWT, Resend, Google OAuth, Pinata, rclone offsite
 ansible-vault encrypt vault.yml
 ```
 
 > 💡 **Où obtenir chaque valeur :** les secrets applicatifs (`vault_app_jwt_secret`,
-> `vault_smtp_pass`, `vault_google_client_secret`) sont les mêmes qu'en dev
+> `vault_resend_api_key`, `vault_google_client_secret`) sont les mêmes qu'en dev
 > (voir le tableau de la section « Configuration des variables d'environnement »
 > du [README du back](../../back/README.md).) Deux spécificités prod : la
 > **redirect URI Google** devient `https://<domaine>/api/auth/google/callback`,

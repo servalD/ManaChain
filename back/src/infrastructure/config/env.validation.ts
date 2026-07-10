@@ -33,11 +33,8 @@ export const envSchema = z.object({
   FRONTEND_URL: z.string().default('http://localhost:3000'),
   API_URL: z.string().default('http://localhost:3001/api'),
 
-  // SMTP (emails transactionnels). Si non configuré → mode simulation (log).
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().int().positive().default(587),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
+  // Resend (emails transactionnels). Si non configuré → mode simulation (log).
+  RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('noreply@mana-chain.com'),
 
   // Google OAuth. Si absent → l'endpoint /auth/google renvoie une erreur claire.
