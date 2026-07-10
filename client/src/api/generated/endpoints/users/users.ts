@@ -215,6 +215,67 @@ export const useUsersControllerUpdateMe = <TError = ErrorType<unknown>,
       return useMutation(getUsersControllerUpdateMeMutationOptions(options), queryClient);
     }
     /**
+ * @summary Supprimer son compte
+ */
+export const usersControllerDeleteMe = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/users/me`, method: 'DELETE', signal
+    },
+      );
+    }
+
+
+
+
+export const getUsersControllerDeleteMeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerDeleteMe>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof usersControllerDeleteMe>>, TError,void, TContext> => {
+
+const mutationKey = ['usersControllerDeleteMe'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersControllerDeleteMe>>, void> = () => {
+
+          return  usersControllerDeleteMe()
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersControllerDeleteMeMutationResult = NonNullable<Awaited<ReturnType<typeof usersControllerDeleteMe>>>
+
+    export type UsersControllerDeleteMeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Supprimer son compte
+ */
+export const useUsersControllerDeleteMe = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerDeleteMe>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersControllerDeleteMe>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getUsersControllerDeleteMeMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Mettre à jour son adresse blockchain
  */
 export const usersControllerUpdateMyBlockchainAddress = (

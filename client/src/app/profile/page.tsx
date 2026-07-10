@@ -13,6 +13,7 @@ import {
   ProfileInfoReadOnly,
   ProfilePersonalInfo,
   ProfilePassword,
+  ProfileDeleteAccount,
 } from "@/components/profile";
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
@@ -92,6 +93,10 @@ export default function ProfilePage() {
 
   const handleChangePassword = () => {
     router.push("/profile/change-password");
+  };
+
+  const handleDeleteAccount = () => {
+    router.push("/profile/delete-account");
   };
 
   const handleLogout = () => {
@@ -179,6 +184,10 @@ export default function ProfilePage() {
 
               <div className="border-t border-border pt-6">
                 <ProfilePassword onChangePasswordClick={handleChangePassword} />
+              </div>
+
+              <div className="border-t border-border pt-6">
+                <ProfileDeleteAccount onDeleteAccountClick={handleDeleteAccount} />
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ import {
   getUsersControllerMeQueryKey,
   getUsersControllerUpdateMeMutationOptions,
   getUsersControllerUpdateMyBlockchainAddressMutationOptions,
+  getUsersControllerDeleteMeMutationOptions,
 } from "@/api/generated/endpoints/users/users";
 import type { UserResponse } from "@/api/generated/models";
 import { asAxiosError } from "@/lib/api-error";
@@ -301,6 +302,44 @@ export function useUpdateProfile() {
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
+    },
+  });
+}
+
+/**
+ * Supprimer son compte (anonymisation RGPD, cf. `DeleteAccountUseCase` côté back).
+ * Redirige vers l'accueil comme `logout()` : le compte n'existe plus pour les
+ * lookups suivants, la session locale n'a plus d'utilité.
+ */
+export function useDeleteAccount() {
+  return useToastMutation({
+    ...getUsersControllerDeleteMeMutationOptions(),
+    successToast: () => ({
+      title: "Account deleted",
+      description: "Your account has been deleted. Goodbye!",
+      variant: "success",
+    }),
+    errorToast: (error) => {
+      const axiosErr = asAxiosError(error);
+      if (axiosErr?.response) {
+        if (axiosErr.response.data?.error === "BrandOwnerCannotDeleteAccountError") {
+          return {
+            title: "Cannot delete account",
+            description: "You own a brand — delete or transfer it before deleting your account.",
+            variant: "error",
+          };
+        }
+        return {
+          title: "Error",
+          description: axiosErr.response.data?.message || "Failed to delete account. Please try again.",
+          variant: "error",
+        };
+      }
+      return { title: "Connection error", description: "Unable to reach the server", variant: "error" };
+    },
+    onSuccess: () => {
+      clearSession();
+      if (typeof window !== "undefined") window.location.href = "/";
     },
   });
 }
