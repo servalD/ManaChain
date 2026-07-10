@@ -27,6 +27,7 @@ import { ListNotificationsQuery } from '../application/dto/list-notifications.qu
 import {
   NotificationResponse,
   PaginatedNotificationsResponse,
+  SendNotificationResponse,
   toNotificationResponse,
 } from './notification.presenter';
 
@@ -43,11 +44,11 @@ export class NotificationsController {
   @Post()
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Envoyer une notification (admin)' })
-  @ApiCreatedResponse({ description: 'Nombre de destinataires touchés' })
+  @ApiCreatedResponse({ type: SendNotificationResponse })
   async send(
     @CurrentUser() admin: User,
     @Body() body: SendNotificationRequest,
-  ): Promise<{ recipientCount: number }> {
+  ): Promise<SendNotificationResponse> {
     const recipientCount = await this.sendNotification.execute(admin.id, body);
     return { recipientCount };
   }

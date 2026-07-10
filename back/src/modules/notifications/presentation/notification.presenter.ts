@@ -32,6 +32,10 @@ export class PaginatedNotificationsResponse {
   @ApiProperty() unreadCount: number;
 }
 
+export class SendNotificationResponse {
+  @ApiProperty() recipientCount: number;
+}
+
 export const toNotificationResponse = (
   notification: Notification,
 ): NotificationResponse => ({
