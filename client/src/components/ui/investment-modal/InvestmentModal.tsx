@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatUnits, parseUnits, type Address } from "viem";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,6 +32,7 @@ const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 30000;
 
 export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps) {
+  const t = useTranslations("investment");
   const queryClient = useQueryClient();
   const { data: token } = useTokenByBrand(brand?.id, { enabled: isOpen && !!brand });
   const sale = token?.sale;
@@ -95,8 +97,11 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
         queryClient.invalidateQueries({ queryKey: getTokensControllerHoldersQueryKey(token.id) }),
       ]);
       toast({
-        title: "Support confirmed",
-        description: `You now hold ${brand?.tokenSymbol ?? "tokens"} from ${brand?.name}.`,
+        title: t("supportConfirmedTitle"),
+        description: t("supportConfirmedMessage", {
+          symbol: brand?.tokenSymbol ?? t("tokensFallback"),
+          brandName: brand?.name ?? "",
+        }),
         variant: "success",
       });
       onClose();
@@ -130,8 +135,8 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
         queryClient.invalidateQueries({ queryKey: getTokensControllerHoldersQueryKey(token.id) }),
       ]);
       toast({
-        title: "Refund submitted",
-        description: "Your refund was confirmed on-chain — your balance will update shortly.",
+        title: t("refundSubmittedTitle"),
+        description: t("refundSubmittedMessage"),
         variant: "success",
       });
       onClose();
@@ -150,7 +155,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
 
   const handleApproveOrBuy = async () => {
     if (!amount.trim()) {
-      toast({ title: "Enter an amount", description: "How many tokens would you like?", variant: "error" });
+      toast({ title: t("enterAmountTitle"), description: t("enterAmountTokensMessage"), variant: "error" });
       return;
     }
     if (needsApproval(amount)) {
@@ -174,11 +179,11 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
 
   const handleApproveOrClaimRefund = async () => {
     if (refundAmountRaw == null || refundAmountRaw <= BigInt(0)) {
-      toast({ title: "Enter an amount", description: "How many tokens would you like refunded?", variant: "error" });
+      toast({ title: t("enterAmountTitle"), description: t("enterAmountRefundMessage"), variant: "error" });
       return;
     }
     if (refundAmountRaw > boughtOf) {
-      toast({ title: "Amount too high", description: "You can't refund more than you originally bought.", variant: "error" });
+      toast({ title: t("amountTooHighTitle"), description: t("amountTooHighMessage"), variant: "error" });
       return;
     }
     if (mustApproveRefund) {
@@ -198,12 +203,8 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Support {brand.name}</DialogTitle>
-          <DialogDescription>
-            You&apos;ve liked this brand! Show your support with a community badge — this is not
-            an investment: no financial return is promised and badges do not represent a share of
-            the brand&apos;s capital.
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold">{t("title", { brandName: brand.name })}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -233,17 +234,17 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
             <>
               <div className="bg-accent/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Token Symbol</span>
+                  <span className="text-sm text-muted-foreground">{t("tokenSymbol")}</span>
                   <span className="font-semibold">{token.symbol}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Your USDC balance</span>
+                  <span className="text-sm text-muted-foreground">{t("yourUsdcBalance")}</span>
                   <span className="font-semibold">{usdcBalanceFormatted} USDC</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium block">How many tokens?</label>
+                <label className="text-sm font-medium block">{t("howManyTokens")}</label>
                 <Input
                   type="number"
                   min="1"
@@ -254,7 +255,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 />
                 {cost != null && (
                   <p className="text-xs text-muted-foreground">
-                    Estimated cost: {(Number(cost) / 1e6).toFixed(2)} USDC
+                    {t("estimatedCost", { amount: (Number(cost) / 1e6).toFixed(2) })}
                   </p>
                 )}
               </div>
@@ -266,29 +267,29 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 className="text-xs text-violet-500 hover:underline disabled:opacity-50"
               >
                 {faucetStatus === "signing" || faucetStatus === "pending"
-                  ? "Requesting test USDC…"
-                  : `Need test USDC? Get ${FAUCET_MINT_AMOUNT} from the faucet`}
+                  ? t("requestingFaucet")
+                  : t("needFaucet", { amount: FAUCET_MINT_AMOUNT })}
               </button>
             </>
           ) : isSaleCancelled && token && sale ? (
             <>
               <div className="bg-accent/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Token Symbol</span>
+                  <span className="text-sm text-muted-foreground">{t("tokenSymbol")}</span>
                   <span className="font-semibold">{token.symbol}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Refundable</span>
+                  <span className="text-sm text-muted-foreground">{t("refundable")}</span>
                   <span className="font-semibold">
                     {formatUnits(boughtOf, SUPPORT_TOKEN_DECIMALS)} {token.symbol}
                   </span>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                This sale was cancelled. You can claim a refund for the tokens you bought.
+                {t("saleCancelledMessage")}
               </p>
               <div className="space-y-2">
-                <label className="text-sm font-medium block">How many tokens to refund?</label>
+                <label className="text-sm font-medium block">{t("howManyToRefund")}</label>
                 <Input
                   type="number"
                   min="0"
@@ -302,9 +303,9 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
           ) : (
             <div className="bg-accent/50 rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">
-                This brand hasn&apos;t opened a token sale yet
+                {t("noSaleYet")}
               </p>
-              <p className="text-xs text-muted-foreground">Check back soon!</p>
+              <p className="text-xs text-muted-foreground">{t("checkBackSoon")}</p>
             </div>
           )}
 
@@ -318,14 +319,14 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 size="lg"
               >
                 {isSyncing
-                  ? "Confirmed on-chain — syncing…"
+                  ? t("syncingLabel")
                   : buyStatus === "signing" || buyStatus === "pending"
-                    ? "Confirming purchase…"
+                    ? t("confirmingPurchase")
                     : approveStatus === "signing" || approveStatus === "pending"
-                      ? "Confirming approval…"
+                      ? t("confirmingApproval")
                       : mustApprove
-                        ? "Approve USDC"
-                        : "Support this Brand"}
+                        ? t("approveUsdc")
+                        : t("supportBrand")}
               </Button>
             ) : isSaleCancelled ? (
               <Button
@@ -335,12 +336,12 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 size="lg"
               >
                 {refundClaimStatus === "signing" || refundClaimStatus === "pending"
-                  ? "Confirming refund…"
+                  ? t("confirmingRefund")
                   : refundApproveStatus === "signing" || refundApproveStatus === "pending"
-                    ? "Confirming approval…"
+                    ? t("confirmingApproval")
                     : mustApproveRefund
-                      ? "Approve tokens"
-                      : "Claim Refund"}
+                      ? t("approveTokens")
+                      : t("claimRefund")}
               </Button>
             ) : (
               <Button
@@ -349,11 +350,11 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                 size="lg"
                 disabled
               >
-                No Badge Available Yet
+                {t("noBadgeAvailable")}
               </Button>
             )}
             <Button onClick={handleClose} variant="ghost" className="w-full" disabled={isSyncing}>
-              {isSaleOpen ? "Later" : "Close"}
+              {isSaleOpen ? t("later") : t("close")}
             </Button>
           </div>
           {refundClaimError && refundClaimStatus === "failed" && (

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { Calendar, MapPin } from "lucide-react";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
@@ -16,6 +17,9 @@ import type { EventResponse } from "@/api/generated/models";
 
 export default function EventsPage() {
   const router = useRouter();
+  const t = useTranslations("events.page");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const { user, logout, refreshUser } = useAuth();
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
   const { data, isLoading } = useEvents({ limit: 50, offset: 0 });
@@ -26,7 +30,7 @@ export default function EventsPage() {
 
   const handleLogout = async () => {
     await logout();
-    toast({ title: "Logged out", description: "See you soon!", variant: "success" });
+    toast({ title: t("loggedOutTitle"), description: t("loggedOutMessage"), variant: "success" });
   };
   const handleProfile = () => router.push("/profile");
 
@@ -36,10 +40,10 @@ export default function EventsPage() {
   };
 
   const location = (event: EventResponse) =>
-    [event.addressCity, event.addressCountry].filter(Boolean).join(", ") || "Online / TBA";
+    [event.addressCity, event.addressCountry].filter(Boolean).join(", ") || t("onlineOrTba");
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
+    new Date(iso).toLocaleString(dateLocale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -67,7 +71,7 @@ export default function EventsPage() {
           <div className="max-w-6xl mx-auto space-y-6">
             <h1 className="text-3xl sm:text-4xl font-bold">
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Events
+                {t("title")}
               </span>
             </h1>
 
@@ -77,7 +81,7 @@ export default function EventsPage() {
               </div>
             ) : events.length === 0 ? (
               <div className="text-center py-20 border border-border rounded-lg">
-                <p className="text-muted-foreground">No events published yet.</p>
+                <p className="text-muted-foreground">{t("noEventsPublished")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -123,7 +127,7 @@ export default function EventsPage() {
                         disabled={!event.ticketSaleAddress}
                         className="mt-auto w-full bg-linear-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
                       >
-                        {event.ticketSaleAddress ? "Get Tickets" : "Tickets Coming Soon"}
+                        {event.ticketSaleAddress ? t("getTickets") : t("ticketsComingSoon")}
                       </Button>
                     </div>
                   </div>

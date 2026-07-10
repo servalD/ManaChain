@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -32,39 +33,40 @@ export function Navbar({
   onWalletDisconnected,
   shouldDisconnectWallet,
 }: NavbarProps) {
+  const t = useTranslations("navbar");
   // Define nav items based on user role
   const getNavItems = () => {
     if (!isLoggedIn) {
       return [
-        { label: "Home", href: "/" },
-        { label: "Discover", href: "/discover" },
-        { label: "Events", href: "#events" },
+        { label: t("home"), href: "/" },
+        { label: t("discover"), href: "/discover" },
+        { label: t("events"), href: "#events" },
       ];
     }
 
     switch (userRole) {
       case 'CLIENT':
         return [
-          { label: "Discover", href: "/discover" },
-          { label: "Dashboard", href: "/dashboard" },
-          { label: "Feed", href: "/feed" },
-          { label: "Events", href: "/events" },
+          { label: t("discover"), href: "/discover" },
+          { label: t("dashboard"), href: "/dashboard" },
+          { label: t("feed"), href: "/feed" },
+          { label: t("events"), href: "/events" },
         ];
       case 'BRANDUSER':
         return [
-          { label: "Dashboard", href: "/brand/dashboard" },
-          { label: "Events", href: "/brand/events" },
+          { label: t("dashboard"), href: "/brand/dashboard" },
+          { label: t("events"), href: "/brand/events" },
         ];
       case 'ADMIN':
         return [
-          { label: "Dashboard", href: "/admin/dashboard" },
-          { label: "Browse Brands", href: "/admin/brands" },
-          { label: "Events", href: "/admin/events" },
+          { label: t("dashboard"), href: "/admin/dashboard" },
+          { label: t("browseBrands"), href: "/admin/brands" },
+          { label: t("events"), href: "/admin/events" },
         ];
       default:
         return [
-          { label: "Home", href: "/" },
-          { label: "Discover", href: "/discover" },
+          { label: t("home"), href: "/" },
+          { label: t("discover"), href: "/discover" },
         ];
     }
   };
@@ -169,7 +171,7 @@ export function Navbar({
                   href="/login"
                   className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
                 >
-                  Login
+                  {t("login")}
                 </Link>
                 <Link
                   href="/register"
@@ -179,7 +181,7 @@ export function Navbar({
                     boxShadow: '0 4px 14px 0 rgba(124, 58, 237, 0.39)'
                   }}
                 >
-                  Sign Up
+                  {t("signUp")}
                 </Link>
               </>
             )}

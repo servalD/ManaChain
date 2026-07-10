@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,14 +11,15 @@ import { UserLikes, PortfolioValueChart, MyTokens, UpcomingEvents, MyTickets, Ac
 
 export default function ClientDashboardPage() {
   const router = useRouter();
+  const t = useTranslations("dashboard.client.dashboardPage");
   const { user, logout, refreshUser } = useAuth();
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
 
   const handleLogout = async () => {
     await logout();
     toast({
-      title: "Logged out",
-      description: "See you soon!",
+      title: t("loggedOutTitle"),
+      description: t("loggedOutDescription"),
       variant: "success",
     });
   };
@@ -46,7 +48,7 @@ export default function ClientDashboardPage() {
           <div className="max-w-8xl mx-auto space-y-8">
             <h1 className="text-2xl sm:text-3xl font-bold">
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                My Dashboard
+                {t("title")}
               </span>
             </h1>
 

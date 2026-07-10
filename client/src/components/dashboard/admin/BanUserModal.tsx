@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ interface BanUserModalProps {
 }
 
 export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
+  const t = useTranslations("dashboard.admin.banUserModal");
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [reason, setReason] = useState("");
@@ -43,15 +45,15 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
 
   const handleSubmit = async () => {
     if (!selectedUser) {
-      toast({ title: "Select a user", description: "Search and pick a user to ban.", variant: "error" });
+      toast({ title: t("toasts.selectUserTitle"), description: t("toasts.selectUserMessage"), variant: "error" });
       return;
     }
     if (!reason.trim()) {
-      toast({ title: "Reason required", description: "Explain why this user is being banned.", variant: "error" });
+      toast({ title: t("toasts.reasonRequiredTitle"), description: t("toasts.reasonRequiredMessage"), variant: "error" });
       return;
     }
     if (!isPermanent && !expiresAt) {
-      toast({ title: "Expiry required", description: "Set an expiry date for a temporary ban.", variant: "error" });
+      toast({ title: t("toasts.expiryRequiredTitle"), description: t("toasts.expiryRequiredMessage"), variant: "error" });
       return;
     }
 
@@ -64,7 +66,7 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
         notes: notes.trim() || undefined,
       },
     });
-    toast({ title: "User banned", description: `${selectedUser.username} has been banned.`, variant: "success" });
+    toast({ title: t("toasts.bannedTitle"), description: t("toasts.bannedMessage", { name: selectedUser.username }), variant: "success" });
     handleClose();
   };
 
@@ -72,13 +74,13 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Ban a user</DialogTitle>
-          <DialogDescription>Creates an audit record and blocks login/API access immediately.</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium block">User</label>
+            <label className="text-sm font-medium block">{t("userLabel")}</label>
             {selectedUser ? (
               <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 text-sm">
                 <span>
@@ -89,13 +91,13 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
                   className="text-xs text-violet-500 hover:underline"
                   onClick={() => setSelectedUser(null)}
                 >
-                  Change
+                  {t("change")}
                 </button>
               </div>
             ) : (
               <>
                 <Input
-                  placeholder="Search by username or email…"
+                  placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -121,12 +123,12 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Reason</label>
+            <label className="text-sm font-medium block">{t("reasonLabel")}</label>
             <textarea
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[70px]"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why is this user being banned?"
+              placeholder={t("reasonPlaceholder")}
             />
           </div>
 
@@ -139,19 +141,19 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
               className="h-4 w-4 rounded border-input"
             />
             <label htmlFor="ban-user-permanent" className="text-sm">
-              Permanent ban
+              {t("permanentBan")}
             </label>
           </div>
 
           {!isPermanent && (
             <div className="space-y-2">
-              <label className="text-sm font-medium block">Expires at</label>
+              <label className="text-sm font-medium block">{t("expiresAtLabel")}</label>
               <Input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Internal notes (optional)</label>
+            <label className="text-sm font-medium block">{t("notesLabel")}</label>
             <textarea
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[50px]"
               value={notes}
@@ -162,14 +164,14 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
 
         <div className="flex justify-end gap-3">
           <Button variant="ghost" onClick={handleClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={() => void handleSubmit()}
             disabled={banUser.isPending}
             className="bg-linear-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600"
           >
-            {banUser.isPending ? "Banning…" : "Ban user"}
+            {banUser.isPending ? t("banning") : t("submit")}
           </Button>
         </div>
       </DialogContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { useBrandLikes } from "@/hooks/api/useLikes";
 import { Heart } from "lucide-react";
 
@@ -8,6 +9,9 @@ interface BrandLikesProps {
 }
 
 export function BrandLikes({ brandId }: BrandLikesProps) {
+  const t = useTranslations("dashboard.client.brandLikes");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const { data: likes = [], isLoading } = useBrandLikes(brandId);
 
   if (isLoading) {
@@ -29,7 +33,7 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
           <div>
             <h3 className="text-3xl font-bold">{likes.length}</h3>
             <p className="text-muted-foreground">
-              Total {likes.length === 1 ? "Like" : "Likes"} Received
+              {t("totalLikesReceived", { count: likes.length })}
             </p>
           </div>
         </div>
@@ -39,14 +43,14 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
       {likes.length === 0 ? (
         <div className="text-center py-12 bg-card border border-border rounded-xl">
           <Heart className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-          <p className="text-muted-foreground text-lg mb-2">No likes yet</p>
+          <p className="text-muted-foreground text-lg mb-2">{t("noLikesTitle")}</p>
           <p className="text-sm text-muted-foreground">
-            Your brand will appear in the discover section soon!
+            {t("noLikesSubtitle")}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold">Users Who Liked Your Brand</h3>
+          <h3 className="text-xl font-semibold">{t("usersWhoLikedTitle")}</h3>
           <div className="grid gap-4">
             {likes.map((like) => (
               <div
@@ -72,14 +76,14 @@ export function BrandLikes({ brandId }: BrandLikesProps) {
                   {/* Like Date */}
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">
-                      {new Date(like.likedAt).toLocaleDateString("en-US", {
+                      {new Date(like.likedAt).toLocaleDateString(dateLocale, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
                       })}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(like.likedAt).toLocaleTimeString("en-US", {
+                      {new Date(like.likedAt).toLocaleTimeString(dateLocale, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}

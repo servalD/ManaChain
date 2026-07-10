@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useAccount, useReadContract } from "wagmi";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Address } from "viem";
@@ -28,6 +29,7 @@ interface TicketPurchaseModalProps {
 const USDC_DECIMALS = 6;
 
 export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseModalProps) {
+  const t = useTranslations("events.purchaseModal");
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const ticketSaleAddress = event?.ticketSaleAddress as Address | undefined;
@@ -66,7 +68,7 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
         queryClient.invalidateQueries({ queryKey: getEventsControllerMyTicketsQueryKey() }),
       ]);
       setIsSyncing(false);
-      toast({ title: "Ticket purchased", description: `You're going to ${event.title}!`, variant: "success" });
+      toast({ title: t("ticketPurchasedTitle"), description: t("ticketPurchasedMessage", { eventTitle: event.title }), variant: "success" });
       onClose();
     }, 2000);
     return () => clearTimeout(timer);
@@ -94,7 +96,7 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
 
   const handleApproveOrBuy = async () => {
     if (!selectedType || cost == null) {
-      toast({ title: "Select a ticket", description: "Choose a ticket type and quantity.", variant: "error" });
+      toast({ title: t("selectTicketTitle"), description: t("selectTicketMessage"), variant: "error" });
       return;
     }
     if (mustApprove) {
@@ -109,7 +111,7 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{event.title}</DialogTitle>
-          <DialogDescription>Buy your tickets for this event, paid in USDC.</DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -119,13 +121,13 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
             </div>
           ) : !ticketSaleAddress || ticketTypes.length === 0 ? (
             <div className="bg-accent/50 rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground">Tickets aren&apos;t on sale for this event yet.</p>
+              <p className="text-sm text-muted-foreground">{t("notOnSaleYet")}</p>
             </div>
           ) : (
             <>
               <div className="bg-accent/50 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Your USDC balance</span>
+                  <span className="text-sm text-muted-foreground">{t("yourUsdcBalance")}</span>
                   <span className="font-semibold">
                     {(Number(usdcBalance ?? BigInt(0)) / 10 ** USDC_DECIMALS).toFixed(2)} USDC
                   </span>
@@ -133,20 +135,24 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium block">Ticket type</label>
+                <label className="text-sm font-medium block">{t("ticketTypeLabel")}</label>
                 <Select value={tokenId} onValueChange={setTokenId} className="w-full">
                   {ticketTypes.map((type) => (
                     <SelectItem key={type.tokenId} value={type.tokenId}>
-                      {`Ticket #${type.tokenId} — ${
-                        type.price === "0" ? "Free" : `${(Number(type.price) / 10 ** USDC_DECIMALS).toFixed(2)} USDC`
-                      }`}
+                      {t("ticketOption", {
+                        tokenId: type.tokenId,
+                        price:
+                          type.price === "0"
+                            ? t("free")
+                            : `${(Number(type.price) / 10 ** USDC_DECIMALS).toFixed(2)} USDC`,
+                      })}
                     </SelectItem>
                   ))}
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium block">Quantity</label>
+                <label className="text-sm font-medium block">{t("quantityLabel")}</label>
                 <Input
                   type="number"
                   min="1"
@@ -156,7 +162,9 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
                 />
                 {cost != null && (
                   <p className="text-xs text-muted-foreground">
-                    Total: {cost === BigInt(0) ? "Free" : `${(Number(cost) / 10 ** USDC_DECIMALS).toFixed(2)} USDC`}
+                    {t("total", {
+                      amount: cost === BigInt(0) ? t("free") : `${(Number(cost) / 10 ** USDC_DECIMALS).toFixed(2)} USDC`,
+                    })}
                   </p>
                 )}
               </div>
@@ -172,22 +180,22 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
                 size="lg"
               >
                 {isSyncing
-                  ? "Confirmed on-chain — syncing…"
+                  ? t("syncingLabel")
                   : buyStatus === "signing" || buyStatus === "pending"
-                    ? "Confirming purchase…"
+                    ? t("confirmingPurchase")
                     : approveStatus === "signing" || approveStatus === "pending"
-                      ? "Confirming approval…"
+                      ? t("confirmingApproval")
                       : mustApprove
-                        ? "Approve USDC"
-                        : "Buy tickets"}
+                        ? t("approveUsdc")
+                        : t("buyTickets")}
               </Button>
             ) : (
               <Button className="w-full" size="lg" disabled>
-                Not Available Yet
+                {t("notAvailableYet")}
               </Button>
             )}
             <Button onClick={handleClose} variant="ghost" className="w-full" disabled={isSyncing}>
-              Close
+              {t("close")}
             </Button>
           </div>
           {buyError && buyStatus === "failed" && <p className="text-sm text-destructive">{buyError.message}</p>}

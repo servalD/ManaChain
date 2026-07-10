@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +13,7 @@ import { useTokenByBrand } from "@/hooks/api/useTokens";
 import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
 
 export default function BrandDashboardPage() {
+  const t = useTranslations("dashboard.brand.dashboardPage");
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
@@ -33,8 +35,8 @@ export default function BrandDashboardPage() {
   const handleLogout = async () => {
     await logout();
     toast({
-      title: "Logged out",
-      description: "See you soon!",
+      title: t("toasts.loggedOutTitle"),
+      description: t("toasts.loggedOutMessage"),
       variant: "success",
     });
   };
@@ -63,7 +65,7 @@ export default function BrandDashboardPage() {
           <div className="max-w-8xl mx-auto space-y-8">
             <h1 className="text-2xl sm:text-3xl font-bold">
               <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                Brand Dashboard
+                {t("heading")}
               </span>
             </h1>
 
@@ -82,7 +84,7 @@ export default function BrandDashboardPage() {
             ) : (
               <div className="p-6 border border-border rounded-lg bg-muted/50">
                 <p className="text-muted-foreground text-center">
-                  No brand found. Please contact support if you believe this is an error.
+                  {t("noBrandFound")}
                 </p>
               </div>
             )}

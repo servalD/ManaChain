@@ -1,6 +1,7 @@
 "use client";
 
 import { formatUnits } from "viem";
+import { useTranslations } from "next-intl";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMyPortfolio } from "@/hooks/api/useTokens";
@@ -11,6 +12,7 @@ function priceOf(sale: { pricePerToken: string } | null | undefined, fallback: s
 }
 
 export function MyTokens() {
+  const t = useTranslations("dashboard.client.myTokens");
   const { data: portfolio, isLoading } = useMyPortfolio();
   const entries = portfolio ?? [];
 
@@ -30,9 +32,9 @@ export function MyTokens() {
   if (entries.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground text-sm">No badges yet</p>
+        <p className="text-muted-foreground text-sm">{t("noBadgesTitle")}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Start supporting brands to see your badges here
+          {t("noBadgesSubtitle")}
         </p>
       </div>
     );
@@ -42,9 +44,9 @@ export function MyTokens() {
     <div className="space-y-4 pt-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">My Badges Units</h2>
+          <h2 className="text-xl font-bold">{t("title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Total Support Value (reference, not a market price):{" "}
+            {t("totalSupportValue")}{" "}
             <span className="font-semibold text-foreground">
               ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
@@ -57,10 +59,10 @@ export function MyTokens() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Badge</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">My Holdings</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Value (base)</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnBadge")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columnHoldings")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columnValue")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columnActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -86,17 +88,18 @@ export function MyTokens() {
                         <div>
                           <div className="font-semibold text-sm">{token.symbol}</div>
                           <div className="text-xs text-muted-foreground">
-                            {sharePct >= 0.5 ? "High" : sharePct >= 0.05 ? "Medium" : "Low"} support level
+                            {sharePct >= 0.5 ? t("supportLevelHigh") : sharePct >= 0.05 ? t("supportLevelMedium") : t("supportLevelLow")}{" "}
+                            {t("supportLevelSuffix")}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 text-right">
                       <div className="font-semibold text-sm">
-                        {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} units
+                        {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} {t("unitsSuffix")}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {token.totalSupply > 0 ? `${sharePct.toFixed(3)}% of total supply` : "—"}
+                        {token.totalSupply > 0 ? t("ofTotalSupply", { percent: `${sharePct.toFixed(3)}%` }) : "—"}
                       </div>
                     </td>
                     <td className="p-4 text-right">
@@ -104,14 +107,14 @@ export function MyTokens() {
                         ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {balance > 0 ? `$${price.toFixed(2)} / unit` : "—"}
+                        {balance > 0 ? t("perUnit", { price: `$${price.toFixed(2)}` }) : "—"}
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end">
                         <Button variant="ghost" size="sm" className="h-8 text-xs">
                           <MoreHorizontal className="h-3 w-3 mr-1" />
-                          More Details
+                          {t("moreDetails")}
                         </Button>
                       </div>
                     </td>

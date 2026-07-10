@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { decodeEventLog, type Address } from "viem";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ export function EventSetupWizard({ brandAddress, onDone }: EventSetupWizardProps
 }
 
 function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
+  const t = useTranslations("dashboard.brand.eventSetupWizard.draftStep");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
   const [startsAt, setStartsAt] = useState("");
@@ -111,7 +113,7 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
 
   const handleCreate = async () => {
     if (!title.trim() || !type.trim() || !startsAt) {
-      toast({ title: "Missing fields", description: "Title, type and start date are required.", variant: "error" });
+      toast({ title: t("toasts.missingFieldsTitle"), description: t("toasts.missingFieldsMessage"), variant: "error" });
       return;
     }
     const created = await createEvent.mutateAsync({
@@ -127,27 +129,27 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
   };
 
   return (
-    <StepShell title="Step 1 — Event details" description="Saved as a draft before you deploy anything on-chain.">
+    <StepShell title={t("title")} description={t("description")}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium mb-2 block">Title</label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Product Launch" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("titleLabel")}</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("titlePlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Type</label>
-          <Input value={type} onChange={(e) => setType(e.target.value)} placeholder="Meetup" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("typeLabel")}</label>
+          <Input value={type} onChange={(e) => setType(e.target.value)} placeholder={t("typePlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Starts at</label>
+          <label className="text-sm font-medium mb-2 block">{t("startsAtLabel")}</label>
           <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Ends at (optional)</label>
+          <label className="text-sm font-medium mb-2 block">{t("endsAtLabel")}</label>
           <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} disabled={isBusy} />
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium mb-2 block">Description (optional)</label>
+        <label className="text-sm font-medium mb-2 block">{t("descriptionLabel")}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -158,7 +160,7 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
       </div>
       <Button onClick={handleCreate} disabled={isBusy} className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-        Save draft
+        {t("saveDraft")}
       </Button>
     </StepShell>
   );
@@ -173,6 +175,7 @@ function DeployModuleStep({
   event: EventResponse;
   onDeployed: (address: Address) => void;
 }) {
+  const t = useTranslations("dashboard.brand.eventSetupWizard.deployModuleStep");
   const [isUploading, setIsUploading] = useState(false);
   const deployFlow = useTxFlow({
     abi: eventFactoryAbi,
@@ -180,10 +183,10 @@ function DeployModuleStep({
     onConfirmed: (receipt) => {
       const address = decodeDeployedAddress(receipt, eventFactoryAbi, "EventModuleDeployed", "eventTickets");
       if (!address) {
-        toast({ title: "Error", description: "Could not read the deployed address from the transaction.", variant: "error" });
+        toast({ title: t("toasts.errorTitle"), description: t("toasts.decodeErrorMessage"), variant: "error" });
         return;
       }
-      toast({ title: "Module deployed", description: "Your event ticket contract is live.", variant: "success" });
+      toast({ title: t("toasts.deployedTitle"), description: t("toasts.deployedMessage"), variant: "success" });
       onDeployed(address);
     },
   });
@@ -206,13 +209,10 @@ function DeployModuleStep({
   };
 
   return (
-    <StepShell
-      title="Step 2 — Deploy the ticket contract"
-      description="Deploys an ERC-1155 contract for this event's tickets, owned by your wallet."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       <Button onClick={handleDeploy} disabled={isBusy} className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-        {isUploading ? "Uploading metadata…" : isBusy ? "Confirming…" : "Deploy ticket contract"}
+        {isUploading ? t("uploadingMetadata") : isBusy ? t("confirming") : t("deployButton")}
       </Button>
       {deployFlow.status === "failed" && deployFlow.error && (
         <p className="text-sm text-destructive">{deployFlow.error.message}</p>
@@ -230,6 +230,7 @@ function DeployTicketSaleStep({
   event: EventResponse;
   onLinked: (e: EventResponse) => void;
 }) {
+  const t = useTranslations("dashboard.brand.eventSetupWizard.deployTicketSaleStep");
   const [freeEvent, setFreeEvent] = useState(false);
   const linkContracts = useLinkEventContracts();
 
@@ -241,8 +242,8 @@ function DeployTicketSaleStep({
     onLinked(linked);
     if (!linked.ticketSaleAddress) {
       toast({
-        title: "Still syncing",
-        description: "The indexer hasn't picked up the ticket sale yet — click Link again in a few seconds.",
+        title: t("toasts.stillSyncingTitle"),
+        description: t("toasts.stillSyncingMessage"),
         variant: "default",
       });
     }
@@ -252,7 +253,7 @@ function DeployTicketSaleStep({
     abi: saleFactoryAbi,
     address: CONTRACT_ADDRESSES.saleFactory,
     onConfirmed: async () => {
-      toast({ title: "Ticket sale deployed", description: "Linking it to your event…", variant: "success" });
+      toast({ title: t("toasts.deployedTitle"), description: t("toasts.deployedMessage"), variant: "success" });
       await link();
     },
   });
@@ -268,21 +269,18 @@ function DeployTicketSaleStep({
   const isBusy = saleFlow.status === "signing" || saleFlow.status === "pending" || linkContracts.isPending;
 
   return (
-    <StepShell
-      title="Step 3 — Open the ticket sale"
-      description="Deploys the sale contract, then links both addresses to this event."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={freeEvent} onChange={(e) => setFreeEvent(e.target.checked)} disabled={isBusy} />
-        Free event (no USDC payment)
+        {t("freeEventLabel")}
       </label>
       <div className="flex gap-3">
         <Button onClick={handleDeploySale} disabled={isBusy} className="flex-1">
           {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-          Deploy ticket sale
+          {t("deployButton")}
         </Button>
         <Button onClick={() => void link()} disabled={isBusy} variant="outline" className="flex-1">
-          Link (retry)
+          {t("linkRetryButton")}
         </Button>
       </div>
       {saleFlow.status === "failed" && saleFlow.error && (
@@ -299,6 +297,7 @@ function TicketTypesStep({
   event: EventResponse;
   onPublished: () => void;
 }) {
+  const t = useTranslations("dashboard.brand.eventSetupWizard.ticketTypesStep");
   const { data: ticketTypes } = useEventTicketTypes(event.id);
   const [tokenId, setTokenId] = useState("1");
   const [quantity, setQuantity] = useState("");
@@ -309,7 +308,7 @@ function TicketTypesStep({
     abi: ticketSaleAbi,
     address: event.ticketSaleAddress as Address,
     onConfirmed: () => {
-      toast({ title: "Ticket type added", description: `Token #${tokenId} is now on sale.`, variant: "success" });
+      toast({ title: t("toasts.addedTitle"), description: t("toasts.addedMessage", { tokenId }), variant: "success" });
     },
   });
   const mintFlow = useTxFlow({
@@ -326,44 +325,41 @@ function TicketTypesStep({
 
   const handleAddType = async () => {
     if (!quantity.trim() || (!event.paymentFree && !price.trim())) {
-      toast({ title: "Missing fields", description: "Quantity and price are required.", variant: "error" });
+      toast({ title: t("toasts.missingFieldsTitle"), description: t("toasts.missingFieldsMessage"), variant: "error" });
       return;
     }
     await mintFlow.write("mint", [event.ticketSaleAddress as Address, BigInt(tokenId), BigInt(quantity)]);
   };
 
   return (
-    <StepShell
-      title="Step 4 — Ticket types"
-      description="Mint tickets to the sale contract and set their price (0 for free events)."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       {(ticketTypes ?? []).length > 0 && (
         <ul className="text-sm space-y-1">
-          {(ticketTypes ?? []).map((t) => (
-            <li key={t.id} className="flex justify-between border-b border-border py-1">
-              <span>Token #{t.tokenId}</span>
+          {(ticketTypes ?? []).map((ticketType) => (
+            <li key={ticketType.id} className="flex justify-between border-b border-border py-1">
+              <span>{t("tokenLabel", { tokenId: ticketType.tokenId })}</span>
               <span className="text-muted-foreground">
-                {t.mintedQuantity} minted · {(Number(t.price) / 1e6).toFixed(2)} USDC
+                {t("mintedSummary", { minted: ticketType.mintedQuantity, price: (Number(ticketType.price) / 1e6).toFixed(2) })}
               </span>
             </li>
           ))}
         </ul>
       )}
       <div className="grid grid-cols-3 gap-3">
-        <Input type="number" value={tokenId} onChange={(e) => setTokenId(e.target.value)} placeholder="Token id" disabled={isBusy} />
-        <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="Quantity" disabled={isBusy} />
+        <Input type="number" value={tokenId} onChange={(e) => setTokenId(e.target.value)} placeholder={t("tokenIdPlaceholder")} disabled={isBusy} />
+        <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder={t("quantityPlaceholder")} disabled={isBusy} />
         <Input
           type="number"
           step="0.01"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          placeholder={event.paymentFree ? "Free" : "Price USDC"}
+          placeholder={event.paymentFree ? t("freePlaceholder") : t("priceUsdcPlaceholder")}
           disabled={isBusy || event.paymentFree}
         />
       </div>
       <Button onClick={handleAddType} disabled={isBusy} variant="outline" className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-        Add ticket type
+        {t("addTicketType")}
       </Button>
       <Button
         onClick={async () => {
@@ -373,7 +369,7 @@ function TicketTypesStep({
         disabled={publishEvent.isPending}
         className="w-full"
       >
-        Publish event
+        {t("publishEvent")}
       </Button>
     </StepShell>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { useAccount } from "wagmi";
 import { Plus, X } from "lucide-react";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
@@ -14,6 +15,9 @@ import { useMyBrandEvents } from "@/hooks/api/useEvents";
 import { EventSetupWizard } from "@/components/dashboard/brand/EventSetupWizard";
 
 export default function BrandEventsPage() {
+  const t = useTranslations("dashboard.brand.eventsPage");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const router = useRouter();
   const { user, logout, refreshUser } = useAuth();
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
@@ -25,7 +29,7 @@ export default function BrandEventsPage() {
 
   const handleLogout = async () => {
     await logout();
-    toast({ title: "Logged out", description: "See you soon!", variant: "success" });
+    toast({ title: t("toasts.loggedOutTitle"), description: t("toasts.loggedOutMessage"), variant: "success" });
   };
   const handleProfile = () => router.push("/profile");
 
@@ -50,20 +54,20 @@ export default function BrandEventsPage() {
             <div className="flex items-center justify-between">
               <h1 className="text-3xl sm:text-4xl font-bold">
                 <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                  My Events
+                  {t("heading")}
                 </span>
               </h1>
               {!isCreating && (
                 <Button onClick={() => setIsCreating(true)} disabled={!address}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Event
+                  {t("createEvent")}
                 </Button>
               )}
             </div>
 
             {!address && (
               <p className="text-sm text-muted-foreground">
-                Connect your wallet above to create an event.
+                {t("connectWalletHint")}
               </p>
             )}
 
@@ -71,7 +75,7 @@ export default function BrandEventsPage() {
               <div className="space-y-3">
                 <Button variant="ghost" size="sm" onClick={() => setIsCreating(false)}>
                   <X className="h-4 w-4 mr-2" />
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <EventSetupWizard brandAddress={address} onDone={() => setIsCreating(false)} />
               </div>
@@ -81,16 +85,16 @@ export default function BrandEventsPage() {
               </div>
             ) : events.length === 0 ? (
               <div className="border border-border rounded-lg p-12 text-center text-muted-foreground text-sm">
-                No events yet — create your first one.
+                {t("noEvents")}
               </div>
             ) : (
               <div className="border border-border rounded-lg overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">
-                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Title</th>
-                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Starts</th>
-                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Status</th>
+                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.title")}</th>
+                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.starts")}</th>
+                      <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.status")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -98,7 +102,7 @@ export default function BrandEventsPage() {
                       <tr key={event.id} className="border-b border-border last:border-b-0">
                         <td className="p-4 font-medium text-sm">{event.title}</td>
                         <td className="p-4 text-sm text-muted-foreground">
-                          {new Date(event.startsAt).toLocaleDateString("en-US", {
+                          {new Date(event.startsAt).toLocaleDateString(dateLocale, {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
@@ -106,7 +110,7 @@ export default function BrandEventsPage() {
                         </td>
                         <td className="p-4">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-500/10 text-violet-500">
-                            {event.status}
+                            {t.has(`table.statusValues.${event.status}`) ? t(`table.statusValues.${event.status}`) : event.status}
                           </span>
                         </td>
                       </tr>

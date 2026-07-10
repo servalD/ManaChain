@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Calendar, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -10,6 +11,9 @@ import { useMyBrandEvents } from "@/hooks/api/useEvents";
 const limitOptions = [5, 10, 25, 50];
 
 export function BrandEvents() {
+  const t = useTranslations("dashboard.brand.brandEvents");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<"upcoming" | "past">("upcoming");
   const [limit, setLimit] = useState<number>(10);
@@ -32,7 +36,7 @@ export function BrandEvents() {
     .slice(0, limit);
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
+    new Date(iso).toLocaleString(dateLocale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -43,10 +47,10 @@ export function BrandEvents() {
   return (
     <div className="space-y-4 pt-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl font-bold">Events</h2>
+        <h2 className="text-xl font-bold">{t("heading")}</h2>
         <Button onClick={() => router.push("/brand/events")} variant="outline" className="h-9">
           <Plus className="h-4 w-4 mr-2" />
-          Create Event
+          {t("createEvent")}
         </Button>
       </div>
 
@@ -59,7 +63,7 @@ export function BrandEvents() {
               statusFilter === "upcoming" ? "bg-violet-500 text-white" : "bg-muted text-muted-foreground hover:bg-muted/80",
             )}
           >
-            Upcoming
+            {t("upcoming")}
           </button>
           <button
             onClick={() => setStatusFilter("past")}
@@ -68,11 +72,11 @@ export function BrandEvents() {
               statusFilter === "past" ? "bg-violet-500 text-white" : "bg-muted text-muted-foreground hover:bg-muted/80",
             )}
           >
-            Past
+            {t("past")}
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Show:</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">{t("show")}</span>
           <select
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
@@ -93,7 +97,9 @@ export function BrandEvents() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
-          <p className="text-muted-foreground text-sm">No {statusFilter} events</p>
+          <p className="text-muted-foreground text-sm">
+            {statusFilter === "upcoming" ? t("noUpcomingEvents") : t("noPastEvents")}
+          </p>
         </div>
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
@@ -101,11 +107,11 @@ export function BrandEvents() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Event Name</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Date</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Type</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Status</th>
-                  <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.eventName")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.date")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.type")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.status")}</th>
+                  <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("table.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,7 +146,7 @@ export function BrandEvents() {
                           event.status === "cancelled" && "bg-destructive/10 text-destructive",
                         )}
                       >
-                        {event.status}
+                        {t.has(`table.statusValues.${event.status}`) ? t(`table.statusValues.${event.status}`) : event.status}
                       </span>
                     </td>
                     <td className="p-4">
@@ -152,7 +158,7 @@ export function BrandEvents() {
                           onClick={() => router.push("/brand/events")}
                         >
                           <MoreHorizontal className="h-3 w-3 mr-1" />
-                          More Details
+                          {t("table.moreDetails")}
                         </Button>
                       </div>
                     </td>

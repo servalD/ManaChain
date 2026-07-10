@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useReadContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ interface RowProps {
 }
 
 function BrandWhitelistRow({ brand, ownerBlockchainAddress, isLast }: RowProps) {
+  const t = useTranslations("dashboard.admin.brandWhitelistTable");
   const address = ownerBlockchainAddress as `0x${string}` | undefined;
 
   const {
@@ -38,8 +40,10 @@ function BrandWhitelistRow({ brand, ownerBlockchainAddress, isLast }: RowProps) 
     onConfirmed: async () => {
       await refetch();
       toast({
-        title: "Whitelist updated",
-        description: `${brand.name} is now ${isWhitelisted ? "removed from the whitelist" : "whitelisted"}.`,
+        title: t("toasts.updatedTitle"),
+        description: isWhitelisted
+          ? t("toasts.removedMessage", { name: brand.name })
+          : t("toasts.whitelistedMessage", { name: brand.name }),
         variant: "success",
       });
     },
@@ -67,17 +71,17 @@ function BrandWhitelistRow({ brand, ownerBlockchainAddress, isLast }: RowProps) 
       </td>
       <td className="p-4">
         <span className="font-mono text-xs text-muted-foreground">
-          {address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "No wallet linked"}
+          {address ? `${address.slice(0, 6)}…${address.slice(-4)}` : t("noWalletLinked")}
         </span>
       </td>
       <td className="p-4">
         {!address ? (
           <span className="text-xs text-muted-foreground">—</span>
         ) : isStatusLoading ? (
-          <span className="text-xs text-muted-foreground">Checking…</span>
+          <span className="text-xs text-muted-foreground">{t("checking")}</span>
         ) : (
           <Badge variant={isWhitelisted ? "default" : "outline"}>
-            {isWhitelisted ? "Whitelisted" : "Not whitelisted"}
+            {isWhitelisted ? t("whitelisted") : t("notWhitelisted")}
           </Badge>
         )}
       </td>
@@ -89,7 +93,7 @@ function BrandWhitelistRow({ brand, ownerBlockchainAddress, isLast }: RowProps) 
             disabled={!address || isBusy}
             onClick={toggle}
           >
-            {isBusy ? "Confirming…" : isWhitelisted ? "Remove" : "Whitelist on-chain"}
+            {isBusy ? t("confirming") : isWhitelisted ? t("remove") : t("whitelistOnChain")}
           </Button>
         </div>
       </td>
@@ -104,6 +108,7 @@ function BrandWhitelistRow({ brand, ownerBlockchainAddress, isLast }: RowProps) 
  * vérifié côté front).
  */
 export function BrandWhitelistTable() {
+  const t = useTranslations("dashboard.admin.brandWhitelistTable");
   const { data, isLoading } = useBrandsForWhitelist({ limit: 100, offset: 0 });
   const entries = data?.brands ?? [];
 
@@ -113,10 +118,10 @@ export function BrandWhitelistTable() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted/30">
-              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Brand</th>
-              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Owner wallet</th>
-              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Status</th>
-              <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Action</th>
+              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.brand")}</th>
+              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.ownerWallet")}</th>
+              <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.status")}</th>
+              <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -131,7 +136,7 @@ export function BrandWhitelistTable() {
             ) : entries.length === 0 ? (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-muted-foreground">
-                  No brands found
+                  {t("empty")}
                 </td>
               </tr>
             ) : (

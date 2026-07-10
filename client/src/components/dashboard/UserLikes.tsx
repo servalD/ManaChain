@@ -1,11 +1,15 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { useMyLikes, useDeleteLike } from "@/hooks/api/useLikes";
 import PinataService from "@/services/pinata.service";
 import { ExternalLink, MoreHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function UserLikes() {
+  const t = useTranslations("dashboard.client.userLikes");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const { data: likes = [], isLoading } = useMyLikes();
   const deleteLike = useDeleteLike();
 
@@ -24,9 +28,9 @@ export function UserLikes() {
   if (likes.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground text-lg mb-2">No liked brands yet</p>
+        <p className="text-muted-foreground text-lg mb-2">{t("noLikedTitle")}</p>
         <p className="text-sm text-muted-foreground">
-          Start swiping to discover brands you love!
+          {t("noLikedSubtitle")}
         </p>
       </div>
     );
@@ -35,9 +39,9 @@ export function UserLikes() {
   return (
     <div className="space-y-4 pt-8">
       <div>
-        <h2 className="text-xl font-bold">My Liked Brands</h2>
+        <h2 className="text-xl font-bold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          {likes.length} {likes.length === 1 ? "brand" : "brands"} you&apos;ve shown interest in
+          {t("brandsCount", { count: likes.length })}
         </p>
       </div>
 
@@ -46,9 +50,9 @@ export function UserLikes() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Brand</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Liked On</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnBrand")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnLikedOn")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columnActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +99,7 @@ export function UserLikes() {
                   </td>
                   <td className="p-4">
                     <div className="text-sm text-muted-foreground">
-                      {new Date(like.likedAt).toLocaleDateString("en-US", {
+                      {new Date(like.likedAt).toLocaleDateString(dateLocale, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -118,7 +122,7 @@ export function UserLikes() {
                             className="flex items-center gap-1"
                           >
                             <ExternalLink className="h-3 w-3" />
-                            Visit Website
+                            {t("visitWebsite")}
                           </a>
                         </Button>
                       )}
@@ -128,7 +132,7 @@ export function UserLikes() {
                         className="h-8 text-xs"
                       >
                         <MoreHorizontal className="h-3 w-3 mr-1" />
-                        More Details
+                        {t("moreDetails")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -136,14 +140,14 @@ export function UserLikes() {
                         className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
                         onClick={() => handleDislike(like.likeId)}
                         disabled={deleteLike.isPending && deleteLike.variables?.likeId === like.likeId}
-                        aria-label="Remove from liked"
+                        aria-label={t("removeAriaLabel")}
                       >
                         {deleteLike.isPending && deleteLike.variables?.likeId === like.likeId ? (
                           <span className="inline-block w-4 h-4 border-2 border-red-500/50 border-t-red-500 rounded-full animate-spin" />
                         ) : (
                           <>
                             <X className="h-3 w-3 mr-1" />
-                            Dislike
+                            {t("dislike")}
                           </>
                         )}
                       </Button>

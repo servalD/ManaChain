@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Brand } from "@/components/ui/brand-swipe";
 import { Navbar } from "@/components/ui/navbar";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
@@ -28,6 +29,7 @@ import { asAxiosError } from "@/lib/api-error";
 
 export default function DiscoverPage() {
   const router = useRouter();
+  const t = useTranslations("discover.page");
   const { user, logout, refreshUser } = useAuth();
   const { shouldDisconnectWallet, handleWalletConnected, handleWalletDisconnected } = useWalletSync(refreshUser);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -58,8 +60,8 @@ export default function DiscoverPage() {
       } catch (error) {
         console.error("Error fetching user likes:", error);
         toast({
-          title: "Error",
-          description: "Failed to fetch your liked brands.",
+          title: t("likesFetchErrorTitle"),
+          description: t("likesFetchErrorMessage"),
           variant: "error",
         });
       }
@@ -71,8 +73,8 @@ export default function DiscoverPage() {
       } catch (error) {
         console.error("Error fetching brands:", error);
         toast({
-          title: "Error",
-          description: "Failed to load brands. Please try again.",
+          title: t("brandsFetchErrorTitle"),
+          description: t("brandsFetchErrorMessage"),
           variant: "error",
         });
         setIsLoadingBrands(false);
@@ -87,7 +89,7 @@ export default function DiscoverPage() {
       const transformedBrands: Brand[] = brandsFromApi.map((brand, index) => {
         const industry = brand.interests && brand.interests.length > 0
           ? brand.interests.map((i) => i.label).join(", ")
-          : "General";
+          : t("industryFallback");
 
         const stats = statsPerBrand[index];
         const hasToken = !!stats?.tokenSymbol;
@@ -108,7 +110,7 @@ export default function DiscoverPage() {
           name: brand.name,
           logo: normalizedLogo,
           coverImage,
-          description: brand.description || "No description available.",
+          description: brand.description || t("descriptionFallback"),
           industry,
           tokenSymbol,
           tokenPrice,
@@ -123,6 +125,7 @@ export default function DiscoverPage() {
     };
 
     fetchBrands();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSwipeRight = async (brand: Brand) => {
@@ -130,8 +133,8 @@ export default function DiscoverPage() {
     try {
       await likesControllerCreate({ brandId: brand.id });
       toast({
-        title: "Brand Liked!",
-        description: "You have successfully liked this brand.",
+        title: t("brandLikedTitle"),
+        description: t("brandLikedMessage"),
         variant: "success",
       });
       queryClient.invalidateQueries({ queryKey: getLikesControllerMyLikesQueryKey() });
@@ -141,9 +144,9 @@ export default function DiscoverPage() {
       setIsInvestmentModalOpen(true);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("likeErrorTitle"),
         description:
-          asAxiosError(error)?.response?.data?.message || "Failed to like brand. Please try again.",
+          asAxiosError(error)?.response?.data?.message || t("likeErrorFallback"),
         variant: "error",
       });
     }
@@ -209,7 +212,7 @@ export default function DiscoverPage() {
             </div>
           ) : brands.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">No brands available at the moment.</p>
+              <p className="text-muted-foreground text-lg">{t("noBrandsAvailable")}</p>
             </div>
           ) : (
             <DiscoverContent

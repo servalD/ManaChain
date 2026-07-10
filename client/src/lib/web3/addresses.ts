@@ -6,33 +6,32 @@ import type { Address } from "viem";
  * PAS ici : elles viennent de l'API, jamais d'une variable d'env.
  */
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
+function requireEnv(value: string | undefined, name: string): string {
   if (!value) {
     throw new Error(`${name} is not defined in environment variables`);
   }
   return value;
 }
 
-function requireAddress(name: string): Address {
-  return requireEnv(name) as Address;
+function requireAddress(value: string | undefined, name: string): Address {
+  return requireEnv(value, name) as Address;
 }
 
-function requireChainId(name: string): number {
-  const value = requireEnv(name);
-  const chainId = Number(value);
+function requireChainId(value: string | undefined, name: string): number {
+  const envValue = requireEnv(value, name);
+  const chainId = Number(envValue);
   if (!Number.isInteger(chainId)) {
-    throw new Error(`${name} is not a valid integer: ${value}`);
+    throw new Error(`${name} is not a valid integer: ${envValue}`);
   }
   return chainId;
 }
 
-export const CHAIN_ID = requireChainId("NEXT_PUBLIC_CHAIN_ID");
+export const CHAIN_ID = requireChainId(process.env.NEXT_PUBLIC_CHAIN_ID, "NEXT_PUBLIC_CHAIN_ID");
 
 export const CONTRACT_ADDRESSES = {
-  manaAdmin: requireAddress("NEXT_PUBLIC_MANA_ADMIN_ADDRESS"),
-  brandFactory: requireAddress("NEXT_PUBLIC_BRAND_FACTORY_ADDRESS"),
-  saleFactory: requireAddress("NEXT_PUBLIC_SALE_FACTORY_ADDRESS"),
-  eventFactory: requireAddress("NEXT_PUBLIC_EVENT_FACTORY_ADDRESS"),
-  usdc: requireAddress("NEXT_PUBLIC_USDC_ADDRESS"),
+  manaAdmin: requireAddress(process.env.NEXT_PUBLIC_MANA_ADMIN_ADDRESS, "NEXT_PUBLIC_MANA_ADMIN_ADDRESS"),
+  brandFactory: requireAddress(process.env.NEXT_PUBLIC_BRAND_FACTORY_ADDRESS, "NEXT_PUBLIC_BRAND_FACTORY_ADDRESS"),
+  saleFactory: requireAddress(process.env.NEXT_PUBLIC_SALE_FACTORY_ADDRESS, "NEXT_PUBLIC_SALE_FACTORY_ADDRESS"),
+  eventFactory: requireAddress(process.env.NEXT_PUBLIC_EVENT_FACTORY_ADDRESS, "NEXT_PUBLIC_EVENT_FACTORY_ADDRESS"),
+  usdc: requireAddress(process.env.NEXT_PUBLIC_USDC_ADDRESS, "NEXT_PUBLIC_USDC_ADDRESS"),
 } as const satisfies Record<string, Address>;

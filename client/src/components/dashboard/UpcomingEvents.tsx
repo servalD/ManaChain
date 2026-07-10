@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Calendar, MapPin, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectItem } from "@/components/ui/select";
 import { useEvents } from "@/hooks/api/useEvents";
 
 export function UpcomingEvents() {
+  const t = useTranslations("dashboard.client.upcomingEvents");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const [eventFilter, setEventFilter] = useState<"upcoming" | "past">("upcoming");
   const { data, isLoading } = useEvents({ limit: 50, offset: 0 });
   const events = data?.events ?? [];
@@ -25,7 +29,7 @@ export function UpcomingEvents() {
     );
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
+    new Date(iso).toLocaleString(dateLocale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -36,25 +40,25 @@ export function UpcomingEvents() {
   const formatTimeUntil = (iso: string) => {
     const diff = new Date(iso).getTime() - now;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days < 0) return `${Math.abs(days)} day${Math.abs(days) > 1 ? "s" : ""} ago`;
-    if (days === 0) return "Today";
-    if (days === 1) return "Tomorrow";
-    return `In ${days} days`;
+    if (days < 0) return t("daysAgo", { days: Math.abs(days) });
+    if (days === 0) return t("today");
+    if (days === 1) return t("tomorrow");
+    return t("inDays", { days });
   };
 
   const location = (event: { addressCity: string | null; addressCountry: string | null }) =>
-    [event.addressCity, event.addressCountry].filter(Boolean).join(", ") || "Online / TBA";
+    [event.addressCity, event.addressCountry].filter(Boolean).join(", ") || t("onlineTba");
 
   const Header = (
     <div className="flex items-center justify-between">
-      <h2 className="text-xl font-bold">Events</h2>
+      <h2 className="text-xl font-bold">{t("title")}</h2>
       <Select
         value={eventFilter}
         onValueChange={(value) => setEventFilter(value as "upcoming" | "past")}
         className="w-[180px]"
       >
-        <SelectItem value="upcoming">Upcoming Events</SelectItem>
-        <SelectItem value="past">Past Events</SelectItem>
+        <SelectItem value="upcoming">{t("upcomingOption")}</SelectItem>
+        <SelectItem value="past">{t("pastOption")}</SelectItem>
       </Select>
     </div>
   );
@@ -76,7 +80,7 @@ export function UpcomingEvents() {
         {Header}
         <div className="text-center py-12 border border-border rounded-lg">
           <p className="text-muted-foreground text-sm">
-            No {eventFilter === "upcoming" ? "upcoming" : "past"} events
+            {eventFilter === "upcoming" ? t("noEventsUpcoming") : t("noEventsPast")}
           </p>
         </div>
       </div>
@@ -91,11 +95,11 @@ export function UpcomingEvents() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Event</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Date</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Location</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Type</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnEvent")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnDate")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnLocation")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columnType")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columnActions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -138,7 +142,7 @@ export function UpcomingEvents() {
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => (window.location.href = "/events")}>
                         <MoreHorizontal className="h-3 w-3 mr-1" />
-                        View Details
+                        {t("viewDetails")}
                       </Button>
                     </div>
                   </td>

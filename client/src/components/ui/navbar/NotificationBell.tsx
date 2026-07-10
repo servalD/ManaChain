@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Bell } from "lucide-react";
 import { useMyNotifications, useMarkNotificationRead } from "@/hooks/api/useNotifications";
 
-function formatRelative(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
 /** Cloche de notifications (navbar). Pas de temps réel : se rafraîchit au focus/remount, comme le reste du dashboard. */
 export function NotificationBell() {
+  const t = useTranslations("navbar.notificationBell");
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [now] = useState(() => Date.now());
+
+  const formatRelative = (iso: string): string => {
+    const diffMs = now - new Date(iso).getTime();
+    const minutes = Math.floor(diffMs / 60000);
+    if (minutes < 1) return t("justNow");
+    if (minutes < 60) return t("minutesAgo", { minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t("hoursAgo", { hours });
+    const days = Math.floor(hours / 24);
+    return t("daysAgo", { days });
+  };
 
   const { data } = useMyNotifications({ limit: 10, offset: 0 });
   const markRead = useMarkNotificationRead();
@@ -40,7 +43,7 @@ export function NotificationBell() {
       <button
         onClick={() => setIsOpen((open) => !open)}
         className="relative p-2 rounded-lg hover:bg-accent transition-colors text-foreground"
-        title="Notifications"
+        title={t("ariaLabel")}
       >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
@@ -53,10 +56,10 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg z-50">
           <div className="p-3 border-b border-border">
-            <h3 className="text-sm font-semibold">Notifications</h3>
+            <h3 className="text-sm font-semibold">{t("title")}</h3>
           </div>
           {notifications.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground text-center">No notifications yet</p>
+            <p className="p-4 text-sm text-muted-foreground text-center">{t("empty")}</p>
           ) : (
             <div className="divide-y divide-border">
               {notifications.map((notification) => (

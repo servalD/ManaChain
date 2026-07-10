@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Address } from "viem";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface BrandOption {
 type Step = "pick" | "blacklist-pending" | "cancel-pending" | "submitting";
 
 export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
+  const t = useTranslations("dashboard.admin.banBrandModal");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<BrandOption | null>(null);
   const [reason, setReason] = useState("");
@@ -60,7 +62,7 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
         cancelSaleTxHash: cancelHashRef.current ?? undefined,
       },
     });
-    toast({ title: "Brand banned", description: `${brand.brand.name} has been banned.`, variant: "success" });
+    toast({ title: t("toasts.bannedTitle"), description: t("toasts.bannedMessage", { name: brand.brand.name }), variant: "success" });
     handleClose();
   };
 
@@ -104,21 +106,21 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
 
   const handleStart = async () => {
     if (!selected) {
-      toast({ title: "Select a brand", description: "Search and pick a brand to ban.", variant: "error" });
+      toast({ title: t("toasts.selectBrandTitle"), description: t("toasts.selectBrandMessage"), variant: "error" });
       return;
     }
     if (!reason.trim()) {
-      toast({ title: "Reason required", description: "Explain why this brand is being banned.", variant: "error" });
+      toast({ title: t("toasts.reasonRequiredTitle"), description: t("toasts.reasonRequiredMessage"), variant: "error" });
       return;
     }
     if (!isPermanent && !expiresAt) {
-      toast({ title: "Expiry required", description: "Set an expiry date for a temporary ban.", variant: "error" });
+      toast({ title: t("toasts.expiryRequiredTitle"), description: t("toasts.expiryRequiredMessage"), variant: "error" });
       return;
     }
     if (!selected.ownerBlockchainAddress) {
       toast({
-        title: "No wallet linked",
-        description: "This brand has no on-chain address — cannot blacklist it on-chain.",
+        title: t("toasts.noWalletTitle"),
+        description: t("toasts.noWalletMessage"),
         variant: "error",
       });
       return;
@@ -133,15 +135,13 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Ban a brand</DialogTitle>
-          <DialogDescription>
-            Signs a blacklist tx (+ a cancel-sale tx if a token sale is open), then records the audit entry.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Brand</label>
+            <label className="text-sm font-medium block">{t("brandLabel")}</label>
             {selected ? (
               <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 text-sm">
                 <span>
@@ -149,18 +149,18 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
                   <span className="text-muted-foreground">
                     ({selected.ownerBlockchainAddress
                       ? `${selected.ownerBlockchainAddress.slice(0, 6)}…${selected.ownerBlockchainAddress.slice(-4)}`
-                      : "no wallet linked"})
+                      : t("noWalletLinked")})
                   </span>
                 </span>
                 {step === "pick" && (
                   <button type="button" className="text-xs text-violet-500 hover:underline" onClick={() => setSelected(null)}>
-                    Change
+                    {t("change")}
                   </button>
                 )}
               </div>
             ) : (
               <>
-                <Input placeholder="Search by brand name…" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Input placeholder={t("searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} />
                 {results.length > 0 && (
                   <div className="border border-border rounded-md divide-y divide-border max-h-48 overflow-y-auto">
                     {results.map((entry) => (
@@ -181,18 +181,18 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
               </>
             )}
             {selected && hasOpenSale && (
-              <p className="text-xs text-amber-500">This brand has an open token sale — it will also be cancelled on-chain.</p>
+              <p className="text-xs text-amber-500">{t("openSaleWarning")}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Reason</label>
+            <label className="text-sm font-medium block">{t("reasonLabel")}</label>
             <textarea
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[70px]"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               disabled={isBusy}
-              placeholder="Why is this brand being banned?"
+              placeholder={t("reasonPlaceholder")}
             />
           </div>
 
@@ -206,19 +206,19 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
               className="h-4 w-4 rounded border-input"
             />
             <label htmlFor="ban-brand-permanent" className="text-sm">
-              Permanent ban
+              {t("permanentBan")}
             </label>
           </div>
 
           {!isPermanent && (
             <div className="space-y-2">
-              <label className="text-sm font-medium block">Expires at</label>
+              <label className="text-sm font-medium block">{t("expiresAtLabel")}</label>
               <Input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} disabled={isBusy} />
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Internal notes (optional)</label>
+            <label className="text-sm font-medium block">{t("notesLabel")}</label>
             <textarea
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[50px]"
               value={notes}
@@ -230,7 +230,7 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
 
         <div className="flex justify-end gap-3">
           <Button variant="ghost" onClick={handleClose} disabled={step === "submitting"}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={() => void handleStart()}
@@ -238,12 +238,12 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
             className="bg-linear-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600"
           >
             {step === "blacklist-pending"
-              ? "Confirming blacklist tx…"
+              ? t("confirmingBlacklist")
               : step === "cancel-pending"
-                ? "Confirming cancel-sale tx…"
+                ? t("confirmingCancelSale")
                 : step === "submitting"
-                  ? "Saving…"
-                  : "Ban brand"}
+                  ? t("saving")
+                  : t("submit")}
           </Button>
         </div>
       </DialogContent>

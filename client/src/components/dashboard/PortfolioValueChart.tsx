@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const timeRanges = [
 ] as const;
 
 export function PortfolioValueChart() {
+  const t = useTranslations("dashboard.client.portfolioValueChart");
   const [selectedRange, setSelectedRange] = useState<number>(30);
   const [axisColor, setAxisColor] = useState<string>("#ffffff");
   const data = generateMockData(selectedRange);
@@ -76,9 +78,9 @@ export function PortfolioValueChart() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold mb-1">Community Support Over Time</h2>
+            <h2 className="text-2xl font-bold mb-1">{t("title")}</h2>
             <p className="text-sm text-muted-foreground">
-              See how your overall community support evolves, without any financial or speculative dimension
+              {t("subtitle")}
             </p>
           </div>
           
@@ -161,7 +163,7 @@ export function PortfolioValueChart() {
                 }}
                 formatter={(value: number | undefined) => [
                   (value ?? 0).toLocaleString(),
-                  "Support score",
+                  t("supportScoreTooltip"),
                 ]}
               />
               <Area

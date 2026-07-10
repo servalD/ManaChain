@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { parseUnits } from "viem";
 import { useReadContract } from "wagmi";
@@ -47,17 +48,18 @@ function StepShell({
  * (chaîne) — reprise gratuite après refresh ou échec en cours de route.
  */
 export function TokenSetupWizard({ brandId }: TokenSetupWizardProps) {
+  const t = useTranslations("dashboard.brand.tokenSetupWizard");
   const setup = useBrandSetupState();
   const queryClient = useQueryClient();
 
   if (!setup.address) {
     return (
       <StepShell
-        title="Connect your wallet"
-        description="Connect the wallet linked to your account to deploy your token module."
+        title={t("connectWallet.title")}
+        description={t("connectWallet.description")}
       >
         <p className="text-sm text-muted-foreground">
-          Use the wallet button in the navbar above.
+          {t("connectWallet.hint")}
         </p>
       </StepShell>
     );
@@ -66,11 +68,11 @@ export function TokenSetupWizard({ brandId }: TokenSetupWizardProps) {
   if (setup.step === "not-whitelisted") {
     return (
       <StepShell
-        title="Waiting for whitelist"
-        description="An admin needs to whitelist your wallet on-chain before you can deploy your token module."
+        title={t("notWhitelisted.title")}
+        description={t("notWhitelisted.description")}
       >
         <p className="text-sm text-muted-foreground">
-          This usually happens shortly after your brand application is approved. Check back soon.
+          {t("notWhitelisted.hint")}
         </p>
       </StepShell>
     );
@@ -122,14 +124,15 @@ function DeployStep({
   const [totalSupplyCap, setTotalSupplyCap] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const t = useTranslations("dashboard.brand.tokenSetupWizard.deployStep");
 
   const deployFlow = useTxFlow({
     abi: brandFactoryAbi,
     address: CONTRACT_ADDRESSES.brandFactory,
     onConfirmed: async () => {
       toast({
-        title: "Module deployed",
-        description: "Your genesis NFT, vault and support token are live on-chain.",
+        title: t("toasts.deployedTitle"),
+        description: t("toasts.deployedMessage"),
         variant: "success",
       });
       await onDeployed();
@@ -140,7 +143,7 @@ function DeployStep({
 
   const handleDeploy = async () => {
     if (!nftName.trim() || !nftSymbol.trim() || !tokenName.trim() || !tokenSymbol.trim()) {
-      toast({ title: "Missing fields", description: "Fill in all fields before deploying.", variant: "error" });
+      toast({ title: t("toasts.missingFieldsTitle"), description: t("toasts.missingFieldsMessage"), variant: "error" });
       return;
     }
 
@@ -169,39 +172,36 @@ function DeployStep({
   };
 
   return (
-    <StepShell
-      title="Step 1 — Deploy your token module"
-      description="Your genesis NFT, fractional vault and support token are deployed together, in one transaction."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium mb-2 block">Genesis NFT name</label>
-          <Input value={nftName} onChange={(e) => setNftName(e.target.value)} placeholder="My Brand Genesis" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("nftNameLabel")}</label>
+          <Input value={nftName} onChange={(e) => setNftName(e.target.value)} placeholder={t("nftNamePlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Genesis NFT symbol</label>
-          <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value.toUpperCase())} placeholder="MBG" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("nftSymbolLabel")}</label>
+          <Input value={nftSymbol} onChange={(e) => setNftSymbol(e.target.value.toUpperCase())} placeholder={t("nftSymbolPlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Support token name</label>
-          <Input value={tokenName} onChange={(e) => setTokenName(e.target.value)} placeholder="My Brand Token" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("tokenNameLabel")}</label>
+          <Input value={tokenName} onChange={(e) => setTokenName(e.target.value)} placeholder={t("tokenNamePlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Support token symbol</label>
-          <Input value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value.toUpperCase())} placeholder="MBT" disabled={isBusy} />
+          <label className="text-sm font-medium mb-2 block">{t("tokenSymbolLabel")}</label>
+          <Input value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value.toUpperCase())} placeholder={t("tokenSymbolPlaceholder")} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Total supply cap (optional)</label>
+          <label className="text-sm font-medium mb-2 block">{t("totalSupplyCapLabel")}</label>
           <Input
             type="number"
             value={totalSupplyCap}
             onChange={(e) => setTotalSupplyCap(e.target.value)}
-            placeholder="Unlimited"
+            placeholder={t("totalSupplyCapPlaceholder")}
             disabled={isBusy}
           />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Support token logo (optional)</label>
+          <label className="text-sm font-medium mb-2 block">{t("logoLabel")}</label>
           <input
             type="file"
             accept="image/*"
@@ -214,10 +214,10 @@ function DeployStep({
       <Button onClick={handleDeploy} disabled={isBusy} className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
         {deployFlow.status === "signing" || deployFlow.status === "pending"
-          ? "Confirming…"
+          ? t("confirming")
           : isUploadingLogo
-            ? "Uploading logo…"
-            : "Deploy token module"}
+            ? t("uploadingLogo")
+            : t("deployButton")}
       </Button>
       {deployFlow.status === "failed" && deployFlow.error && (
         <p className="text-sm text-destructive">{deployFlow.error.message}</p>
@@ -237,6 +237,7 @@ function GenesisStep({
   vaultAddress: `0x${string}` | undefined;
   onDeposited: () => Promise<void>;
 }) {
+  const t = useTranslations("dashboard.brand.tokenSetupWizard.genesisStep");
   const ownerQuery = useReadContract({
     address: genesisNftAddress,
     abi: brandGenesisNftAbi,
@@ -267,8 +268,8 @@ function GenesisStep({
     address: vaultAddress,
     onConfirmed: async () => {
       toast({
-        title: "Genesis locked",
-        description: "Your genesis NFT is now locked in the vault. Ready to open your sale.",
+        title: t("toasts.lockedTitle"),
+        description: t("toasts.lockedMessage"),
         variant: "success",
       });
       await onDeposited();
@@ -279,43 +280,40 @@ function GenesisStep({
   const isVaultBusy = vaultFlow.status === "signing" || vaultFlow.status === "pending";
 
   return (
-    <StepShell
-      title="Step 2 — Lock your genesis NFT"
-      description="Mint the genesis NFT, approve the vault, then deposit it — the vault fractionalizes it into your support token supply."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       <div className="space-y-3">
         <SubStepRow
           done={isMinted}
           busy={isGenesisBusy && !isMinted}
-          label="Mint genesis NFT"
+          label={t("mintLabel")}
           action={
             <Button
               size="sm"
               disabled={isMinted || isGenesisBusy || !genesisNftAddress}
               onClick={() => genesisNftFlow.write("mint", [brandAddress, GENESIS_TOKEN_ID, "", ""])}
             >
-              Mint
+              {t("mintButton")}
             </Button>
           }
         />
         <SubStepRow
           done={isApproved}
           busy={isGenesisBusy && isMinted && !isApproved}
-          label="Approve vault to transfer it"
+          label={t("approveLabel")}
           action={
             <Button
               size="sm"
               disabled={!isMinted || isApproved || isGenesisBusy || !vaultAddress}
               onClick={() => vaultAddress && genesisNftFlow.write("approve", [vaultAddress, GENESIS_TOKEN_ID])}
             >
-              Approve
+              {t("approveButton")}
             </Button>
           }
         />
         <SubStepRow
           done={false}
           busy={isVaultBusy}
-          label="Deposit into the vault"
+          label={t("depositLabel")}
           action={
             <Button
               size="sm"
@@ -324,7 +322,7 @@ function GenesisStep({
                 genesisNftAddress && vaultFlow.write("depositGenesis", [genesisNftAddress, GENESIS_TOKEN_ID])
               }
             >
-              Deposit
+              {t("depositButton")}
             </Button>
           }
         />
@@ -378,14 +376,15 @@ function SaleStep({
   const [totalForSale, setTotalForSale] = useState("");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
+  const t = useTranslations("dashboard.brand.tokenSetupWizard.saleStep");
 
   const openSaleFlow = useTxFlow({
     abi: fractionalVaultAbi,
     address: vaultAddress,
     onConfirmed: async () => {
       toast({
-        title: "Sale opened",
-        description: "Your support token sale is now live.",
+        title: t("toasts.openedTitle"),
+        description: t("toasts.openedMessage"),
         variant: "success",
       });
       await onOpened();
@@ -396,13 +395,13 @@ function SaleStep({
 
   const handleOpenSale = async () => {
     if (!pricePerToken.trim() || !totalForSale.trim() || !startAt || !endAt) {
-      toast({ title: "Missing fields", description: "Fill in all fields before opening the sale.", variant: "error" });
+      toast({ title: t("toasts.missingFieldsTitle"), description: t("toasts.missingFieldsMessage"), variant: "error" });
       return;
     }
     const start = BigInt(Math.floor(new Date(startAt).getTime() / 1000));
     const end = BigInt(Math.floor(new Date(endAt).getTime() / 1000));
     if (end <= start) {
-      toast({ title: "Invalid window", description: "End time must be after start time.", variant: "error" });
+      toast({ title: t("toasts.invalidWindowTitle"), description: t("toasts.invalidWindowMessage"), variant: "error" });
       return;
     }
     await openSaleFlow.write("openSale", [
@@ -415,13 +414,10 @@ function SaleStep({
   };
 
   return (
-    <StepShell
-      title="Step 3 — Open your token sale"
-      description="One transaction: deploys the sale escrow, mints the tokens for sale into it, and links it to your vault."
-    >
+    <StepShell title={t("title")} description={t("description")}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium mb-2 block">Price per token (USDC)</label>
+          <label className="text-sm font-medium mb-2 block">{t("priceLabel")}</label>
           <Input
             type="number"
             step="0.01"
@@ -432,7 +428,7 @@ function SaleStep({
           />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Tokens for sale</label>
+          <label className="text-sm font-medium mb-2 block">{t("tokensForSaleLabel")}</label>
           <Input
             type="number"
             value={totalForSale}
@@ -442,17 +438,17 @@ function SaleStep({
           />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">Start</label>
+          <label className="text-sm font-medium mb-2 block">{t("startLabel")}</label>
           <Input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} disabled={isBusy} />
         </div>
         <div>
-          <label className="text-sm font-medium mb-2 block">End</label>
+          <label className="text-sm font-medium mb-2 block">{t("endLabel")}</label>
           <Input type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} disabled={isBusy} />
         </div>
       </div>
       <Button onClick={handleOpenSale} disabled={isBusy || !vaultAddress} className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ImageIcon className="h-4 w-4 mr-2 opacity-0" />}
-        {isBusy ? "Confirming…" : "Open sale"}
+        {isBusy ? t("confirming") : t("openSaleButton")}
       </Button>
       {openSaleFlow.status === "failed" && openSaleFlow.error && (
         <p className="text-sm text-destructive">{openSaleFlow.error.message}</p>

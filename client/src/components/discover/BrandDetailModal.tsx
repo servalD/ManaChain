@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart } from "lucide-react";
 import { Brand } from "@/components/ui/brand-swipe";
@@ -28,6 +29,7 @@ export function BrandDetailModal({
   onTriggerSwipeRight,
   onTriggerSwipeLeft,
 }: BrandDetailModalProps) {
+  const t = useTranslations("discover.detailModal");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFullscreenImageOpen, setIsFullscreenImageOpen] = useState(false);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -147,7 +149,7 @@ export function BrandDetailModal({
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                aria-label="Close"
+                aria-label={t("closeAria")}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -172,7 +174,7 @@ export function BrandDetailModal({
                       }
                     }}
                     className="w-10 h-10 rounded-full bg-red-500/80 hover:bg-red-500 backdrop-blur-sm border border-red-400/50 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
-                    aria-label="Dislike"
+                    aria-label={t("dislikeAria")}
                   >
                     <X className="w-5 h-5" strokeWidth={3} />
                   </button>
@@ -193,7 +195,7 @@ export function BrandDetailModal({
                       }
                     }}
                     className="w-10 h-10 rounded-full bg-green-500/80 hover:bg-green-500 backdrop-blur-sm border border-green-400/50 flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
-                    aria-label="Like"
+                    aria-label={t("likeAria")}
                   >
                     <Heart className="w-5 h-5" fill="currentColor" />
                   </button>
@@ -264,7 +266,7 @@ export function BrandDetailModal({
                             <span className="text-3xl">🏢</span>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            No image available
+                            {t("noImageAvailable")}
                           </p>
                         </div>
                       </div>
@@ -281,7 +283,7 @@ export function BrandDetailModal({
                                 ? "bg-white w-6"
                                 : "bg-white/40 hover:bg-white/60"
                             }`}
-                            aria-label={`View image ${index + 1}`}
+                            aria-label={t("viewImageAria", { index: index + 1 })}
                           />
                         ))}
                       </div>
@@ -298,7 +300,7 @@ export function BrandDetailModal({
                             )
                           }
                           className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                          aria-label="Previous image"
+                          aria-label={t("previousImageAria")}
                         >
                           <svg
                             className="w-4 h-4"
@@ -321,7 +323,7 @@ export function BrandDetailModal({
                             )
                           }
                           className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                          aria-label="Next image"
+                          aria-label={t("nextImageAria")}
                         >
                           <svg
                             className="w-4 h-4"
@@ -374,7 +376,7 @@ export function BrandDetailModal({
                     {/* About */}
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                        About
+                        {t("about")}
                       </h3>
                       <p className="text-muted-foreground leading-relaxed">
                         {brandDetails?.description || brand.description}
@@ -384,14 +386,14 @@ export function BrandDetailModal({
                     {/* Badge Info */}
                     <div>
                       <h3 className="text-lg font-semibold text-foreground mb-3">
-                        Badge Information
+                        {t("badgeInformation")}
                       </h3>
                       {brand.hasToken ? (
                         <div className="p-4 bg-accent/50 rounded-lg border border-border">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Symbol
+                                {t("symbol")}
                               </p>
                               <p className="text-xl font-bold" style={{ color: "#D4AF37" }}>
                                 {brand.tokenSymbol}
@@ -399,7 +401,7 @@ export function BrandDetailModal({
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Current Price
+                                {t("currentPrice")}
                               </p>
                               <p className="text-xl font-semibold text-foreground">
                                 ${brand.tokenPrice.toFixed(2)}
@@ -407,7 +409,7 @@ export function BrandDetailModal({
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Holders
+                                {t("holders")}
                               </p>
                               <p className="text-xl font-semibold text-foreground">
                                 {brand.holders.toLocaleString("en-US")}
@@ -415,7 +417,7 @@ export function BrandDetailModal({
                             </div>
                             <div>
                               <p className="text-sm text-muted-foreground mb-1">
-                                Total Raised
+                                {t("totalRaised")}
                               </p>
                               <p className="text-xl font-semibold text-foreground">
                                 ${brand.raised.toLocaleString("en-US", {
@@ -443,9 +445,9 @@ export function BrandDetailModal({
                               />
                             </svg>
                             <div>
-                              <p className="font-medium">No badge available</p>
+                              <p className="font-medium">{t("noBadgeAvailable")}</p>
                               <p className="text-sm">
-                                This brand hasn&apos;t issued badges yet
+                                {t("noBadgeAvailableHint")}
                               </p>
                             </div>
                           </div>
@@ -462,7 +464,7 @@ export function BrandDetailModal({
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 text-violet-500 hover:text-violet-600 transition-colors"
                         >
-                          <span>Visit Website</span>
+                          <span>{t("visitWebsite")}</span>
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -521,7 +523,7 @@ export function BrandDetailModal({
                                 )
                               }
                               className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                              aria-label="Previous image"
+                              aria-label={t("previousImageAria")}
                             >
                               <svg
                                 className="w-4 h-4"
@@ -544,7 +546,7 @@ export function BrandDetailModal({
                                 )
                               }
                               className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                              aria-label="Next image"
+                              aria-label={t("nextImageAria")}
                             >
                               <svg
                                 className="w-4 h-4"
@@ -611,14 +613,14 @@ export function BrandDetailModal({
                         </div>
                         <div>
                           <h3 className="text-lg font-semibold text-foreground mb-3">
-                            Token Information
+                            {t("tokenInformation")}
                           </h3>
                           {brand.hasToken ? (
                             <div className="p-4 bg-accent/50 rounded-lg border border-border">
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <p className="text-sm text-muted-foreground mb-1">
-                                    Symbol
+                                    {t("symbol")}
                                   </p>
                                   <p className="text-xl font-bold" style={{ color: "#D4AF37" }}>
                                     {brand.tokenSymbol}
@@ -626,7 +628,7 @@ export function BrandDetailModal({
                                 </div>
                                 <div>
                                   <p className="text-sm text-muted-foreground mb-1">
-                                    Current Price
+                                    {t("currentPrice")}
                                   </p>
                                   <p className="text-xl font-semibold text-foreground">
                                     ${brand.tokenPrice.toFixed(2)}
@@ -634,7 +636,7 @@ export function BrandDetailModal({
                                 </div>
                                 <div>
                                   <p className="text-sm text-muted-foreground mb-1">
-                                    Holders
+                                    {t("holders")}
                                   </p>
                                   <p className="text-xl font-semibold text-foreground">
                                     {brand.holders.toLocaleString("en-US")}
@@ -642,7 +644,7 @@ export function BrandDetailModal({
                                 </div>
                                 <div>
                                   <p className="text-sm text-muted-foreground mb-1">
-                                    Total Raised
+                                    {t("totalRaised")}
                                   </p>
                                   <p className="text-xl font-semibold text-foreground">
                                     ${brand.raised.toLocaleString("en-US", {
@@ -670,9 +672,9 @@ export function BrandDetailModal({
                                   />
                                 </svg>
                                 <div>
-                                  <p className="font-medium">No badge available</p>
+                                  <p className="font-medium">{t("noBadgeAvailable")}</p>
                                   <p className="text-sm">
-                                    This brand hasn&apos;t issued badges yet
+                                    {t("noBadgeAvailableHint")}
                                   </p>
                                 </div>
                               </div>
@@ -687,7 +689,7 @@ export function BrandDetailModal({
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 text-violet-500 hover:text-violet-600 transition-colors"
                             >
-                              <span>Visit Website</span>
+                              <span>{t("visitWebsite")}</span>
                               <svg
                                 className="w-4 h-4"
                                 fill="none"
@@ -708,7 +710,7 @@ export function BrandDetailModal({
                         {allImages.length > 1 && (
                           <div className="pt-4 border-t border-border">
                             <h3 className="text-lg font-semibold text-foreground mb-3">
-                              Gallery
+                              {t("gallery")}
                             </h3>
                             <div className="flex flex-wrap gap-2">
                               {allImages.map((url, index) => (
@@ -757,7 +759,7 @@ export function BrandDetailModal({
               <button
                 onClick={() => setIsFullscreenImageOpen(false)}
                 className="absolute top-4 right-4 z-70 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                aria-label="Close"
+                aria-label={t("closeAria")}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -785,7 +787,7 @@ export function BrandDetailModal({
                       );
                     }}
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                    aria-label="Previous image"
+                    aria-label={t("previousImageAria")}
                   >
                     <svg
                       className="w-6 h-6"
@@ -809,7 +811,7 @@ export function BrandDetailModal({
                       );
                     }}
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-                    aria-label="Next image"
+                    aria-label={t("nextImageAria")}
                   >
                     <svg
                       className="w-6 h-6"
