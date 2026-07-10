@@ -108,8 +108,23 @@ export class InMemoryTokenHolderRepository extends TokenHolderRepository {
     this.balances.set(this.key(userId, tokenId), balance);
     return Promise.resolve();
   }
-  listByToken(): Promise<{ holders: TokenHolder[]; total: number }> {
-    return Promise.resolve({ holders: [], total: 0 });
+  listByToken(
+    tokenId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ holders: TokenHolder[]; total: number }> {
+    const now = new Date();
+    const all = [...this.balances.entries()]
+      .filter(([key, balance]) => key.endsWith(`:${tokenId}`) && balance > 0)
+      .map(([key, balance]) => {
+        const [userId] = key.split(':');
+        return new TokenHolder(key, userId, tokenId, balance, now, now);
+      })
+      .sort((a, b) => b.balance - a.balance);
+    return Promise.resolve({
+      holders: all.slice(offset, offset + limit),
+      total: all.length,
+    });
   }
   listPortfolio(): Promise<PortfolioEntry[]> {
     return Promise.resolve([]);

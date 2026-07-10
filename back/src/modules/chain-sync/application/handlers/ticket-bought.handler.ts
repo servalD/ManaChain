@@ -4,12 +4,17 @@ import { DecodedLog } from '../../domain/chain-reader';
 import { EventTicketPurchaseRepository } from '../../domain/event-ticket-purchase.repository';
 import { EventRepository } from '../../../events/domain/event.repository';
 import { UserRepository } from '../../../users/domain/user.repository';
+import { BrandRepository } from '../../../brands/domain/brand.repository';
+import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 
 /**
  * `Bought` (TicketSale — distinct de `TokenSaleEscrow.Bought`, dispatché dans
  * un groupe de handlers séparé, voir `chain-sync.service.ts`) : trace l'achat
  * en `event_ticket_purchase`. `log.address` EST le ticketSale.
+ *
+ * Notifie le propriétaire de la marque (best-effort, jamais bloquant — même
+ * try/catch que {@link BrandFlagHandler}).
  */
 @Injectable()
 export class TicketBoughtHandler implements ChainEventHandler {
@@ -20,6 +25,8 @@ export class TicketBoughtHandler implements ChainEventHandler {
     private readonly eventRepository: EventRepository,
     private readonly userRepository: UserRepository,
     private readonly purchases: EventTicketPurchaseRepository,
+    private readonly brandRepository: BrandRepository,
+    private readonly notifications: NotificationRepository,
     private readonly tx: TransactionRunner,
   ) {}
 
@@ -54,5 +61,26 @@ export class TicketBoughtHandler implements ChainEventHandler {
         logIndex: log.logIndex,
       }),
     );
+
+    await this.notifyBrandOwner(event.brandId, event.title, quantity);
+  }
+
+  private async notifyBrandOwner(
+    brandId: string,
+    eventTitle: string,
+    quantity: number,
+  ): Promise<void> {
+    try {
+      const ownerId = await this.brandRepository.findOwnerId(brandId);
+      if (!ownerId) return;
+      await this.notifications.create({
+        userId: ownerId,
+        type: 'ticket_purchased',
+        title: 'Tickets were purchased',
+        body: `A buyer purchased ${quantity} ticket(s) for "${eventTitle}".`,
+      });
+    } catch {
+      /* notification non bloquante */
+    }
   }
 }

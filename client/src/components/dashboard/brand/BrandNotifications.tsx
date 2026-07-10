@@ -2,7 +2,17 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Bell, Megaphone, ShieldCheck, ShieldAlert, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Bell,
+  Megaphone,
+  ShieldCheck,
+  ShieldAlert,
+  Coins,
+  Ticket,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useMyNotifications, useMarkNotificationRead } from "@/hooks/api/useNotifications";
@@ -14,6 +24,12 @@ const getNotificationIcon = (type: NotificationResponse["type"]) => {
       return <ShieldCheck className="h-5 w-5" />;
     case "brand_banned":
       return <ShieldAlert className="h-5 w-5" />;
+    case "token_purchased":
+      return <Coins className="h-5 w-5" />;
+    case "ticket_purchased":
+      return <Ticket className="h-5 w-5" />;
+    case "sale_cancelled_by_brand":
+      return <XCircle className="h-5 w-5" />;
     case "admin_message":
     default:
       return <Megaphone className="h-5 w-5" />;
@@ -26,6 +42,12 @@ const getNotificationColor = (type: NotificationResponse["type"]) => {
       return "bg-violet-500/10 text-violet-500 border-violet-500/20";
     case "brand_banned":
       return "bg-red-500/10 text-red-500 border-red-500/20";
+    case "token_purchased":
+      return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+    case "ticket_purchased":
+      return "bg-sky-500/10 text-sky-500 border-sky-500/20";
+    case "sale_cancelled_by_brand":
+      return "bg-amber-500/10 text-amber-500 border-amber-500/20";
     case "admin_message":
     default:
       return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";

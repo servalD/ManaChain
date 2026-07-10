@@ -13,4 +13,7 @@ export const NotificationResponseType = {
   admin_message: 'admin_message',
   brand_whitelisted: 'brand_whitelisted',
   brand_banned: 'brand_banned',
+  token_purchased: 'token_purchased',
+  ticket_purchased: 'ticket_purchased',
+  sale_cancelled_by_brand: 'sale_cancelled_by_brand',
 } as const;

@@ -4,7 +4,12 @@ import {
   InMemoryTokenSaleRepository,
 } from '../test-fakes';
 import { InMemoryUserRepository } from '../../../users/infrastructure/in-memory-user.repository';
-import { InMemoryTokenTransactionRepository } from '../../../tokens/application/test-fakes';
+import {
+  InMemoryTokenRepository,
+  InMemoryTokenTransactionRepository,
+} from '../../../tokens/application/test-fakes';
+import { InMemoryBrandRepository } from '../../../brands/infrastructure/in-memory-brand.repository';
+import { InMemoryNotificationRepository } from '../../../notifications/application/test-fakes';
 import type { DecodedLog } from '../../domain/chain-reader';
 
 function log(overrides: Partial<DecodedLog> = {}): DecodedLog {
@@ -27,14 +32,20 @@ describe('BoughtHandler', () => {
   const setup = () => {
     const tokenSales = new InMemoryTokenSaleRepository();
     const users = new InMemoryUserRepository();
+    const tokens = new InMemoryTokenRepository();
     const transactions = new InMemoryTokenTransactionRepository();
+    const brands = new InMemoryBrandRepository();
+    const notifications = new InMemoryNotificationRepository();
     const handler = new BoughtHandler(
       tokenSales,
       users,
+      tokens,
       transactions,
+      brands,
+      notifications,
       new FakeTransactionRunner(),
     );
-    return { tokenSales, users, transactions, handler };
+    return { tokenSales, users, tokens, transactions, brands, notifications, handler };
   };
 
   it('records a purchase transaction and increases sold_amount', async () => {
@@ -56,6 +67,30 @@ describe('BoughtHandler', () => {
     });
     const updated = await tokenSales.findByEscrowAddress('0xescrow');
     expect(updated?.soldAmount).toBe('100000000000000000000');
+  });
+
+  it('notifies the brand owner of the purchase', async () => {
+    const { tokenSales, tokens, brands, notifications, handler } = setup();
+    const brand = await brands.create({
+      ownerId: 'owner-1',
+      name: 'Brand',
+      country: 'FR',
+      headquartersStreet: '1 rue',
+      headquartersCity: 'Paris',
+      headquartersZipCode: '75000',
+      interestIds: [],
+    });
+    const token = tokens.seed({ brandId: brand.id, symbol: 'BRD' });
+    tokenSales.seed({ escrowAddress: '0xescrow', tokenId: token.id });
+
+    await handler.handle(log());
+
+    const { notifications: list } = await notifications.listByUser('owner-1', {
+      limit: 10,
+      offset: 0,
+    });
+    expect(list).toHaveLength(1);
+    expect(list[0].type).toBe('token_purchased');
   });
 
   it('records toUserId=null when the buyer is not a known user', async () => {

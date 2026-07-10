@@ -5,6 +5,8 @@ import {
 } from '../test-fakes';
 import { InMemoryEventRepository } from '../../../events/application/test-fakes';
 import { InMemoryUserRepository } from '../../../users/infrastructure/in-memory-user.repository';
+import { InMemoryBrandRepository } from '../../../brands/infrastructure/in-memory-brand.repository';
+import { InMemoryNotificationRepository } from '../../../notifications/application/test-fakes';
 import type { DecodedLog } from '../../domain/chain-reader';
 
 function log(overrides: Partial<DecodedLog> = {}): DecodedLog {
@@ -24,10 +26,14 @@ describe('TicketBoughtHandler', () => {
     const events = new InMemoryEventRepository();
     const users = new InMemoryUserRepository();
     const purchases = new InMemoryEventTicketPurchaseRepository();
+    const brands = new InMemoryBrandRepository();
+    const notifications = new InMemoryNotificationRepository();
     const handler = new TicketBoughtHandler(
       events,
       users,
       purchases,
+      brands,
+      notifications,
       new FakeTransactionRunner(),
     );
     const event = events.seed({ ticketSaleAddress: '0xticketsale' });
@@ -52,10 +58,14 @@ describe('TicketBoughtHandler', () => {
     const events = new InMemoryEventRepository();
     const users = new InMemoryUserRepository();
     const purchases = new InMemoryEventTicketPurchaseRepository();
+    const brands = new InMemoryBrandRepository();
+    const notifications = new InMemoryNotificationRepository();
     const handler = new TicketBoughtHandler(
       events,
       users,
       purchases,
+      brands,
+      notifications,
       new FakeTransactionRunner(),
     );
     events.seed({ ticketSaleAddress: '0xticketsale' });
@@ -65,14 +75,53 @@ describe('TicketBoughtHandler', () => {
     expect(purchases.recorded[0].userId).toBeNull();
   });
 
-  it('skips silently when the ticket sale is unknown', async () => {
+  it('notifies the brand owner of the ticket purchase', async () => {
     const events = new InMemoryEventRepository();
     const users = new InMemoryUserRepository();
     const purchases = new InMemoryEventTicketPurchaseRepository();
+    const brands = new InMemoryBrandRepository();
+    const notifications = new InMemoryNotificationRepository();
     const handler = new TicketBoughtHandler(
       events,
       users,
       purchases,
+      brands,
+      notifications,
+      new FakeTransactionRunner(),
+    );
+    const brand = await brands.create({
+      ownerId: 'owner-1',
+      name: 'Brand',
+      country: 'FR',
+      headquartersStreet: '1 rue',
+      headquartersCity: 'Paris',
+      headquartersZipCode: '75000',
+      interestIds: [],
+    });
+    events.seed({ ticketSaleAddress: '0xticketsale', brandId: brand.id });
+
+    await handler.handle(log());
+
+    const { notifications: list } = await notifications.listByUser('owner-1', {
+      limit: 10,
+      offset: 0,
+    });
+    expect(list).toHaveLength(1);
+    expect(list[0].type).toBe('ticket_purchased');
+  });
+
+  it('skips silently when the ticket sale is unknown', async () => {
+    const events = new InMemoryEventRepository();
+    const users = new InMemoryUserRepository();
+    const purchases = new InMemoryEventTicketPurchaseRepository();
+    const brands = new InMemoryBrandRepository();
+    const notifications = new InMemoryNotificationRepository();
+    const handler = new TicketBoughtHandler(
+      events,
+      users,
+      purchases,
+      brands,
+      notifications,
       new FakeTransactionRunner(),
     );
 

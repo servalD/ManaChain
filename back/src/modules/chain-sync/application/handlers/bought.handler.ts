@@ -4,7 +4,10 @@ import { ChainEventHandler } from '../../domain/chain-event-handler';
 import { DecodedLog } from '../../domain/chain-reader';
 import { TokenSaleRepository } from '../../domain/token-sale.repository';
 import { UserRepository } from '../../../users/domain/user.repository';
+import { TokenRepository } from '../../../tokens/domain/token.repository';
 import { TokenTransactionRepository } from '../../../tokens/domain/token-transaction.repository';
+import { BrandRepository } from '../../../brands/domain/brand.repository';
+import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 
 /**
@@ -12,6 +15,9 @@ import { TransactionRunner } from '../../../../shared/application/transaction-ru
  * `purchase`) et incrémente `sold_amount`. Ne touche PAS `token_holder` — le
  * transfert ERC-20 escrow→acheteur déclenché par `buy()` est repris par
  * {@link Erc20TransferHandler}, seul point de vérité des soldes.
+ *
+ * Notifie le propriétaire de la marque (best-effort, jamais bloquant — même
+ * try/catch que {@link BrandFlagHandler}).
  */
 @Injectable()
 export class BoughtHandler implements ChainEventHandler {
@@ -21,7 +27,10 @@ export class BoughtHandler implements ChainEventHandler {
   constructor(
     private readonly tokenSales: TokenSaleRepository,
     private readonly userRepository: UserRepository,
+    private readonly tokenRepository: TokenRepository,
     private readonly tokenTransactions: TokenTransactionRepository,
+    private readonly brandRepository: BrandRepository,
+    private readonly notifications: NotificationRepository,
     private readonly tx: TransactionRunner,
   ) {}
 
@@ -59,5 +68,27 @@ export class BoughtHandler implements ChainEventHandler {
       });
       await this.tokenSales.increaseSold(escrowAddress, amountRaw.toString());
     });
+
+    await this.notifyBrandOwner(sale.tokenId, amount);
+  }
+
+  private async notifyBrandOwner(
+    tokenId: string,
+    amount: number,
+  ): Promise<void> {
+    try {
+      const token = await this.tokenRepository.findById(tokenId);
+      if (!token) return;
+      const ownerId = await this.brandRepository.findOwnerId(token.brandId);
+      if (!ownerId) return;
+      await this.notifications.create({
+        userId: ownerId,
+        type: 'token_purchased',
+        title: 'Your token was purchased',
+        body: `A buyer purchased ${amount} ${token.symbol} tokens.`,
+      });
+    } catch {
+      /* notification non bloquante */
+    }
   }
 }

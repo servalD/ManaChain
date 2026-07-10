@@ -7,7 +7,14 @@ export class NotificationResponse {
   id: string;
 
   @ApiProperty({
-    enum: ['admin_message', 'brand_whitelisted', 'brand_banned'],
+    enum: [
+      'admin_message',
+      'brand_whitelisted',
+      'brand_banned',
+      'token_purchased',
+      'ticket_purchased',
+      'sale_cancelled_by_brand',
+    ],
   })
   type: NotificationType;
 

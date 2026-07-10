@@ -9,6 +9,7 @@ import { ChainRegistryModule } from './infrastructure/chain-registry.module';
 import { TokenSaleRepository } from './domain/token-sale.repository';
 import { BrandContractsRepository } from './domain/brand-contracts.repository';
 import { UserRepository } from '../users/domain/user.repository';
+import { TokenHolderRepository } from '../tokens/domain/token-holder.repository';
 import { NotificationRepository } from '../notifications/domain/notification.repository';
 import { ChainEventHandler } from './domain/chain-event-handler';
 import {
@@ -43,31 +44,72 @@ const BRAND_BLACKLISTED = 'BrandBlacklistedHandler';
 const saleStatusHandlerProviders: Provider[] = [
   {
     provide: SALE_CLOSED,
-    useFactory: (tokenSales: TokenSaleRepository, tx: TransactionRunner) =>
-      new SaleStatusHandler('SaleClosed', 'closed', tokenSales, tx),
-    inject: [TokenSaleRepository, TransactionRunner],
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
+      new SaleStatusHandler(
+        'SaleClosed',
+        'closed',
+        tokenSales,
+        tokenHolders,
+        notifications,
+        tx,
+      ),
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
   },
   {
     provide: SALE_CANCELLED_BY_ADMIN,
-    useFactory: (tokenSales: TokenSaleRepository, tx: TransactionRunner) =>
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
       new SaleStatusHandler(
         'SaleCancelledByAdmin',
         'cancelled_by_admin',
         tokenSales,
+        tokenHolders,
+        notifications,
         tx,
       ),
-    inject: [TokenSaleRepository, TransactionRunner],
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
   },
   {
     provide: SALE_CANCELLED_BY_BRAND,
-    useFactory: (tokenSales: TokenSaleRepository, tx: TransactionRunner) =>
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
       new SaleStatusHandler(
         'SaleCancelledByBrand',
         'cancelled_by_brand',
         tokenSales,
+        tokenHolders,
+        notifications,
         tx,
       ),
-    inject: [TokenSaleRepository, TransactionRunner],
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
   },
 ];
 

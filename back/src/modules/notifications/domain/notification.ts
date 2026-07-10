@@ -1,5 +1,10 @@
 export type NotificationType =
-  'admin_message' | 'brand_whitelisted' | 'brand_banned';
+  | 'admin_message'
+  | 'brand_whitelisted'
+  | 'brand_banned'
+  | 'token_purchased'
+  | 'ticket_purchased'
+  | 'sale_cancelled_by_brand';
 
 /** Modèle de domaine PUR — aucun import framework / ORM ici. */
 export class Notification {
