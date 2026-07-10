@@ -25,11 +25,15 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BanUserRequest,
+  PaginatedUserBansResponse,
   PaginatedUsersResponse,
   UpdateBlockchainAddressRequest,
   UpdateInterestsRequest,
   UpdateUserRequest,
+  UserBanResponse,
   UserResponse,
+  UsersControllerBansParams,
   UsersControllerFindAllParams
 } from '../../models';
 
@@ -523,3 +527,223 @@ export function useUsersControllerFindAll<TData = Awaited<ReturnType<typeof user
 
 
 
+/**
+ * @summary Lister les bans utilisateurs (admin)
+ */
+export const usersControllerBans = (
+    params?: UsersControllerBansParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaginatedUserBansResponse>(
+      {url: `/api/users/admin/bans`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getUsersControllerBansQueryKey = (params?: UsersControllerBansParams,) => {
+    return [
+    `/api/users/admin/bans`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getUsersControllerBansQueryOptions = <TData = Awaited<ReturnType<typeof usersControllerBans>>, TError = ErrorType<unknown>>(params?: UsersControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUsersControllerBansQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof usersControllerBans>>> = ({ signal }) => usersControllerBans(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type UsersControllerBansQueryResult = NonNullable<Awaited<ReturnType<typeof usersControllerBans>>>
+export type UsersControllerBansQueryError = ErrorType<unknown>
+
+
+export function useUsersControllerBans<TData = Awaited<ReturnType<typeof usersControllerBans>>, TError = ErrorType<unknown>>(
+ params: undefined |  UsersControllerBansParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersControllerBans>>,
+          TError,
+          Awaited<ReturnType<typeof usersControllerBans>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersControllerBans<TData = Awaited<ReturnType<typeof usersControllerBans>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersControllerBans>>,
+          TError,
+          Awaited<ReturnType<typeof usersControllerBans>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersControllerBans<TData = Awaited<ReturnType<typeof usersControllerBans>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Lister les bans utilisateurs (admin)
+ */
+
+export function useUsersControllerBans<TData = Awaited<ReturnType<typeof usersControllerBans>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerBans>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getUsersControllerBansQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Bannir un utilisateur (admin)
+ */
+export const usersControllerBan = (
+    id: string,
+    banUserRequest: BanUserRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<UserBanResponse>(
+      {url: `/api/users/${id}/ban`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: banUserRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getUsersControllerBanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerBan>>, TError,{id: string;data: BanUserRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof usersControllerBan>>, TError,{id: string;data: BanUserRequest}, TContext> => {
+
+const mutationKey = ['usersControllerBan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersControllerBan>>, {id: string;data: BanUserRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  usersControllerBan(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersControllerBanMutationResult = NonNullable<Awaited<ReturnType<typeof usersControllerBan>>>
+    export type UsersControllerBanMutationBody = BanUserRequest
+    export type UsersControllerBanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Bannir un utilisateur (admin)
+ */
+export const useUsersControllerBan = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerBan>>, TError,{id: string;data: BanUserRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersControllerBan>>,
+        TError,
+        {id: string;data: BanUserRequest},
+        TContext
+      > => {
+      return useMutation(getUsersControllerBanMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Lever le ban d’un utilisateur (admin)
+ */
+export const usersControllerUnban = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/users/${id}/ban`, method: 'DELETE', signal
+    },
+      );
+    }
+
+
+
+
+export const getUsersControllerUnbanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerUnban>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof usersControllerUnban>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['usersControllerUnban'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersControllerUnban>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  usersControllerUnban(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersControllerUnbanMutationResult = NonNullable<Awaited<ReturnType<typeof usersControllerUnban>>>
+
+    export type UsersControllerUnbanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Lever le ban d’un utilisateur (admin)
+ */
+export const useUsersControllerUnban = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersControllerUnban>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersControllerUnban>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getUsersControllerUnbanMutationOptions(options), queryClient);
+    }

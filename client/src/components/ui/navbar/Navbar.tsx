@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { NotificationBell } from "./NotificationBell";
 
 export interface NavbarProps {
   currentPage?: string;
@@ -141,12 +142,15 @@ export function Navbar({
               <>
                 {/* Wallet Connect Button - Desktop Only */}
                 <div className="hidden lg:block">
-                  <WalletConnectButton 
+                  <WalletConnectButton
                     onConnected={onWalletConnected}
                     onDisconnected={onWalletDisconnected}
                     shouldDisconnect={shouldDisconnectWallet}
                   />
                 </div>
+
+                {/* Notification Bell */}
+                <NotificationBell />
 
                 {/* User Menu */}
                 <UserMenu 

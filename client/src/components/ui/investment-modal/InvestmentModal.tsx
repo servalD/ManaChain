@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatUnits, parseUnits, type Address } from "viem";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +11,15 @@ import { toast } from "@/lib/toast";
 import PinataService from "@/services/pinata.service";
 import { useTokenByBrand, useTokenBalance } from "@/hooks/api/useTokens";
 import { useBuyTokens, FAUCET_MINT_AMOUNT } from "@/hooks/web3/useBuyTokens";
+import { useClaimRefund } from "@/hooks/web3/useClaimRefund";
 import {
   getTokensControllerBalanceQueryKey,
   getTokensControllerMyPortfolioQueryKey,
   getTokensControllerMyTransactionsQueryKey,
   getTokensControllerHoldersQueryKey,
 } from "@/api/generated/endpoints/tokens/tokens";
+
+const SUPPORT_TOKEN_DECIMALS = 18;
 
 interface InvestmentModalProps {
   isOpen: boolean;
@@ -31,8 +35,10 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
   const { data: token } = useTokenByBrand(brand?.id, { enabled: isOpen && !!brand });
   const sale = token?.sale;
   const isSaleOpen = sale?.status === "open";
+  const isSaleCancelled = sale?.status === "cancelled_by_admin" || sale?.status === "cancelled_by_brand";
 
   const [amount, setAmount] = useState("");
+  const [refundAmount, setRefundAmount] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
   const preBuyBalanceRef = useRef<number | undefined>(undefined);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,6 +58,19 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
     mintFaucet,
     faucetStatus,
   } = useBuyTokens(sale?.escrowAddress as `0x${string}` | undefined, sale?.pricePerToken);
+
+  const {
+    boughtOf,
+    needsApproval: refundNeedsApproval,
+    approve: approveRefund,
+    approveStatus: refundApproveStatus,
+    claim: claimRefund,
+    claimStatus: refundClaimStatus,
+    claimError: refundClaimError,
+  } = useClaimRefund(
+    sale?.escrowAddress as Address | undefined,
+    token?.supportTokenAddress as Address | undefined,
+  );
 
   const stopPolling = () => {
     if (pollTimerRef.current) clearInterval(pollTimerRef.current);
@@ -101,11 +120,31 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buyStatus]);
 
+  useEffect(() => {
+    if (refundClaimStatus !== "confirmed" || !token) return;
+    void (async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: getTokensControllerMyPortfolioQueryKey() }),
+        queryClient.invalidateQueries({ queryKey: getTokensControllerMyTransactionsQueryKey() }),
+        queryClient.invalidateQueries({ queryKey: getTokensControllerBalanceQueryKey(token.id) }),
+        queryClient.invalidateQueries({ queryKey: getTokensControllerHoldersQueryKey(token.id) }),
+      ]);
+      toast({
+        title: "Refund submitted",
+        description: "Your refund was confirmed on-chain — your balance will update shortly.",
+        variant: "success",
+      });
+      onClose();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refundClaimStatus]);
+
   if (!brand) return null;
 
   const handleClose = () => {
     if (isSyncing) return; // laisser le polling se terminer proprement
     setAmount("");
+    setRefundAmount("");
     onClose();
   };
 
@@ -119,6 +158,34 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
       return;
     }
     await buy(amount);
+  };
+
+  const refundAmountRaw = (() => {
+    try {
+      return refundAmount.trim() ? parseUnits(refundAmount.trim(), SUPPORT_TOKEN_DECIMALS) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const mustApproveRefund = refundAmountRaw != null ? refundNeedsApproval(refundAmountRaw) : false;
+  const isRefundBusy =
+    refundApproveStatus === "signing" || refundApproveStatus === "pending" ||
+    refundClaimStatus === "signing" || refundClaimStatus === "pending";
+
+  const handleApproveOrClaimRefund = async () => {
+    if (refundAmountRaw == null || refundAmountRaw <= BigInt(0)) {
+      toast({ title: "Enter an amount", description: "How many tokens would you like refunded?", variant: "error" });
+      return;
+    }
+    if (refundAmountRaw > boughtOf) {
+      toast({ title: "Amount too high", description: "You can't refund more than you originally bought.", variant: "error" });
+      return;
+    }
+    if (mustApproveRefund) {
+      await approveRefund(refundAmountRaw);
+      return;
+    }
+    await claimRefund(refundAmountRaw);
   };
 
   const cost = estimateCost(amount);
@@ -203,6 +270,35 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                   : `Need test USDC? Get ${FAUCET_MINT_AMOUNT} from the faucet`}
               </button>
             </>
+          ) : isSaleCancelled && token && sale ? (
+            <>
+              <div className="bg-accent/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Token Symbol</span>
+                  <span className="font-semibold">{token.symbol}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Refundable</span>
+                  <span className="font-semibold">
+                    {formatUnits(boughtOf, SUPPORT_TOKEN_DECIMALS)} {token.symbol}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This sale was cancelled. You can claim a refund for the tokens you bought.
+              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium block">How many tokens to refund?</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  placeholder={formatUnits(boughtOf, SUPPORT_TOKEN_DECIMALS)}
+                  disabled={isRefundBusy}
+                />
+              </div>
+            </>
           ) : (
             <div className="bg-accent/50 rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">
@@ -231,6 +327,21 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                         ? "Approve USDC"
                         : "Support this Brand"}
               </Button>
+            ) : isSaleCancelled ? (
+              <Button
+                onClick={() => void handleApproveOrClaimRefund()}
+                disabled={isRefundBusy}
+                className="w-full bg-linear-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
+                size="lg"
+              >
+                {refundClaimStatus === "signing" || refundClaimStatus === "pending"
+                  ? "Confirming refund…"
+                  : refundApproveStatus === "signing" || refundApproveStatus === "pending"
+                    ? "Confirming approval…"
+                    : mustApproveRefund
+                      ? "Approve tokens"
+                      : "Claim Refund"}
+              </Button>
             ) : (
               <Button
                 onClick={handleClose}
@@ -245,6 +356,9 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
               {isSaleOpen ? "Later" : "Close"}
             </Button>
           </div>
+          {refundClaimError && refundClaimStatus === "failed" && (
+            <p className="text-sm text-destructive">{refundClaimError.message}</p>
+          )}
           {buyError && buyStatus === "failed" && (
             <p className="text-sm text-destructive">{buyError.message}</p>
           )}

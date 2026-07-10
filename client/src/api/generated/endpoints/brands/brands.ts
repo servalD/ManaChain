@@ -25,14 +25,18 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  BanBrandRequest,
+  BrandBanResponse,
   BrandMediaResponse,
   BrandResponse,
   BrandStatsResponse,
+  BrandsControllerBansParams,
   BrandsControllerListActiveParams,
   BrandsControllerListForWhitelistParams,
   BrandsControllerListParams,
   ConfirmMediaRequest,
   CreateBrandRequest,
+  PaginatedBrandBansResponse,
   PaginatedBrandWhitelistResponse,
   PaginatedBrandsResponse,
   UpdateBrandRequest
@@ -391,6 +395,99 @@ export function useBrandsControllerListForWhitelist<TData = Awaited<ReturnType<t
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBrandsControllerListForWhitelistQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Lister les bans de marques (admin)
+ */
+export const brandsControllerBans = (
+    params?: BrandsControllerBansParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaginatedBrandBansResponse>(
+      {url: `/api/brands/admin/bans`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandsControllerBansQueryKey = (params?: BrandsControllerBansParams,) => {
+    return [
+    `/api/brands/admin/bans`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBrandsControllerBansQueryOptions = <TData = Awaited<ReturnType<typeof brandsControllerBans>>, TError = ErrorType<unknown>>(params?: BrandsControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBrandsControllerBansQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsControllerBans>>> = ({ signal }) => brandsControllerBans(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BrandsControllerBansQueryResult = NonNullable<Awaited<ReturnType<typeof brandsControllerBans>>>
+export type BrandsControllerBansQueryError = ErrorType<unknown>
+
+
+export function useBrandsControllerBans<TData = Awaited<ReturnType<typeof brandsControllerBans>>, TError = ErrorType<unknown>>(
+ params: undefined |  BrandsControllerBansParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerBans>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerBans>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerBans<TData = Awaited<ReturnType<typeof brandsControllerBans>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerBans>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerBans>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerBans<TData = Awaited<ReturnType<typeof brandsControllerBans>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Lister les bans de marques (admin)
+ */
+
+export function useBrandsControllerBans<TData = Awaited<ReturnType<typeof brandsControllerBans>>, TError = ErrorType<unknown>>(
+ params?: BrandsControllerBansParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerBans>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBrandsControllerBansQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -897,6 +994,133 @@ export const useBrandsControllerRemoveMedia = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getBrandsControllerRemoveMediaMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Bannir une marque (admin) — le front a déjà passé les tx on-chain (blacklist + éventuel cancel-sale)
+ */
+export const brandsControllerBan = (
+    id: string,
+    banBrandRequest: BanBrandRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<BrandBanResponse>(
+      {url: `/api/brands/${id}/ban`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: banBrandRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandsControllerBanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsControllerBan>>, TError,{id: string;data: BanBrandRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandsControllerBan>>, TError,{id: string;data: BanBrandRequest}, TContext> => {
+
+const mutationKey = ['brandsControllerBan'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsControllerBan>>, {id: string;data: BanBrandRequest}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  brandsControllerBan(id,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BrandsControllerBanMutationResult = NonNullable<Awaited<ReturnType<typeof brandsControllerBan>>>
+    export type BrandsControllerBanMutationBody = BanBrandRequest
+    export type BrandsControllerBanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Bannir une marque (admin) — le front a déjà passé les tx on-chain (blacklist + éventuel cancel-sale)
+ */
+export const useBrandsControllerBan = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsControllerBan>>, TError,{id: string;data: BanBrandRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof brandsControllerBan>>,
+        TError,
+        {id: string;data: BanBrandRequest},
+        TContext
+      > => {
+      return useMutation(getBrandsControllerBanMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Lever le ban d’une marque (admin)
+ */
+export const brandsControllerUnban = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/brands/${id}/ban`, method: 'DELETE', signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandsControllerUnbanMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsControllerUnban>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandsControllerUnban>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['brandsControllerUnban'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandsControllerUnban>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  brandsControllerUnban(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BrandsControllerUnbanMutationResult = NonNullable<Awaited<ReturnType<typeof brandsControllerUnban>>>
+
+    export type BrandsControllerUnbanMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Lever le ban d’une marque (admin)
+ */
+export const useBrandsControllerUnban = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandsControllerUnban>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof brandsControllerUnban>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getBrandsControllerUnbanMutationOptions(options), queryClient);
     }
     /**
  * @summary Récupérer une marque par id
