@@ -3,6 +3,7 @@ export { BrandLikes } from './BrandLikes';
 export { PortfolioValueChart } from './PortfolioValueChart';
 export { MyTokens } from './MyTokens';
 export { UpcomingEvents } from './UpcomingEvents';
+export { MyTickets } from './MyTickets';
 export { ActivityTimeline } from './ActivityTimeline';
 export { ActiveUsersBrandsChart } from './admin/ActiveUsersBrandsChart';
 export { ActiveBrandsTable } from './admin/ActiveBrandsTable';

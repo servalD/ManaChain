@@ -6,7 +6,7 @@ import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
-import { UserLikes, PortfolioValueChart, MyTokens, UpcomingEvents, ActivityTimeline } from "@/components/dashboard";
+import { UserLikes, PortfolioValueChart, MyTokens, UpcomingEvents, MyTickets, ActivityTimeline } from "@/components/dashboard";
 
 export default function ClientDashboardPage() {
   const router = useRouter();
@@ -61,6 +61,9 @@ export default function ClientDashboardPage() {
 
             {/* Upcoming Events Section */}
             <UpcomingEvents />
+
+            {/* My Tickets Section */}
+            <MyTickets />
 
             {/* Activity Timeline Section */}
             <ActivityTimeline />
