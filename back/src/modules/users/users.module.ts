@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { TokensModule } from '../tokens/tokens.module';
 import { UserOrmEntity } from './infrastructure/user.orm-entity';
 import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository';
 import { TypeOrmUserBanRepository } from './infrastructure/typeorm-user-ban.repository';
@@ -13,10 +14,14 @@ import { UpdateMyInterestsUseCase } from './application/use-cases/update-my-inte
 import { BanUserUseCase } from './application/use-cases/ban-user.use-case';
 import { UnbanUserUseCase } from './application/use-cases/unban-user.use-case';
 import { ListUserBansUseCase } from './application/use-cases/list-user-bans.use-case';
+import { DeleteAccountUseCase } from './application/use-cases/delete-account.use-case';
 import { UsersController } from './presentation/users.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserOrmEntity])],
+  // TokensModule : DeleteAccountUseCase délink l'historique de transactions
+  // (TokenTransactionRepository) avant d'anonymiser — TokensModule n'importe
+  // pas UsersModule, pas de cycle.
+  imports: [TypeOrmModule.forFeature([UserOrmEntity]), TokensModule],
   controllers: [UsersController],
   providers: [
     // Le port est lié à son adapter TypeORM.
@@ -30,6 +35,7 @@ import { UsersController } from './presentation/users.controller';
     BanUserUseCase,
     UnbanUserUseCase,
     ListUserBansUseCase,
+    DeleteAccountUseCase,
   ],
   // UserRepository/UserBanRepository sont consommés par le module auth (guard
   // global + login) et chain-sync.

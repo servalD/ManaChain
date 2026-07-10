@@ -1,5 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
@@ -34,7 +35,9 @@ export class TypeOrmUserRepository extends UserRepository {
   // --- Profil ---
 
   async findById(id: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { id } });
+    const entity = await this.repository.findOne({
+      where: { id, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
@@ -69,13 +72,15 @@ export class TypeOrmUserRepository extends UserRepository {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { username } });
+    const entity = await this.repository.findOne({
+      where: { username, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findByBlockchainAddress(address: string): Promise<User | null> {
     const entity = await this.repository.findOne({
-      where: { blockchainAddress: address },
+      where: { blockchainAddress: address, deletedAt: IsNull() },
     });
     return entity ? this.toDomain(entity) : null;
   }
@@ -94,10 +99,34 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.repository.update({ id }, { blockchainAddress: null });
   }
 
+  async anonymize(id: string): Promise<void> {
+    await this.repository.update(
+      { id },
+      {
+        email: `deleted-${id}@deleted.manachain.local`,
+        username: `deleted-${id}`,
+        firstName: 'Compte',
+        lastName: 'supprimé',
+        passwordHash: `deleted:${randomUUID()}`,
+        avatarUrl: null,
+        blockchainAddress: null,
+        verified: false,
+        isBrand: false,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        deletedAt: new Date(),
+      },
+    );
+  }
+
   // --- Auth ---
 
   async findByEmail(email: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { email } });
+    const entity = await this.repository.findOne({
+      where: { email, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
@@ -106,7 +135,7 @@ export class TypeOrmUserRepository extends UserRepository {
     const entity = await this.repository
       .createQueryBuilder('u')
       .addSelect('u.passwordHash')
-      .where('u.email = :email', { email })
+      .where('u.email = :email AND u.deletedAt IS NULL', { email })
       .getOne();
     if (!entity) return null;
     return { user: this.toDomain(entity), passwordHash: entity.passwordHash };
@@ -318,6 +347,7 @@ export class TypeOrmUserRepository extends UserRepository {
       entity.lastLogin,
       entity.createdAt,
       entity.updatedAt,
+      entity.deletedAt,
     );
   }
 }

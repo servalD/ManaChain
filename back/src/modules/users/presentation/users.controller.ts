@@ -31,6 +31,7 @@ import { UpdateMyInterestsUseCase } from '../application/use-cases/update-my-int
 import { BanUserUseCase } from '../application/use-cases/ban-user.use-case';
 import { UnbanUserUseCase } from '../application/use-cases/unban-user.use-case';
 import { ListUserBansUseCase } from '../application/use-cases/list-user-bans.use-case';
+import { DeleteAccountUseCase } from '../application/use-cases/delete-account.use-case';
 import { UpdateUserRequest } from '../application/dto/update-user.request';
 import { UpdateBlockchainAddressRequest } from '../application/dto/update-blockchain-address.request';
 import { UpdateInterestsRequest } from '../application/dto/update-interests.request';
@@ -59,6 +60,7 @@ export class UsersController {
     private readonly banUser: BanUserUseCase,
     private readonly unbanUser: UnbanUserUseCase,
     private readonly listUserBans: ListUserBansUseCase,
+    private readonly deleteAccount: DeleteAccountUseCase,
   ) {}
 
   /** Profil de l'utilisateur authentifié courant. */
@@ -79,6 +81,17 @@ export class UsersController {
   ): Promise<UserResponse> {
     const updated = await this.updateUser.execute(user.id, body);
     return toUserResponse(updated);
+  }
+
+  /**
+   * Supprime (anonymise) le compte de l'utilisateur courant. RGPD — bloqué si
+   * le compte possède une marque (409, cf. {@link DeleteAccountUseCase}).
+   */
+  @Delete('me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Supprimer son compte' })
+  async deleteMe(@CurrentUser() user: User): Promise<void> {
+    await this.deleteAccount.execute(user.id);
   }
 
   /** Rattache / met à jour l'adresse blockchain de l'utilisateur courant. */

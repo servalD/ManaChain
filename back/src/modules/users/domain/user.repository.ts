@@ -94,6 +94,13 @@ export abstract class UserRepository {
   abstract updateBlockchainAddress(id: string, address: string): Promise<User>;
   /** RGPD (D9) : efface le lien blockchain de l'utilisateur (suppression de compte). */
   abstract clearBlockchainAddress(id: string): Promise<void>;
+  /**
+   * RGPD : anonymise le compte en place (email/username/nom/mot de passe
+   * remplacés par des valeurs non identifiantes, `deleted_at` renseigné).
+   * N'efface PAS la ligne — évite les CASCADE/RESTRICT sur `brand`/`*_ban`.
+   * Les lookups (`findById`, `findByEmail`, ...) excluent ensuite ce compte.
+   */
+  abstract anonymize(id: string): Promise<void>;
 
   // --- Auth (jalon 2) ---
   abstract findByEmail(email: string): Promise<User | null>;

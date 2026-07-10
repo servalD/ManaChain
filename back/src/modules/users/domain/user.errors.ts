@@ -38,3 +38,12 @@ export class UserBannedError extends ForbiddenDomainException {
     super(`Account banned: ${reason}`);
   }
 }
+
+/** Un propriétaire de marque doit supprimer/transférer sa marque avant de supprimer son compte. */
+export class BrandOwnerCannotDeleteAccountError extends ConflictDomainException {
+  constructor() {
+    super(
+      'Cannot delete an account that owns a brand — delete the brand first',
+    );
+  }
+}

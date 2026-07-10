@@ -52,6 +52,7 @@ export class InMemoryUserRepository extends UserRepository {
       partial.lastLogin ?? null,
       partial.createdAt ?? now,
       partial.updatedAt ?? now,
+      partial.deletedAt ?? null,
     );
     this.users.set(user.id, user);
     if (partial.passwordHash !== undefined) {
@@ -63,7 +64,8 @@ export class InMemoryUserRepository extends UserRepository {
   // --- Profil ---
 
   findById(id: string): Promise<User | null> {
-    return Promise.resolve(this.users.get(id) ?? null);
+    const user = this.users.get(id);
+    return Promise.resolve(user && !user.deletedAt ? user : null);
   }
 
   list(params: ListUsersParams): Promise<{ users: User[]; total: number }> {
@@ -96,13 +98,15 @@ export class InMemoryUserRepository extends UserRepository {
   }
 
   findByUsername(username: string): Promise<User | null> {
-    const found = [...this.users.values()].find((u) => u.username === username);
+    const found = [...this.users.values()].find(
+      (u) => u.username === username && !u.deletedAt,
+    );
     return Promise.resolve(found ?? null);
   }
 
   findByBlockchainAddress(address: string): Promise<User | null> {
     const found = [...this.users.values()].find(
-      (u) => u.blockchainAddress === address,
+      (u) => u.blockchainAddress === address && !u.deletedAt,
     );
     return Promise.resolve(found ?? null);
   }
@@ -128,15 +132,49 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve();
   }
 
+  anonymize(id: string): Promise<void> {
+    const e = this.users.get(id);
+    if (!e) {
+      throw new UserNotFoundError(id);
+    }
+    const anonymized = new User(
+      e.id,
+      `deleted-${id}@deleted.manachain.local`,
+      `deleted-${id}`,
+      'Compte',
+      'supprimé',
+      e.ageRange,
+      null,
+      null,
+      false,
+      false,
+      e.role,
+      e.passwordChanged,
+      e.lastLogin,
+      e.createdAt,
+      new Date(),
+      new Date(),
+    );
+    this.users.set(id, anonymized);
+    this.passwordHashes.set(id, `deleted:${randomUUID()}`);
+    this.emailVerify.delete(id);
+    this.passwordReset.delete(id);
+    return Promise.resolve();
+  }
+
   // --- Auth ---
 
   findByEmail(email: string): Promise<User | null> {
-    const found = [...this.users.values()].find((u) => u.email === email);
+    const found = [...this.users.values()].find(
+      (u) => u.email === email && !u.deletedAt,
+    );
     return Promise.resolve(found ?? null);
   }
 
   findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
-    const user = [...this.users.values()].find((u) => u.email === email);
+    const user = [...this.users.values()].find(
+      (u) => u.email === email && !u.deletedAt,
+    );
     if (!user) return Promise.resolve(null);
     return Promise.resolve({
       user,

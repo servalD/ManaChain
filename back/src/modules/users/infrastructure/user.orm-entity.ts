@@ -71,6 +71,10 @@ export class UserOrmEntity {
   @Column({ type: 'timestamptz', nullable: true })
   lastLogin: Date | null;
 
+  /** RGPD : compte anonymisé (suppression de compte). NULL = actif. */
+  @Column({ type: 'timestamptz', nullable: true })
+  deletedAt: Date | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

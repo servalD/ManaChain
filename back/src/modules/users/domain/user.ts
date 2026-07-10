@@ -24,6 +24,7 @@ export class User {
     public readonly lastLogin: Date | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public readonly deletedAt: Date | null = null,
   ) {}
 
   hasRole(role: Role): boolean {
