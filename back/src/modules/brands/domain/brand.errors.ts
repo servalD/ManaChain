@@ -37,6 +37,13 @@ export class AccountNotVerifiedError extends ForbiddenDomainException {
   }
 }
 
+/** Cette marque a déjà un ban actif — éviter les doublons. */
+export class BrandAlreadyBannedError extends ConflictDomainException {
+  constructor() {
+    super('This brand is already banned');
+  }
+}
+
 // --- Médias ---
 
 export class MediaNotFoundError extends NotFoundDomainException {

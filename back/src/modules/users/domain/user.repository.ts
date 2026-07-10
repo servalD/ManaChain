@@ -86,6 +86,8 @@ export abstract class UserRepository {
   abstract list(
     params: ListUsersParams,
   ): Promise<{ users: User[]; total: number }>;
+  /** Tous les ids d'utilisateurs (filtrés par rôle si fourni) — fan-out notifications. */
+  abstract listIds(role?: Role): Promise<string[]>;
   abstract findByUsername(username: string): Promise<User | null>;
   abstract findByBlockchainAddress(address: string): Promise<User | null>;
   abstract updateProfile(id: string, fields: UpdateUserFields): Promise<User>;

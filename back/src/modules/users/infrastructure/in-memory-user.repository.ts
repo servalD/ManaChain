@@ -87,6 +87,14 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve({ users, total });
   }
 
+  listIds(role?: Role): Promise<string[]> {
+    let all = [...this.users.values()];
+    if (role) {
+      all = all.filter((u) => u.role === role);
+    }
+    return Promise.resolve(all.map((u) => u.id));
+  }
+
   findByUsername(username: string): Promise<User | null> {
     const found = [...this.users.values()].find((u) => u.username === username);
     return Promise.resolve(found ?? null);

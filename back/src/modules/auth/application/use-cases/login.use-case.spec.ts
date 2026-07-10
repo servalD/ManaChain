@@ -1,4 +1,6 @@
 import { InMemoryUserRepository } from '../../../users/infrastructure/in-memory-user.repository';
+import { InMemoryUserBanRepository } from '../../../users/application/test-fakes';
+import { UserBannedError } from '../../../users/domain/user.errors';
 import {
   EmailNotVerifiedError,
   InvalidCredentialsError,
@@ -8,12 +10,15 @@ import { LoginUseCase } from './login.use-case';
 
 describe('LoginUseCase', () => {
   let repo: InMemoryUserRepository;
+  let bans: InMemoryUserBanRepository;
   let useCase: LoginUseCase;
 
   beforeEach(() => {
     repo = new InMemoryUserRepository();
+    bans = new InMemoryUserBanRepository();
     useCase = new LoginUseCase(
       repo,
+      bans,
       new FakePasswordHasher(),
       new FakeAppTokenService(),
     );
@@ -58,5 +63,23 @@ describe('LoginUseCase', () => {
     await expect(
       useCase.execute('ada@example.com', 'wrong'),
     ).rejects.toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it('rejects a banned account, even with correct credentials', async () => {
+    const user = repo.seed({
+      email: 'ada@example.com',
+      verified: true,
+      passwordHash: 'hashed:S3cret!pwd',
+    });
+    await bans.create({
+      userId: user.id,
+      reason: 'Fraud',
+      bannedBy: 'admin-1',
+      isPermanent: true,
+    });
+
+    await expect(
+      useCase.execute('ada@example.com', 'S3cret!pwd'),
+    ).rejects.toBeInstanceOf(UserBannedError);
   });
 });

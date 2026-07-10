@@ -21,6 +21,7 @@ import { EventContractsOrmEntity } from '../../modules/chain-sync/infrastructure
 import { EventTicketTypeOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-type.orm-entity';
 import { EventTicketPurchaseOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-purchase.orm-entity';
 import { EventOrmEntity } from '../../modules/events/infrastructure/event.orm-entity';
+import { NotificationOrmEntity } from '../../modules/notifications/infrastructure/notification.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -68,6 +69,7 @@ import { EventOrmEntity } from '../../modules/events/infrastructure/event.orm-en
           EventTicketTypeOrmEntity,
           EventTicketPurchaseOrmEntity,
           EventOrmEntity,
+          NotificationOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../../infrastructure/email/email.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 // ORM entities
 import { BrandOrmEntity } from './infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from './infrastructure/brand-application.orm-entity';
@@ -17,6 +18,7 @@ import { BrandApplicationMailer } from './domain/brand-application-mailer.port';
 import { TemporaryPasswordGenerator } from './domain/temporary-password-generator';
 import { BrandTokenStatsReader } from './domain/brand-token-stats.reader';
 import { BrandBanReader } from './domain/brand-ban.reader';
+import { BrandBanRepository } from './domain/brand-ban.repository';
 // Adapters
 import { TypeOrmBrandRepository } from './infrastructure/typeorm-brand.repository';
 import { TypeOrmBrandApplicationRepository } from './infrastructure/typeorm-brand-application.repository';
@@ -27,6 +29,7 @@ import { TemplatedBrandApplicationMailer } from './infrastructure/email/template
 import { SecureTemporaryPasswordGenerator } from './infrastructure/secure-temporary-password.generator';
 import { TypeOrmBrandTokenStatsReader } from './infrastructure/typeorm-brand-token-stats.reader';
 import { TypeOrmBrandBanReader } from './infrastructure/typeorm-brand-ban.reader';
+import { TypeOrmBrandBanRepository } from './infrastructure/typeorm-brand-ban.repository';
 // Use-cases
 import { CreateBrandUseCase } from './application/use-cases/create-brand.use-case';
 import { GetBrandUseCase } from './application/use-cases/get-brand.use-case';
@@ -47,6 +50,9 @@ import { GetBrandApplicationUseCase } from './application/use-cases/get-brand-ap
 import { ApproveBrandApplicationUseCase } from './application/use-cases/approve-brand-application.use-case';
 import { RejectBrandApplicationUseCase } from './application/use-cases/reject-brand-application.use-case';
 import { ListInterestsUseCase } from './application/use-cases/list-interests.use-case';
+import { BanBrandUseCase } from './application/use-cases/ban-brand.use-case';
+import { UnbanBrandUseCase } from './application/use-cases/unban-brand.use-case';
+import { ListBrandBansUseCase } from './application/use-cases/list-brand-bans.use-case';
 // Controllers
 import { BrandApplicationsController } from './presentation/brand-applications.controller';
 import { BrandsController } from './presentation/brands.controller';
@@ -67,6 +73,7 @@ import { InterestsController } from './presentation/interests.controller';
     UsersModule,
     AuthModule,
     EmailModule,
+    NotificationsModule,
   ],
   controllers: [
     BrandApplicationsController,
@@ -92,6 +99,7 @@ import { InterestsController } from './presentation/interests.controller';
     },
     { provide: BrandTokenStatsReader, useClass: TypeOrmBrandTokenStatsReader },
     { provide: BrandBanReader, useClass: TypeOrmBrandBanReader },
+    { provide: BrandBanRepository, useClass: TypeOrmBrandBanRepository },
     CreateBrandUseCase,
     GetBrandUseCase,
     GetBrandByUserUseCase,
@@ -111,6 +119,9 @@ import { InterestsController } from './presentation/interests.controller';
     ApproveBrandApplicationUseCase,
     RejectBrandApplicationUseCase,
     ListInterestsUseCase,
+    BanBrandUseCase,
+    UnbanBrandUseCase,
+    ListBrandBansUseCase,
   ],
   // Exporté pour les modules `likes` et `tokens` (délégation de leurs ports de
   // lecture marque au vrai repository, fin du SQL dupliqué).

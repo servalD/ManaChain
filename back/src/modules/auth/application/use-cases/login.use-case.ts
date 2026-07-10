@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../../users/domain/user';
 import { UserRepository } from '../../../users/domain/user.repository';
+import { UserBanRepository } from '../../../users/domain/user-ban.repository';
+import { UserBannedError } from '../../../users/domain/user.errors';
 import {
   EmailNotVerifiedError,
   InvalidCredentialsError,
@@ -22,6 +24,7 @@ export interface LoginResult {
 export class LoginUseCase {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly userBanRepository: UserBanRepository,
     private readonly passwordHasher: PasswordHasher,
     private readonly tokenService: AppTokenService,
   ) {}
@@ -34,6 +37,13 @@ export class LoginUseCase {
 
     if (!credentials.user.verified) {
       throw new EmailNotVerifiedError();
+    }
+
+    const activeBan = await this.userBanRepository.findActive(
+      credentials.user.id,
+    );
+    if (activeBan) {
+      throw new UserBannedError(activeBan.reason);
     }
 
     const ok = await this.passwordHasher.compare(

@@ -59,6 +59,15 @@ export class TypeOrmUserRepository extends UserRepository {
     return { users: entities.map((entity) => this.toDomain(entity)), total };
   }
 
+  async listIds(role?: Role): Promise<string[]> {
+    const qb = this.repository.createQueryBuilder('u').select('u.id');
+    if (role) {
+      qb.where('u.role = :role', { role });
+    }
+    const entities = await qb.getMany();
+    return entities.map((e) => e.id);
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     const entity = await this.repository.findOne({ where: { username } });
     return entity ? this.toDomain(entity) : null;

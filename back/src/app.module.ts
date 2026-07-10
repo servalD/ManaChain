@@ -17,6 +17,7 @@ import { LikesModule } from './modules/likes/likes.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { TokensModule } from './modules/tokens/tokens.module';
 import { EventsModule } from './modules/events/events.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
     BrandsModule,
     TokensModule,
     EventsModule,
+    NotificationsModule,
     ChainSyncModule,
   ],
   controllers: [HealthController],

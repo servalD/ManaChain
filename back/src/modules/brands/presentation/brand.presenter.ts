@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Brand, InterestRef } from '../domain/brand';
 import { BrandMedia } from '../domain/brand-media';
 import { InterestSummary } from '../domain/interest-reader';
+import { BrandBanEntry } from '../application/use-cases/list-brand-bans.use-case';
 
 class InterestRefResponse {
   @ApiProperty() id: string;
@@ -37,7 +38,8 @@ export class PaginatedBrandsResponse {
 
 export class BrandWhitelistEntryResponse {
   @ApiProperty({ type: BrandResponse }) brand: BrandResponse;
-  @ApiProperty({ type: String, nullable: true }) ownerBlockchainAddress: string | null;
+  @ApiProperty({ type: String, nullable: true }) ownerBlockchainAddress:
+    string | null;
 }
 
 export class PaginatedBrandWhitelistResponse {
@@ -101,4 +103,45 @@ export const toBrandMediaResponse = (
   ipfsHash: media.ipfsHash,
   displayOrder: media.displayOrder,
   createdAt: media.createdAt.toISOString(),
+});
+
+export class BrandBanResponse {
+  @ApiProperty({ format: 'uuid' }) id: string;
+  @ApiProperty({ format: 'uuid' }) brandId: string;
+  @ApiProperty({ type: String, nullable: true }) brandName: string | null;
+  @ApiProperty() reason: string;
+  @ApiProperty({ format: 'uuid' }) bannedBy: string;
+  @ApiProperty({ type: String, nullable: true }) bannedByUsername:
+    string | null;
+  @ApiProperty({ format: 'date-time' }) bannedAt: string;
+  @ApiProperty({ type: String, nullable: true, format: 'date-time' })
+  expiresAt: string | null;
+  @ApiProperty() isPermanent: boolean;
+  @ApiProperty({ type: String, nullable: true }) notes: string | null;
+  @ApiProperty({ type: String, nullable: true }) blacklistTxHash: string | null;
+  @ApiProperty({ type: String, nullable: true }) cancelSaleTxHash:
+    string | null;
+  @ApiProperty() isActive: boolean;
+}
+
+export class PaginatedBrandBansResponse {
+  @ApiProperty({ type: BrandBanResponse, isArray: true })
+  bans: BrandBanResponse[];
+  @ApiProperty() total: number;
+}
+
+export const toBrandBanResponse = (entry: BrandBanEntry): BrandBanResponse => ({
+  id: entry.ban.id,
+  brandId: entry.ban.brandId,
+  brandName: entry.brandName,
+  reason: entry.ban.reason,
+  bannedBy: entry.ban.bannedBy,
+  bannedByUsername: entry.bannedByUsername,
+  bannedAt: entry.ban.bannedAt.toISOString(),
+  expiresAt: entry.ban.expiresAt ? entry.ban.expiresAt.toISOString() : null,
+  isPermanent: entry.ban.isPermanent,
+  notes: entry.ban.notes,
+  blacklistTxHash: entry.ban.blacklistTxHash,
+  cancelSaleTxHash: entry.ban.cancelSaleTxHash,
+  isActive: entry.ban.isActive(),
 });

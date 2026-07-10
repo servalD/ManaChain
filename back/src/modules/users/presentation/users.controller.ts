@@ -1,8 +1,22 @@
-import { Body, Controller, Get, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
@@ -14,13 +28,21 @@ import { UpdateUserUseCase } from '../application/use-cases/update-user.use-case
 import { UpdateBlockchainAddressUseCase } from '../application/use-cases/update-blockchain-address.use-case';
 import { GetMyInterestsUseCase } from '../application/use-cases/get-my-interests.use-case';
 import { UpdateMyInterestsUseCase } from '../application/use-cases/update-my-interests.use-case';
+import { BanUserUseCase } from '../application/use-cases/ban-user.use-case';
+import { UnbanUserUseCase } from '../application/use-cases/unban-user.use-case';
+import { ListUserBansUseCase } from '../application/use-cases/list-user-bans.use-case';
 import { UpdateUserRequest } from '../application/dto/update-user.request';
 import { UpdateBlockchainAddressRequest } from '../application/dto/update-blockchain-address.request';
 import { UpdateInterestsRequest } from '../application/dto/update-interests.request';
 import { ListUsersQuery } from '../application/dto/list-users.query';
+import { BanUserRequest } from '../application/dto/ban-user.request';
+import { ListBansQuery } from '../application/dto/list-bans.query';
 import {
+  PaginatedUserBansResponse,
   PaginatedUsersResponse,
+  toUserBanResponse,
   toUserResponse,
+  UserBanResponse,
   UserResponse,
 } from './user.presenter';
 
@@ -34,6 +56,9 @@ export class UsersController {
     private readonly updateBlockchainAddress: UpdateBlockchainAddressUseCase,
     private readonly getMyInterests: GetMyInterestsUseCase,
     private readonly updateMyInterests: UpdateMyInterestsUseCase,
+    private readonly banUser: BanUserUseCase,
+    private readonly unbanUser: UnbanUserUseCase,
+    private readonly listUserBans: ListUserBansUseCase,
   ) {}
 
   /** Profil de l'utilisateur authentifié courant. */
@@ -101,5 +126,49 @@ export class UsersController {
   ): Promise<PaginatedUsersResponse> {
     const { users, total } = await this.getAllUsers.execute(query);
     return { users: users.map(toUserResponse), total };
+  }
+
+  /** Liste des bans utilisateurs — admin uniquement. */
+  @Get('admin/bans')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Lister les bans utilisateurs (admin)' })
+  @ApiOkResponse({ type: PaginatedUserBansResponse })
+  async bans(
+    @Query() query: ListBansQuery,
+  ): Promise<PaginatedUserBansResponse> {
+    const { bans, total } = await this.listUserBans.execute(query);
+    return { bans: bans.map(toUserBanResponse), total };
+  }
+
+  /** Bannit un utilisateur — admin uniquement. */
+  @Post(':id/ban')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Bannir un utilisateur (admin)' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiCreatedResponse({ type: UserBanResponse })
+  async ban(
+    @CurrentUser() admin: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: BanUserRequest,
+  ): Promise<UserBanResponse> {
+    const ban = await this.banUser.execute(admin.id, id, body);
+    return toUserBanResponse({
+      ban,
+      username: null,
+      bannedByUsername: admin.username,
+    });
+  }
+
+  /** Lève le ban actif d'un utilisateur — admin uniquement. */
+  @Delete(':id/ban')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Lever le ban d’un utilisateur (admin)' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  async unban(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    await this.unbanUser.execute(id);
+    return { message: 'Ban lifted' };
   }
 }

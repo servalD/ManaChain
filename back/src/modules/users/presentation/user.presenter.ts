@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
+import { UserBanEntry } from '../application/use-cases/list-user-bans.use-case';
 
 export class UserResponse {
   @ApiProperty({ format: 'uuid' })
@@ -66,4 +67,59 @@ export const toUserResponse = (user: User): UserResponse => ({
   role: user.role,
   passwordChanged: user.passwordChanged,
   createdAt: user.createdAt.toISOString(),
+});
+
+export class UserBanResponse {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ format: 'uuid' })
+  userId: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  username: string | null;
+
+  @ApiProperty()
+  reason: string;
+
+  @ApiProperty({ format: 'uuid' })
+  bannedBy: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  bannedByUsername: string | null;
+
+  @ApiProperty({ format: 'date-time' })
+  bannedAt: string;
+
+  @ApiProperty({ type: String, nullable: true, format: 'date-time' })
+  expiresAt: string | null;
+
+  @ApiProperty()
+  isPermanent: boolean;
+
+  @ApiProperty({ type: String, nullable: true })
+  notes: string | null;
+
+  @ApiProperty()
+  isActive: boolean;
+}
+
+export class PaginatedUserBansResponse {
+  @ApiProperty({ type: UserBanResponse, isArray: true })
+  bans: UserBanResponse[];
+  @ApiProperty() total: number;
+}
+
+export const toUserBanResponse = (entry: UserBanEntry): UserBanResponse => ({
+  id: entry.ban.id,
+  userId: entry.ban.userId,
+  username: entry.username,
+  reason: entry.ban.reason,
+  bannedBy: entry.ban.bannedBy,
+  bannedByUsername: entry.bannedByUsername,
+  bannedAt: entry.ban.bannedAt.toISOString(),
+  expiresAt: entry.ban.expiresAt ? entry.ban.expiresAt.toISOString() : null,
+  isPermanent: entry.ban.isPermanent,
+  notes: entry.ban.notes,
+  isActive: entry.ban.isActive(),
 });

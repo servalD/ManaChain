@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Brand } from '../../domain/brand';
-import { BrandRepository, ListBrandsParams } from '../../domain/brand.repository';
+import {
+  BrandRepository,
+  ListBrandsParams,
+} from '../../domain/brand.repository';
 import { UserRepository } from '../../../users/domain/user.repository';
 
 export interface BrandWithOwnerAddress {
@@ -27,7 +30,10 @@ export class ListBrandsForWhitelistUseCase {
     const withAddress = await Promise.all(
       brands.map(async (brand: Brand): Promise<BrandWithOwnerAddress> => {
         const owner = await this.userRepository.findById(brand.ownerId);
-        return { brand, ownerBlockchainAddress: owner?.blockchainAddress ?? null };
+        return {
+          brand,
+          ownerBlockchainAddress: owner?.blockchainAddress ?? null,
+        };
       }),
     );
     return { brands: withAddress, total };

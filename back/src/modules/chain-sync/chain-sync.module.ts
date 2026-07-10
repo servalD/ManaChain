@@ -4,9 +4,12 @@ import { UsersModule } from '../users/users.module';
 import { BrandsModule } from '../brands/brands.module';
 import { TokensModule } from '../tokens/tokens.module';
 import { EventsModule } from '../events/events.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { ChainRegistryModule } from './infrastructure/chain-registry.module';
 import { TokenSaleRepository } from './domain/token-sale.repository';
 import { BrandContractsRepository } from './domain/brand-contracts.repository';
+import { UserRepository } from '../users/domain/user.repository';
+import { NotificationRepository } from '../notifications/domain/notification.repository';
 import { ChainEventHandler } from './domain/chain-event-handler';
 import {
   CHAIN_EVENT_HANDLERS,
@@ -74,6 +77,8 @@ const brandFlagHandlerProviders: Provider[] = [
     useFactory: (
       brandContracts: BrandContractsRepository,
       tx: TransactionRunner,
+      users: UserRepository,
+      notifications: NotificationRepository,
     ) =>
       new BrandFlagHandler(
         'BrandWhitelisted',
@@ -81,14 +86,23 @@ const brandFlagHandlerProviders: Provider[] = [
         'setWhitelisted',
         brandContracts,
         tx,
+        users,
+        notifications,
       ),
-    inject: [BrandContractsRepository, TransactionRunner],
+    inject: [
+      BrandContractsRepository,
+      TransactionRunner,
+      UserRepository,
+      NotificationRepository,
+    ],
   },
   {
     provide: BRAND_BLACKLISTED,
     useFactory: (
       brandContracts: BrandContractsRepository,
       tx: TransactionRunner,
+      users: UserRepository,
+      notifications: NotificationRepository,
     ) =>
       new BrandFlagHandler(
         'BrandBlacklisted',
@@ -96,8 +110,15 @@ const brandFlagHandlerProviders: Provider[] = [
         'setBlacklisted',
         brandContracts,
         tx,
+        users,
+        notifications,
       ),
-    inject: [BrandContractsRepository, TransactionRunner],
+    inject: [
+      BrandContractsRepository,
+      TransactionRunner,
+      UserRepository,
+      NotificationRepository,
+    ],
   },
 ];
 
@@ -163,12 +184,13 @@ const ticketEventHandlersProvider: Provider = {
 };
 
 /**
- * Miroir SQL de la chaîne (voir `temp-plan/phase-2-back-chain-sync.md` et
- * `phase-4-events-tickets.md`). Lit Fuji en lecture seule via `ChainReader`
- * (viem) ; n'écrit jamais on-chain.
+ * Miroir SQL de la chaîne (voir `temp-plan/phase-2-back-chain-sync.md`,
+ * `phase-4-events-tickets.md` et `phase-5-admin-notifs-bans.md`). Lit Fuji en
+ * lecture seule via `ChainReader` (viem) ; n'écrit jamais on-chain.
  *
- * Dépend de `UsersModule`/`BrandsModule`/`TokensModule`/`EventsModule` (un
- * seul sens : ces modules n'importent pas `ChainSyncModule` en retour) — les
+ * Dépend de `UsersModule`/`BrandsModule`/`TokensModule`/`EventsModule`/
+ * `NotificationsModule` (un seul sens : ces modules n'importent pas
+ * `ChainSyncModule` en retour) — les
  * ports purs de chain-sync dont ils ont besoin (`BrandContractsRepository`/
  * `TokenSaleRepository`/`EventContractsRepository`/`EventTicketTypeRepository`
  * /`EventTicketPurchaseRepository`/`ChainReader`) viennent de
@@ -183,6 +205,7 @@ const ticketEventHandlersProvider: Provider = {
     BrandsModule,
     TokensModule,
     EventsModule,
+    NotificationsModule,
   ],
   controllers: [ChainSyncController],
   providers: [

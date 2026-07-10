@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { BrandApplication } from '../domain/brand-application';
 import { BrandApplicationMailer } from '../domain/brand-application-mailer.port';
 import {
@@ -5,6 +6,12 @@ import {
   BrandTokenStatsReader,
 } from '../domain/brand-token-stats.reader';
 import { BrandBanReader } from '../domain/brand-ban.reader';
+import { BrandBan } from '../domain/brand-ban';
+import {
+  BrandBanRepository,
+  CreateBrandBanParams,
+  ListBrandBansParams,
+} from '../domain/brand-ban.repository';
 import { InterestChecker } from '../domain/interest-checker';
 import { TemporaryPasswordGenerator } from '../domain/temporary-password-generator';
 import { TransactionRunner } from '../../../shared/application/transaction-runner';
@@ -62,6 +69,70 @@ export class FakeBrandBanReader extends BrandBanReader {
   }
   findActivelyBannedBrandIds(): Promise<string[]> {
     return Promise.resolve([...this.bannedIds]);
+  }
+}
+
+/** Fake {@link BrandBanRepository} (écriture) en mémoire pour les tests unitaires. */
+export class InMemoryBrandBanRepository extends BrandBanRepository {
+  private readonly bans = new Map<string, BrandBan>();
+
+  create(params: CreateBrandBanParams): Promise<BrandBan> {
+    const ban = new BrandBan(
+      randomUUID(),
+      params.brandId,
+      params.reason,
+      params.bannedBy,
+      new Date(),
+      params.expiresAt ?? null,
+      params.isPermanent,
+      params.notes ?? null,
+      params.blacklistTxHash ?? null,
+      params.cancelSaleTxHash ?? null,
+    );
+    this.bans.set(ban.id, ban);
+    return Promise.resolve(ban);
+  }
+
+  findActive(brandId: string): Promise<BrandBan | null> {
+    const found = [...this.bans.values()]
+      .filter((b) => b.brandId === brandId && b.isActive())
+      .sort((a, b) => b.bannedAt.getTime() - a.bannedAt.getTime())[0];
+    return Promise.resolve(found ?? null);
+  }
+
+  revoke(brandId: string): Promise<void> {
+    for (const [id, ban] of this.bans.entries()) {
+      if (ban.brandId === brandId && ban.isActive()) {
+        this.bans.set(
+          id,
+          new BrandBan(
+            ban.id,
+            ban.brandId,
+            ban.reason,
+            ban.bannedBy,
+            ban.bannedAt,
+            new Date(),
+            false,
+            ban.notes,
+            ban.blacklistTxHash,
+            ban.cancelSaleTxHash,
+          ),
+        );
+      }
+    }
+    return Promise.resolve();
+  }
+
+  list(
+    params: ListBrandBansParams,
+  ): Promise<{ bans: BrandBan[]; total: number }> {
+    const all = [...this.bans.values()].sort(
+      (a, b) => b.bannedAt.getTime() - a.bannedAt.getTime(),
+    );
+    return Promise.resolve({
+      bans: all.slice(params.offset, params.offset + params.limit),
+      total: all.length,
+    });
   }
 }
 

@@ -36,16 +36,24 @@ import { GetBrandStatsUseCase } from '../application/use-cases/get-brand-stats.u
 import { ListBrandMediaUseCase } from '../application/use-cases/list-brand-media.use-case';
 import { ConfirmBrandMediaUseCase } from '../application/use-cases/confirm-brand-media.use-case';
 import { DeleteBrandMediaUseCase } from '../application/use-cases/delete-brand-media.use-case';
+import { BanBrandUseCase } from '../application/use-cases/ban-brand.use-case';
+import { UnbanBrandUseCase } from '../application/use-cases/unban-brand.use-case';
+import { ListBrandBansUseCase } from '../application/use-cases/list-brand-bans.use-case';
 import { CreateBrandRequest } from '../application/dto/create-brand.request';
 import { UpdateBrandRequest } from '../application/dto/update-brand.request';
 import { ListBrandsQuery } from '../application/dto/list-brands.query';
 import { ConfirmMediaRequest } from '../application/dto/confirm-media.request';
+import { BanBrandRequest } from '../application/dto/ban-brand.request';
+import { ListBansQuery } from '../application/dto/list-bans.query';
 import {
+  BrandBanResponse,
   BrandMediaResponse,
   BrandResponse,
   BrandStatsResponse,
+  PaginatedBrandBansResponse,
   PaginatedBrandsResponse,
   PaginatedBrandWhitelistResponse,
+  toBrandBanResponse,
   toBrandMediaResponse,
   toBrandResponse,
 } from './brand.presenter';
@@ -66,6 +74,9 @@ export class BrandsController {
     private readonly listMedia: ListBrandMediaUseCase,
     private readonly confirmMedia: ConfirmBrandMediaUseCase,
     private readonly deleteMedia: DeleteBrandMediaUseCase,
+    private readonly banBrand: BanBrandUseCase,
+    private readonly unbanBrand: UnbanBrandUseCase,
+    private readonly listBrandBans: ListBrandBansUseCase,
   ) {}
 
   // --- Création / liste ---
@@ -112,7 +123,7 @@ export class BrandsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary:
-      "Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)",
+      'Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)',
   })
   @ApiOkResponse({ type: PaginatedBrandWhitelistResponse })
   async listForWhitelist(
@@ -126,6 +137,18 @@ export class BrandsController {
       })),
       total,
     };
+  }
+
+  @Get('admin/bans')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lister les bans de marques (admin)' })
+  @ApiOkResponse({ type: PaginatedBrandBansResponse })
+  async bans(
+    @Query() query: ListBansQuery,
+  ): Promise<PaginatedBrandBansResponse> {
+    const { bans, total } = await this.listBrandBans.execute(query);
+    return { bans: bans.map(toBrandBanResponse), total };
   }
 
   @Get('me')
@@ -202,6 +225,44 @@ export class BrandsController {
   ): Promise<{ message: string }> {
     await this.deleteMedia.execute(user.id, id, mediaId);
     return { message: 'Media deleted' };
+  }
+
+  // --- Bans (D8) ---
+
+  @Post(':id/ban')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Bannir une marque (admin) — le front a déjà passé les tx on-chain (blacklist + éventuel cancel-sale)',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiCreatedResponse({ type: BrandBanResponse })
+  async ban(
+    @CurrentUser() admin: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: BanBrandRequest,
+  ): Promise<BrandBanResponse> {
+    const ban = await this.banBrand.execute(admin.id, id, body);
+    const brand = await this.getBrand.execute(id);
+    return toBrandBanResponse({
+      ban,
+      brandName: brand.name,
+      bannedByUsername: admin.username,
+    });
+  }
+
+  @Delete(':id/ban')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lever le ban d’une marque (admin)' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  async unban(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    await this.unbanBrand.execute(id);
+    return { message: 'Ban lifted' };
   }
 
   // --- /:id générique (en dernier) ---
