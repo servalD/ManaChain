@@ -6,6 +6,7 @@ import type { Address } from "viem";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useBrandsForWhitelist } from "@/hooks/api/useBrands";
 import { useTokenByBrand } from "@/hooks/api/useTokens";
 import { useBanBrand } from "@/hooks/api/useBans";
@@ -187,8 +188,8 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium block">{t("reasonLabel")}</label>
-            <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[70px]"
+            <Textarea
+              className="min-h-[70px]"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               disabled={isBusy}
@@ -219,8 +220,8 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium block">{t("notesLabel")}</label>
-            <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[50px]"
+            <Textarea
+              className="min-h-[50px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               disabled={isBusy}

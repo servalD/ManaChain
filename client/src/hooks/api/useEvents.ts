@@ -19,7 +19,7 @@ import type {
   EventsControllerMyBrandEventsParams,
   EventsControllerMyTicketsParams,
 } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -58,11 +58,7 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getEventsControllerCreateMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to create event.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to create event."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getEventsControllerMyBrandEventsQueryKey() });
     },
@@ -72,12 +68,7 @@ export function useCreateEvent() {
 export function useLinkEventContracts() {
   return useToastMutation({
     ...getEventsControllerLinkContractsMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to link the deployed module.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to link the deployed module."),
   });
 }
 
@@ -85,11 +76,7 @@ export function usePublishEvent() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getEventsControllerPublishMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to publish event.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to publish event."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getEventsControllerMyBrandEventsQueryKey() });
     },

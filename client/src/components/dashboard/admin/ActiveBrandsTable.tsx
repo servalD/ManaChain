@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,30 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import PinataService from "@/services/pinata.service";
 import { useAdminActiveBrands } from "@/hooks/api/useAdminUsers";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function ActiveBrandsTable() {
   const t = useTranslations("dashboard.admin.activeBrandsTable");
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   const { data, isLoading } = useAdminActiveBrands({
     limit,

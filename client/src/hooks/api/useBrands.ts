@@ -11,7 +11,7 @@ import {
   getBrandsControllerListForWhitelistQueryOptions,
 } from "@/api/generated/endpoints/brands/brands";
 import type { BrandsControllerListForWhitelistParams } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -27,12 +27,7 @@ export function useMyBrand(options?: { enabled?: boolean }) {
 export function useBrandsForWhitelist(params?: BrandsControllerListForWhitelistParams) {
   return useToastQuery({
     ...getBrandsControllerListForWhitelistQueryOptions(params),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to load brands.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to load brands."),
   });
 }
 
@@ -57,12 +52,7 @@ export function useConfirmBrandMedia() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerConfirmBrandMediaMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to confirm media. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to confirm media. Please try again."),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerMediaQueryKey(variables.id) });
     },
@@ -74,12 +64,7 @@ export function useRemoveBrandMedia() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerRemoveMediaMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to delete media. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to delete media. Please try again."),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerMediaQueryKey(variables.id) });
     },

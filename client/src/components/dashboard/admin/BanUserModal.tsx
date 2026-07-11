@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAdminUsersList } from "@/hooks/api/useAdminUsers";
 import { useBanUser } from "@/hooks/api/useBans";
 import { toast } from "@/lib/toast";
@@ -124,8 +125,8 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium block">{t("reasonLabel")}</label>
-            <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[70px]"
+            <Textarea
+              className="min-h-[70px]"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("reasonPlaceholder")}
@@ -154,8 +155,8 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-medium block">{t("notesLabel")}</label>
-            <textarea
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[50px]"
+            <Textarea
+              className="min-h-[50px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Send, Users, Building2, Mail, CheckCircle2, Edit, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { useSendNotification } from "@/hooks/api/useNotifications";
@@ -227,12 +228,12 @@ export function NotificationCenter() {
               </div>
 
               {messageViewMode === 'edit' ? (
-                <textarea
+                <Textarea
                   id="notification-message"
                   placeholder={t("form.messagePlaceholder")}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  className="min-h-[200px] font-mono resize-none"
                   maxLength={2000}
                 />
               ) : (

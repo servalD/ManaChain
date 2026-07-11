@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search, Check, X as XIcon, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -16,12 +17,13 @@ import PinataService from "@/services/pinata.service";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function BrandApplicationsTable() {
   const t = useTranslations("dashboard.admin.brandApplicationsTable");
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [limit, setLimit] = useState<number>(10);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -29,24 +31,6 @@ export function BrandApplicationsTable() {
   const [selectedApplicationSummary, setSelectedApplicationSummary] = useState<{ brandName: string; contactEmail: string; logoUrl: string | null } | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionNotes, setRejectionNotes] = useState("");
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
 
   const { data, isLoading } = useBrandApplicationsList({
     limit,
@@ -355,12 +339,12 @@ export function BrandApplicationsTable() {
               <label htmlFor="rejection-reason" className="text-sm font-medium">
                 {t("rejectModal.reasonLabel")} <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <Textarea
                 id="rejection-reason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder={t("rejectModal.reasonPlaceholder")}
-                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-[100px]"
                 required
               />
             </div>
@@ -369,12 +353,12 @@ export function BrandApplicationsTable() {
               <label htmlFor="rejection-notes" className="text-sm font-medium">
                 {t("rejectModal.notesLabel")}
               </label>
-              <textarea
+              <Textarea
                 id="rejection-notes"
                 value={rejectionNotes}
                 onChange={(e) => setRejectionNotes(e.target.value)}
                 placeholder={t("rejectModal.notesPlaceholder")}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-[80px]"
               />
             </div>
           </div>

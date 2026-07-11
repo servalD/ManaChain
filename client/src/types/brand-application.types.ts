@@ -1,20 +1,3 @@
-export interface BrandApplication {
-  id: string;
-  contactEmail: string;
-  contactFirstName: string;
-  contactLastName: string;
-  brandName: string;
-  description: string | null;
-  websiteUrl: string | null;
-  logoUrl: string | null;
-  businessRegistrationNumber: string;
-  country: string;
-  status: 'pending' | 'approved' | 'rejected' | 'needs_review';
-  emailVerified: boolean;
-  rejectionReason: string | null;
-  createdAt: string;
-}
-
 /**
  * Forme interne du formulaire de candidature (wizard). Volontairement en
  * snake_case car c'est l'état local du formulaire, indépendant du contrat
@@ -51,38 +34,7 @@ export interface CreateBrandApplicationData {
   how_did_you_hear_about_us?: string;
 }
 
-export interface GetBrandApplicationsParams {
-  limit?: number;
-  offset?: number;
-  status?: 'pending' | 'approved' | 'rejected' | 'needs_review';
-  search?: string;
-}
-
-export interface GetBrandApplicationsResponse {
-  applications: BrandApplication[];
-  total: number;
-}
-
-export interface ApproveBrandApplicationResponse {
-  userId: string;
-  brandId: string;
-}
-
-export interface RejectBrandApplicationData {
-  rejectionReason: string;
-}
-
-export interface RejectBrandApplicationResponse {
-  message: string;
-}
-
 export interface ValidationResult {
   isValid: boolean;
   errors: Record<string, string>;
-}
-
-export interface FileMetadata {
-  ipfsHash: string;
-  url: string;
-  uploadedAt: string;
 }

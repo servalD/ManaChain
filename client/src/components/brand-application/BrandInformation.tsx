@@ -1,7 +1,7 @@
 "use client";
 
 import { FileUpload } from "./FileUpload";
-import { Interest } from "@/types/interest.types";
+import type { InterestResponse } from "@/api/generated/models";
 import { Check } from "lucide-react";
 
 interface BrandInformationProps {
@@ -13,7 +13,7 @@ interface BrandInformationProps {
     logo_url: string;
   };
   onChange: (field: string, value: string | string[]) => void;
-  interests: Interest[];
+  interests: InterestResponse[];
   errors?: Record<string, string>;
 }
 

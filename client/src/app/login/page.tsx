@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { OtpInput } from "@/components/ui/otp-input";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck } from "lucide-react";
+import { useThemedLogoSrc } from "@/hooks/useThemedLogoSrc";
 
 const sampleTestimonials: Testimonial[] = [
   {
@@ -62,7 +63,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toasterRef = useRef<ToasterRef>(null);
-  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const logoSrc = useThemedLogoSrc();
   const login = useLogin();
   const twoFactorVerify = useTwoFactorVerify();
   const t = useTranslations("auth.login");
@@ -122,25 +123,6 @@ function LoginPageContent() {
       router.replace(redirectPath);
     }
   }, [searchParams, router, t]);
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

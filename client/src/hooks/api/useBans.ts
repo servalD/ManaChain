@@ -17,7 +17,7 @@ import type {
   BrandsControllerBansParams,
   UsersControllerBansParams,
 } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -30,11 +30,7 @@ export function useBanBrand() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerBanMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to ban brand.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to ban brand."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerBansQueryKey() });
     },
@@ -45,11 +41,7 @@ export function useUnbanBrand() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerUnbanMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to lift ban.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to lift ban."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerBansQueryKey() });
     },
@@ -65,11 +57,7 @@ export function useBanUser() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getUsersControllerBanMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to ban user.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to ban user."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerBansQueryKey() });
     },
@@ -80,11 +68,7 @@ export function useUnbanUser() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getUsersControllerUnbanMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to lift ban.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to lift ban."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerBansQueryKey() });
     },

@@ -8,7 +8,7 @@ import {
   getNotificationsControllerMarkReadMutationOptions,
 } from "@/api/generated/endpoints/notifications/notifications";
 import type { NotificationsControllerMyNotificationsParams } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -21,11 +21,7 @@ export function useMyNotifications(params?: NotificationsControllerMyNotificatio
 export function useSendNotification() {
   return useToastMutation({
     ...getNotificationsControllerSendMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to send notification.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to send notification."),
   });
 }
 
@@ -33,11 +29,7 @@ export function useMarkNotificationRead() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getNotificationsControllerMarkReadMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to mark as read.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to mark as read."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getNotificationsControllerMyNotificationsQueryKey() });
     },

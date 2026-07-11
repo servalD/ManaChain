@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import FormCacheService from "@/services/form-cache.service";
 import { useMounted } from "@/hooks/useMounted";
+import { useThemedLogoSrc } from "@/hooks/useThemedLogoSrc";
 import { useCreateBrandApplication, toCreateBrandApplicationRequest } from "@/hooks/api/useBrandApplications";
 import { useInterests } from "@/hooks/api/useInterests";
 import { COUNTRY_PHONE_CODES } from "@/utils/constants";
@@ -97,7 +98,7 @@ function countryCodeFromCachedPhone(phone: string | undefined): string | null {
 
 export default function BrandApplicationPage() {
   const router = useRouter();
-  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const logoSrc = useThemedLogoSrc();
   const mounted = useMounted();
   const [cachedFormData] = useState(() => FormCacheService.loadFormData());
   const [formData, setFormData] = useState<FormData>(() =>
@@ -112,25 +113,6 @@ export default function BrandApplicationPage() {
   );
 
   // Detect dark mode for logo
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
   // Notify the user once if their form was restored from cache.
   useEffect(() => {
     if (cachedFormData) {

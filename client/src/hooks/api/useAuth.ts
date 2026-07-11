@@ -22,7 +22,7 @@ import {
   getUsersControllerDeleteMeMutationOptions,
 } from "@/api/generated/endpoints/users/users";
 import type { UserResponse } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { asAxiosError, apiErrorToast } from "@/lib/api-error";
 import { toast } from "@/lib/toast";
 import { useToastMutation } from "./useToastMutation";
 
@@ -346,12 +346,7 @@ export function useTwoFactorEnable() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getAuthControllerEnableTwoFactorMutationOptions(),
-    errorToast: (error) => ({
-      title: "Incorrect code",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Invalid two-factor authentication code",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Invalid two-factor authentication code", "Incorrect code"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
     },
@@ -368,11 +363,7 @@ export function useTwoFactorDisable() {
       description: "Your account no longer requires a 2FA code to sign in.",
       variant: "success",
     }),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Incorrect password",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Incorrect password"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
     },
@@ -385,11 +376,7 @@ export function useUpdateProfile() {
   return useToastMutation({
     ...getUsersControllerUpdateMeMutationOptions(),
     successToast: () => ({ title: "Profile updated", description: "Your profile has been saved.", variant: "success" }),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to update profile. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to update profile. Please try again."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
     },

@@ -1,10 +1,10 @@
 "use client";
 
 import { Calendar, Mail, User } from "lucide-react";
-import { IUser } from "@/types/user.types";
+import type { UserResponse } from "@/api/generated/models";
 
 interface ProfileInfoReadOnlyProps {
-  user: IUser | null;
+  user: UserResponse | null;
 }
 
 export function ProfileInfoReadOnly({ user }: ProfileInfoReadOnlyProps) {

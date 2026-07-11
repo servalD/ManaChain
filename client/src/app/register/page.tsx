@@ -1,6 +1,6 @@
  "use client";
  
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, { useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { SignUpPage, Interest, SignUpFormData } from "@/components/ui/sign-up";
 import { useRouter } from "next/navigation";
@@ -10,14 +10,14 @@ import type { RegisterRequestAgeRange } from "@/api/generated/models";
 import { ApiService } from "@/services/api.service";
 import { useInterests } from "@/hooks/api/useInterests";
 import { toast } from "@/lib/toast";
-import { isValidEmail, isValidPassword } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { useThemedLogoSrc } from "@/hooks/useThemedLogoSrc";
 
 export default function RegisterPage() {
   const router = useRouter();
   const toasterRef = useRef<ToasterRef>(null);
-  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const logoSrc = useThemedLogoSrc();
   const { data: interestsData, isLoading } = useInterests();
   const register = useRegister();
   const t = useTranslations("auth.register");
@@ -31,25 +31,6 @@ export default function RegisterPage() {
       })),
     [interestsData]
   );
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: SignUpFormData) => {
     event.preventDefault();
