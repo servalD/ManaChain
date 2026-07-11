@@ -48,6 +48,8 @@ export * from './likerUserResponse';
 export * from './linkEventContractsRequest';
 export * from './loginRequest';
 export * from './loginResponse';
+export * from './mediaControllerUploadBody';
+export * from './mediaUploadResponse';
 export * from './messageResponse';
 export * from './notificationResponse';
 export * from './notificationResponseType';
