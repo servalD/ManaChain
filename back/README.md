@@ -33,6 +33,7 @@ avec la liste des problèmes.
 | `RESEND_API_KEY`                              | clé API [Resend](https://resend.com/api-keys) (domaine `EMAIL_FROM` à vérifier dans leur dashboard avant prod). **Laisser vide = mode simulation** : les emails (vérification, reset) sont seulement loggés en console                                                                       |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Credentials → OAuth 2.0 Client ID (type « Web application »). Redirect URI en dev : `http://localhost:3001/api/auth/google/callback`. Optionnel : vide → l'endpoint `/api/auth/google` renvoie une erreur claire |
 | `CORS_ORIGIN`, `FRONTEND_URL`, `API_URL`  | URLs du front et de l'API (défauts corrects pour le dev local)                                                                                                                                                                                                                                      |
+| `PINATA_JWT`                                  | clé API [Pinata](https://app.pinata.cloud/developers/api-keys) (upload/delete IPFS, `POST/DELETE /api/media`). Optionnel : vide → l'upload renvoie une erreur claire, l'app démarre quand même                                                                                                |
 
 ## 2. Lancer le back en dev (`pnpm start:dev`)
 

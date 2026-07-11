@@ -49,6 +49,11 @@ export const envSchema = z.object({
   // Sentry (crash reporting). Vide/absent → Sentry désactivé (voir instrument.ts).
   SENTRY_DSN: z.string().optional(),
 
+  // IPFS (Pinata). Absent → l'app boote quand même, l'upload renvoie une
+  // erreur claire (IpfsStorageUnavailableError) plutôt qu'un crash au démarrage.
+  PINATA_JWT: z.string().optional(),
+  PINATA_GATEWAY_URL: z.string().default('https://gateway.pinata.cloud'),
+
   // chain-sync (miroir SQL de la chaîne). Défaut false : les e2e existants ne
   // démarrent pas le poller (aucune dépendance à un RPC/anvil).
   CHAIN_SYNC_ENABLED: z

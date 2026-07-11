@@ -88,12 +88,14 @@ services:
       TWO_FACTOR_ENCRYPTION_KEY_FILE: /run/secrets/two_factor_encryption_key
       RESEND_API_KEY_FILE: /run/secrets/resend_api_key
       GOOGLE_CLIENT_SECRET_FILE: /run/secrets/google_client_secret
+      PINATA_JWT_FILE: /run/secrets/pinata_jwt
     secrets:
       - database_password
       - app_jwt_secret
       - two_factor_encryption_key
       - resend_api_key
       - google_client_secret
+      - pinata_jwt
     networks:
       - edge
     deploy:
@@ -120,10 +122,6 @@ services:
 
   client:
     image: "{{ acr_login_server }}/manachain-client:{{ client_image_tag }}"
-    environment:
-      PINATA_JWT_FILE: /run/secrets/pinata_jwt
-    secrets:
-      - pinata_jwt
     networks:
       - edge
     deploy:

@@ -19,6 +19,7 @@ import { TokensModule } from './modules/tokens/tokens.module';
 import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ChainSyncModule } from './modules/chain-sync/chain-sync.module';
     EventsModule,
     NotificationsModule,
     ChainSyncModule,
+    MediaModule,
   ],
   controllers: [HealthController],
   providers: [
