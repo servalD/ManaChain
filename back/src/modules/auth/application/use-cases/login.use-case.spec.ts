@@ -9,6 +9,7 @@ import {
   FakeAppTokenService,
   FakePasswordHasher,
   FakeTokenGenerator,
+  InMemoryRefreshTokenRepository,
   InMemoryTwoFactorChallengeRepository,
 } from '../test-fakes';
 import { LoginUseCase, LoginSuccess } from './login.use-case';
@@ -17,12 +18,14 @@ describe('LoginUseCase', () => {
   let repo: InMemoryUserRepository;
   let bans: InMemoryUserBanRepository;
   let challenges: InMemoryTwoFactorChallengeRepository;
+  let refreshTokens: InMemoryRefreshTokenRepository;
   let useCase: LoginUseCase;
 
   beforeEach(() => {
     repo = new InMemoryUserRepository();
     bans = new InMemoryUserBanRepository();
     challenges = new InMemoryTwoFactorChallengeRepository();
+    refreshTokens = new InMemoryRefreshTokenRepository();
     useCase = new LoginUseCase(
       repo,
       bans,
@@ -30,6 +33,7 @@ describe('LoginUseCase', () => {
       new FakeAppTokenService(),
       new FakeTokenGenerator(),
       challenges,
+      refreshTokens,
     );
   });
 
@@ -48,6 +52,10 @@ describe('LoginUseCase', () => {
     expect(result.twoFactorRequired).toBe(false);
     expect(result.token).toBe(`jwt:${user.id}`);
     expect(result.user.id).toBe(user.id);
+    expect(result.refreshToken).toBeTruthy();
+    expect(await refreshTokens.find(result.refreshToken)).toMatchObject({
+      userId: user.id,
+    });
   });
 
   it('rejects an unknown email', async () => {

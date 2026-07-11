@@ -12,8 +12,10 @@ import {
 import {
   FakeAppTokenService,
   FakePasswordHasher,
+  FakeTokenGenerator,
   FakeTotpService,
   FakeTwoFactorSecretCipher,
+  InMemoryRefreshTokenRepository,
   InMemoryTwoFactorChallengeRepository,
 } from '../test-fakes';
 import { VerifyTwoFactorUseCase } from './verify-two-factor.use-case';
@@ -23,6 +25,7 @@ describe('VerifyTwoFactorUseCase', () => {
   let bans: InMemoryUserBanRepository;
   let recoveryCodes: InMemoryTwoFactorRecoveryCodeRepository;
   let challenges: InMemoryTwoFactorChallengeRepository;
+  let refreshTokens: InMemoryRefreshTokenRepository;
   let passwordHasher: FakePasswordHasher;
   let useCase: VerifyTwoFactorUseCase;
 
@@ -33,6 +36,7 @@ describe('VerifyTwoFactorUseCase', () => {
     bans = new InMemoryUserBanRepository();
     recoveryCodes = new InMemoryTwoFactorRecoveryCodeRepository();
     challenges = new InMemoryTwoFactorChallengeRepository();
+    refreshTokens = new InMemoryRefreshTokenRepository();
     passwordHasher = new FakePasswordHasher();
     useCase = new VerifyTwoFactorUseCase(
       challenges,
@@ -43,6 +47,8 @@ describe('VerifyTwoFactorUseCase', () => {
       new FakeTwoFactorSecretCipher(),
       passwordHasher,
       new FakeAppTokenService(),
+      new FakeTokenGenerator(),
+      refreshTokens,
     );
   });
 

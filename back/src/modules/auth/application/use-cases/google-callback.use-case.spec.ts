@@ -5,6 +5,7 @@ import {
   FakeAppTokenService,
   FakeOAuthProvider,
   FakeTokenGenerator,
+  InMemoryRefreshTokenRepository,
   InMemoryTwoFactorChallengeRepository,
 } from '../test-fakes';
 import {
@@ -25,6 +26,7 @@ describe('GoogleCallbackUseCase', () => {
       new FakeAppTokenService(),
       new FakeTokenGenerator(),
       challenges,
+      new InMemoryRefreshTokenRepository(),
     );
   };
 

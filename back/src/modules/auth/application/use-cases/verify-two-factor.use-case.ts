@@ -14,12 +14,15 @@ import { TotpService } from '../ports/totp.port';
 import { TwoFactorSecretCipher } from '../ports/two-factor-secret-cipher.port';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { AppTokenService } from '../ports/app-token.service';
-import { toAppJwtClaims } from '../jwt-claims';
+import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
+import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
+import { issueSession } from '../session';
 import { normalizeRecoveryCode } from '../two-factor-recovery-code.util';
 
 export interface VerifyTwoFactorResult {
   user: User;
   token: string;
+  refreshToken: string;
 }
 
 const MAX_ATTEMPTS = 5;
@@ -43,6 +46,8 @@ export class VerifyTwoFactorUseCase {
     private readonly cipher: TwoFactorSecretCipher,
     private readonly passwordHasher: PasswordHasher,
     private readonly tokenService: AppTokenService,
+    private readonly tokenGenerator: SecureTokenGenerator,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async execute(
@@ -84,8 +89,13 @@ export class VerifyTwoFactorUseCase {
     }
 
     await this.challengeRepository.delete(challengeToken);
-    const token = this.tokenService.sign(toAppJwtClaims(user));
-    return { user, token };
+    const session = await issueSession(
+      user,
+      this.tokenService,
+      this.tokenGenerator,
+      this.refreshTokenRepository,
+    );
+    return { user, ...session };
   }
 
   private async verifyCode(userId: string, code: string): Promise<boolean> {

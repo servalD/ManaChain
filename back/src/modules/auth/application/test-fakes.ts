@@ -7,6 +7,10 @@ import {
   TwoFactorChallenge,
   TwoFactorChallengeRepository,
 } from '../domain/two-factor-challenge.repository';
+import {
+  RefreshTokenRecord,
+  RefreshTokenRepository,
+} from '../domain/refresh-token.repository';
 import { TotpService } from './ports/totp.port';
 import { TwoFactorSecretCipher } from './ports/two-factor-secret-cipher.port';
 
@@ -110,6 +114,37 @@ export class InMemoryTwoFactorChallengeRepository extends TwoFactorChallengeRepo
 
   delete(token: string): Promise<void> {
     this.challenges.delete(token);
+    return Promise.resolve();
+  }
+}
+
+/** Fake {@link RefreshTokenRepository} en mémoire pour les tests unitaires. */
+export class InMemoryRefreshTokenRepository extends RefreshTokenRepository {
+  private readonly tokens = new Map<string, RefreshTokenRecord>();
+
+  create(userId: string, token: string, expiresAt: Date): Promise<void> {
+    this.tokens.set(token, { userId, expiresAt, revokedAt: null });
+    return Promise.resolve();
+  }
+
+  find(token: string): Promise<RefreshTokenRecord | null> {
+    return Promise.resolve(this.tokens.get(token) ?? null);
+  }
+
+  revoke(token: string): Promise<void> {
+    const record = this.tokens.get(token);
+    if (record && !record.revokedAt) {
+      this.tokens.set(token, { ...record, revokedAt: new Date() });
+    }
+    return Promise.resolve();
+  }
+
+  revokeAllForUser(userId: string): Promise<void> {
+    for (const [token, record] of this.tokens.entries()) {
+      if (record.userId === userId && !record.revokedAt) {
+        this.tokens.set(token, { ...record, revokedAt: new Date() });
+      }
+    }
     return Promise.resolve();
   }
 }

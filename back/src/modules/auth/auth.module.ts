@@ -11,6 +11,7 @@ import { OAuthProvider } from './application/ports/oauth-provider.port';
 import { TotpService } from './application/ports/totp.port';
 import { TwoFactorSecretCipher } from './application/ports/two-factor-secret-cipher.port';
 import { TwoFactorChallengeRepository } from './domain/two-factor-challenge.repository';
+import { RefreshTokenRepository } from './domain/refresh-token.repository';
 // Adapters
 import { BcryptPasswordHasher } from './infrastructure/bcrypt-password-hasher';
 import { JwtAppTokenService } from './infrastructure/jwt-app-token.service';
@@ -20,6 +21,7 @@ import { GoogleOAuthProvider } from './infrastructure/google-oauth.provider';
 import { OtplibTotpService } from './infrastructure/otplib-totp.service';
 import { AesTwoFactorSecretCipher } from './infrastructure/aes-two-factor-secret-cipher';
 import { TypeOrmTwoFactorChallengeRepository } from './infrastructure/typeorm-two-factor-challenge.repository';
+import { TypeOrmRefreshTokenRepository } from './infrastructure/typeorm-refresh-token.repository';
 // Use-cases
 import { AuthenticateBearerUseCase } from './application/use-cases/authenticate-bearer.use-case';
 import { RegisterUseCase } from './application/use-cases/register.use-case';
@@ -35,6 +37,8 @@ import { SetupTwoFactorUseCase } from './application/use-cases/setup-two-factor.
 import { EnableTwoFactorUseCase } from './application/use-cases/enable-two-factor.use-case';
 import { DisableTwoFactorUseCase } from './application/use-cases/disable-two-factor.use-case';
 import { VerifyTwoFactorUseCase } from './application/use-cases/verify-two-factor.use-case';
+import { RefreshSessionUseCase } from './application/use-cases/refresh-session.use-case';
+import { LogoutUseCase } from './application/use-cases/logout.use-case';
 
 /**
  * Module d'authentification. Consomme `UserRepository`/`TwoFactorRecoveryCodeRepository`
@@ -57,6 +61,7 @@ import { VerifyTwoFactorUseCase } from './application/use-cases/verify-two-facto
       provide: TwoFactorChallengeRepository,
       useClass: TypeOrmTwoFactorChallengeRepository,
     },
+    { provide: RefreshTokenRepository, useClass: TypeOrmRefreshTokenRepository },
     // Use-cases
     AuthenticateBearerUseCase,
     RegisterUseCase,
@@ -72,6 +77,8 @@ import { VerifyTwoFactorUseCase } from './application/use-cases/verify-two-facto
     EnableTwoFactorUseCase,
     DisableTwoFactorUseCase,
     VerifyTwoFactorUseCase,
+    RefreshSessionUseCase,
+    LogoutUseCase,
   ],
   // PasswordHasher + SecureTokenGenerator réutilisés par le module brands
   // (création du compte BRANDUSER, token de vérification de candidature).

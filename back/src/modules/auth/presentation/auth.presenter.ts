@@ -52,11 +52,15 @@ export class LoginResponse {
 
   @ApiProperty({ type: String, nullable: true })
   token: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  refreshToken: string | null;
 }
 
 export const toLoginSuccessResponse = (
   user: User,
   token: string,
+  refreshToken: string,
   message: string,
 ): LoginResponse => ({
   message,
@@ -64,6 +68,7 @@ export const toLoginSuccessResponse = (
   challengeToken: null,
   user: toUserResponse(user),
   token,
+  refreshToken,
 });
 
 export const toTwoFactorRequiredResponse = (
@@ -74,6 +79,7 @@ export const toTwoFactorRequiredResponse = (
   challengeToken,
   user: null,
   token: null,
+  refreshToken: null,
 });
 
 export class TwoFactorSetupResponse {

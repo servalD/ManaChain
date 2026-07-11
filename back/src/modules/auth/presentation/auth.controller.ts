@@ -36,6 +36,8 @@ import { SetupTwoFactorUseCase } from '../application/use-cases/setup-two-factor
 import { EnableTwoFactorUseCase } from '../application/use-cases/enable-two-factor.use-case';
 import { DisableTwoFactorUseCase } from '../application/use-cases/disable-two-factor.use-case';
 import { VerifyTwoFactorUseCase } from '../application/use-cases/verify-two-factor.use-case';
+import { RefreshSessionUseCase } from '../application/use-cases/refresh-session.use-case';
+import { LogoutUseCase } from '../application/use-cases/logout.use-case';
 import { RegisterRequest } from '../application/dto/register.request';
 import { LoginRequest } from '../application/dto/login.request';
 import { EmailRequest } from '../application/dto/email.request';
@@ -45,6 +47,8 @@ import { ChangePasswordRequest } from '../application/dto/change-password.reques
 import { TwoFactorEnableRequest } from '../application/dto/two-factor-enable.request';
 import { TwoFactorDisableRequest } from '../application/dto/two-factor-disable.request';
 import { TwoFactorVerifyRequest } from '../application/dto/two-factor-verify.request';
+import { RefreshRequest } from '../application/dto/refresh.request';
+import { LogoutRequest } from '../application/dto/logout.request';
 import {
   AuthResponse,
   LoginResponse,
@@ -80,6 +84,8 @@ export class AuthController {
     private readonly enableTwoFactorUseCase: EnableTwoFactorUseCase,
     private readonly disableTwoFactorUseCase: DisableTwoFactorUseCase,
     private readonly verifyTwoFactorUseCase: VerifyTwoFactorUseCase,
+    private readonly refreshSessionUseCase: RefreshSessionUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -108,7 +114,12 @@ export class AuthController {
     if (result.twoFactorRequired) {
       return toTwoFactorRequiredResponse(result.challengeToken);
     }
-    return toLoginSuccessResponse(result.user, result.token, 'Login successful');
+    return toLoginSuccessResponse(
+      result.user,
+      result.token,
+      result.refreshToken,
+      'Login successful',
+    );
   }
 
   @Public()
@@ -171,7 +182,11 @@ export class AuthController {
     @CurrentUser() user: User,
     @Body() body: ChangePasswordRequest,
   ): Promise<MessageResponse> {
-    await this.changePasswordUseCase.execute(user.id, body.newPassword);
+    await this.changePasswordUseCase.execute(
+      user.id,
+      body.currentPassword,
+      body.newPassword,
+    );
     return { message: 'Password changed successfully' };
   }
 
@@ -207,7 +222,11 @@ export class AuthController {
             twoFactorRequired: 'true',
             challengeToken: result.challengeToken,
           })
-        : new URLSearchParams({ token: result.token, role: result.role });
+        : new URLSearchParams({
+            token: result.token,
+            refreshToken: result.refreshToken,
+            role: result.role,
+          });
       res.redirect(
         HttpStatus.FOUND,
         `${this.frontendUrl}/login?${params.toString()}`,
@@ -267,11 +286,32 @@ export class AuthController {
   async verifyTwoFactor(
     @Body() body: TwoFactorVerifyRequest,
   ): Promise<LoginResponse> {
-    const { user, token } = await this.verifyTwoFactorUseCase.execute(
-      body.challengeToken,
-      body.code,
+    const { user, token, refreshToken } =
+      await this.verifyTwoFactorUseCase.execute(body.challengeToken, body.code);
+    return toLoginSuccessResponse(user, token, refreshToken, 'Login successful');
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Échanger un refresh token contre une nouvelle session' })
+  @ApiOkResponse({ type: LoginResponse })
+  async refresh(@Body() body: RefreshRequest): Promise<LoginResponse> {
+    const { user, token, refreshToken } = await this.refreshSessionUseCase.execute(
+      body.refreshToken,
     );
-    return toLoginSuccessResponse(user, token, 'Login successful');
+    return toLoginSuccessResponse(user, token, refreshToken, 'Session refreshed');
+  }
+
+  @Public()
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Révoquer un refresh token' })
+  @ApiOkResponse({ type: MessageResponse })
+  async logout(@Body() body: LogoutRequest): Promise<MessageResponse> {
+    await this.logoutUseCase.execute(body.refreshToken);
+    return { message: 'Logged out' };
   }
 
   private get frontendUrl(): string {

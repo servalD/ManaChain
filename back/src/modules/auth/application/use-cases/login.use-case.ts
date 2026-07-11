@@ -11,13 +11,15 @@ import { PasswordHasher } from '../ports/password-hasher.port';
 import { AppTokenService } from '../ports/app-token.service';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
 import { TwoFactorChallengeRepository } from '../../domain/two-factor-challenge.repository';
+import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
 import { createTwoFactorChallenge } from '../create-two-factor-challenge';
-import { toAppJwtClaims } from '../jwt-claims';
+import { issueSession } from '../session';
 
 export interface LoginSuccess {
   twoFactorRequired: false;
   user: User;
   token: string;
+  refreshToken: string;
 }
 
 export interface LoginTwoFactorRequired {
@@ -42,6 +44,7 @@ export class LoginUseCase {
     private readonly tokenService: AppTokenService,
     private readonly tokenGenerator: SecureTokenGenerator,
     private readonly challengeRepository: TwoFactorChallengeRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async execute(email: string, password: string): Promise<LoginResult> {
@@ -78,7 +81,12 @@ export class LoginUseCase {
       return { twoFactorRequired: true, challengeToken };
     }
 
-    const token = this.tokenService.sign(toAppJwtClaims(credentials.user));
-    return { twoFactorRequired: false, user: credentials.user, token };
+    const session = await issueSession(
+      credentials.user,
+      this.tokenService,
+      this.tokenGenerator,
+      this.refreshTokenRepository,
+    );
+    return { twoFactorRequired: false, user: credentials.user, ...session };
   }
 }

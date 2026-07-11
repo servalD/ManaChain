@@ -78,7 +78,7 @@ services:
       DATABASE_NAME: "{{ database_name }}"
       DATABASE_USER: "{{ database_user }}"
       DATABASE_SSL: "true"
-      APP_JWT_EXPIRES_IN: 7d
+      APP_JWT_EXPIRES_IN: 15m
       # Vide ("") → mode simulation des emails, comme en dev.
       EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"

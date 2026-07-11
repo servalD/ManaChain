@@ -9,12 +9,14 @@ import { TwoFactorChallengeRepository } from '../../domain/two-factor-challenge.
 import { OAuthProvider } from '../ports/oauth-provider.port';
 import { AppTokenService } from '../ports/app-token.service';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
+import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
 import { createTwoFactorChallenge } from '../create-two-factor-challenge';
-import { toAppJwtClaims } from '../jwt-claims';
+import { issueSession } from '../session';
 
 export interface GoogleCallbackSuccess {
   twoFactorRequired: false;
   token: string;
+  refreshToken: string;
   role: Role;
 }
 
@@ -44,6 +46,7 @@ export class GoogleCallbackUseCase {
     private readonly tokenService: AppTokenService,
     private readonly tokenGenerator: SecureTokenGenerator,
     private readonly challengeRepository: TwoFactorChallengeRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async execute(code: string): Promise<GoogleCallbackResult> {
@@ -64,11 +67,13 @@ export class GoogleCallbackUseCase {
         );
         return { twoFactorRequired: true, challengeToken };
       }
-      return {
-        twoFactorRequired: false,
-        token: this.tokenService.sign(toAppJwtClaims(existing.user)),
-        role: existing.user.role,
-      };
+      const session = await issueSession(
+        existing.user,
+        this.tokenService,
+        this.tokenGenerator,
+        this.refreshTokenRepository,
+      );
+      return { twoFactorRequired: false, ...session, role: existing.user.role };
     }
 
     const username = await this.generateUniqueUsername(profile.email);
@@ -79,11 +84,13 @@ export class GoogleCallbackUseCase {
       lastName: profile.lastName || '',
     });
 
-    return {
-      twoFactorRequired: false,
-      token: this.tokenService.sign(toAppJwtClaims(user)),
-      role: user.role,
-    };
+    const session = await issueSession(
+      user,
+      this.tokenService,
+      this.tokenGenerator,
+      this.refreshTokenRepository,
+    );
+    return { twoFactorRequired: false, ...session, role: user.role };
   }
 
   private async generateUniqueUsername(email: string): Promise<string> {
