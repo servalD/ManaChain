@@ -7,6 +7,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -42,6 +43,7 @@ export class MediaController {
   ) {}
 
   @Post('upload')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Uploader un fichier sur IPFS' })
   @ApiConsumes('multipart/form-data')

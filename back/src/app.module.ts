@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
-import { validateEnv } from './infrastructure/config/env.validation';
+import { Env, validateEnv } from './infrastructure/config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { MetricsModule } from './infrastructure/monitoring/metrics.module';
 import { UsersModule } from './modules/users/users.module';
@@ -27,6 +28,16 @@ import { MediaModule } from './modules/media/media.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
+    }),
+    // Garde-fou anti-abus global ; des limites plus strictes sont posées par
+    // @Throttle() sur les routes sensibles (auth, upload média). Désactivé en
+    // test : les e2e enchaînent des dizaines de requêtes depuis la même IP.
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => ({
+        throttlers: [{ ttl: 60_000, limit: 100 }],
+        skipIf: () => config.get('NODE_ENV', { infer: true }) === 'test',
+      }),
     }),
     // Premier module du back à utiliser le scheduling (chain-sync.service.ts).
     ScheduleModule.forRoot(),
@@ -51,7 +62,9 @@ import { MediaModule } from './modules/media/media.module';
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
     // Traduit les exceptions de domaine en réponses HTTP (présentation).
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
-    // L'ordre compte : AuthGuard authentifie avant que RolesGuard n'autorise.
+    // L'ordre compte : ThrottlerGuard rejette avant de toucher la DB,
+    // AuthGuard authentifie avant que RolesGuard n'autorise.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
