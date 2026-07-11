@@ -45,6 +45,9 @@ export class UserResponse {
 
   @ApiProperty({ format: 'date-time' })
   createdAt: string;
+
+  @ApiProperty({ description: 'Authentification à deux facteurs (TOTP) active.' })
+  twoFactorEnabled: boolean;
 }
 
 export class PaginatedUsersResponse {
@@ -67,6 +70,7 @@ export const toUserResponse = (user: User): UserResponse => ({
   role: user.role,
   passwordChanged: user.passwordChanged,
   createdAt: user.createdAt.toISOString(),
+  twoFactorEnabled: user.twoFactorEnabled,
 });
 
 export class UserBanResponse {

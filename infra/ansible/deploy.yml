@@ -39,6 +39,7 @@
       loop:
         - { name: database_password, data: "{{ database_password }}" }
         - { name: app_jwt_secret, data: "{{ vault_app_jwt_secret }}" }
+        - { name: two_factor_encryption_key, data: "{{ vault_two_factor_encryption_key }}" }
         - { name: resend_api_key, data: "{{ vault_resend_api_key }}" }
         - { name: google_client_secret, data: "{{ vault_google_client_secret }}" }
         - { name: pinata_jwt, data: "{{ vault_pinata_jwt }}" }

@@ -65,6 +65,7 @@ services:
       FRONTEND_URL: http://localhost:3000
       API_URL: http://localhost:3001/api
       APP_JWT_SECRET: local-images-test-secret-min-16-chars
+      TWO_FACTOR_ENCRYPTION_KEY: local-images-test-2fa-key-min-32-chars
       # Optionnels — exporter les valeurs (cf. back/.env) pour tester le login
       # Google ici ; vides, l'endpoint renvoie une erreur claire (google_failed).
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

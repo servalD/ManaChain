@@ -6,6 +6,10 @@ import {
   ListUserBansParams,
   UserBanRepository,
 } from '../domain/user-ban.repository';
+import {
+  TwoFactorRecoveryCode,
+  TwoFactorRecoveryCodeRepository,
+} from '../domain/two-factor-recovery-code.repository';
 
 /** Exécute le bloc sans vraie transaction (fakes in-memory). */
 export class FakeTransactionRunner extends TransactionRunner {
@@ -71,5 +75,42 @@ export class InMemoryUserBanRepository extends UserBanRepository {
       bans: all.slice(params.offset, params.offset + params.limit),
       total: all.length,
     });
+  }
+}
+
+/** Fake {@link TwoFactorRecoveryCodeRepository} en mémoire pour les tests unitaires. */
+export class InMemoryTwoFactorRecoveryCodeRepository extends TwoFactorRecoveryCodeRepository {
+  private readonly codes = new Map<string, TwoFactorRecoveryCode & { userId: string; usedAt: Date | null }>();
+
+  replaceAll(userId: string, codeHashes: string[]): Promise<void> {
+    for (const [id, code] of this.codes.entries()) {
+      if (code.userId === userId) this.codes.delete(id);
+    }
+    for (const codeHash of codeHashes) {
+      const id = randomUUID();
+      this.codes.set(id, { id, userId, codeHash, usedAt: null });
+    }
+    return Promise.resolve();
+  }
+
+  findUnused(userId: string): Promise<TwoFactorRecoveryCode[]> {
+    return Promise.resolve(
+      [...this.codes.values()]
+        .filter((c) => c.userId === userId && !c.usedAt)
+        .map(({ id, codeHash }) => ({ id, codeHash })),
+    );
+  }
+
+  markUsed(id: string): Promise<void> {
+    const code = this.codes.get(id);
+    if (code) code.usedAt = new Date();
+    return Promise.resolve();
+  }
+
+  deleteAll(userId: string): Promise<void> {
+    for (const [id, code] of this.codes.entries()) {
+      if (code.userId === userId) this.codes.delete(id);
+    }
+    return Promise.resolve();
   }
 }

@@ -29,6 +29,11 @@ export const envSchema = z.object({
   APP_JWT_SECRET: z.string().min(16),
   APP_JWT_EXPIRES_IN: z.string().default('7d'),
 
+  // 2FA TOTP : clé de chiffrement du secret TOTP en base (AES-256-GCM, dérivée
+  // par SHA-256 — n'importe quelle chaîne ≥32 car. convient, même ergonomie
+  // qu'APP_JWT_SECRET). Distincte du JWT secret : compromission indépendante.
+  TWO_FACTOR_ENCRYPTION_KEY: z.string().min(32),
+
   // URLs front / API (liens emails, redirections OAuth).
   FRONTEND_URL: z.string().default('http://localhost:3000'),
   API_URL: z.string().default('http://localhost:3001/api'),

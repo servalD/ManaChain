@@ -143,4 +143,17 @@ export abstract class UserRepository {
   abstract getInterestIds(userId: string): Promise<string[]>;
   /** Remplace intégralement les centres d'intérêt de l'utilisateur. */
   abstract setInterestIds(userId: string, interestIds: string[]): Promise<void>;
+
+  // --- 2FA TOTP ---
+  /** Secret TOTP chiffré (cf. `TwoFactorSecretCipher`), ou `null` si jamais configuré. */
+  abstract getTwoFactorSecret(userId: string): Promise<string | null>;
+  /** Étape "setup" : enregistre le secret chiffré, `two_factor_enabled` reste `false`. */
+  abstract setTwoFactorSecret(
+    userId: string,
+    encryptedSecret: string,
+  ): Promise<void>;
+  /** Étape "enable" : active le 2FA (le secret a déjà été vérifié par le use-case). */
+  abstract enableTwoFactor(userId: string): Promise<void>;
+  /** Désactive le 2FA et efface le secret. */
+  abstract disableTwoFactor(userId: string): Promise<void>;
 }

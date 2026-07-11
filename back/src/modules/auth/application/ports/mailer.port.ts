@@ -19,4 +19,8 @@ export abstract class Mailer {
   ): Promise<void>;
 
   abstract sendPasswordChanged(to: string, username: string): Promise<void>;
+
+  abstract sendTwoFactorEnabled(to: string, username: string): Promise<void>;
+
+  abstract sendTwoFactorDisabled(to: string, username: string): Promise<void>;
 }

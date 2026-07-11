@@ -6,6 +6,8 @@ import { Mailer } from '../../application/ports/mailer.port';
 import {
   passwordChangedEmail,
   passwordResetEmail,
+  twoFactorDisabledEmail,
+  twoFactorEnabledEmail,
   verificationEmail,
   welcomeEmail,
 } from './email-templates';
@@ -55,6 +57,20 @@ export class EmailMailer extends Mailer {
     return this.sender.send({
       to,
       ...passwordChangedEmail(username, this.logoUrl),
+    });
+  }
+
+  sendTwoFactorEnabled(to: string, username: string): Promise<void> {
+    return this.sender.send({
+      to,
+      ...twoFactorEnabledEmail(username, this.logoUrl),
+    });
+  }
+
+  sendTwoFactorDisabled(to: string, username: string): Promise<void> {
+    return this.sender.send({
+      to,
+      ...twoFactorDisabledEmail(username, this.logoUrl),
     });
   }
 

@@ -4,8 +4,10 @@ import { TokensModule } from '../tokens/tokens.module';
 import { UserOrmEntity } from './infrastructure/user.orm-entity';
 import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository';
 import { TypeOrmUserBanRepository } from './infrastructure/typeorm-user-ban.repository';
+import { TypeOrmTwoFactorRecoveryCodeRepository } from './infrastructure/typeorm-two-factor-recovery-code.repository';
 import { UserRepository } from './domain/user.repository';
 import { UserBanRepository } from './domain/user-ban.repository';
+import { TwoFactorRecoveryCodeRepository } from './domain/two-factor-recovery-code.repository';
 import { GetAllUsersUseCase } from './application/use-cases/get-all-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { UpdateBlockchainAddressUseCase } from './application/use-cases/update-blockchain-address.use-case';
@@ -27,6 +29,10 @@ import { UsersController } from './presentation/users.controller';
     // Le port est lié à son adapter TypeORM.
     { provide: UserRepository, useClass: TypeOrmUserRepository },
     { provide: UserBanRepository, useClass: TypeOrmUserBanRepository },
+    {
+      provide: TwoFactorRecoveryCodeRepository,
+      useClass: TypeOrmTwoFactorRecoveryCodeRepository,
+    },
     GetAllUsersUseCase,
     UpdateUserUseCase,
     UpdateBlockchainAddressUseCase,
@@ -38,7 +44,8 @@ import { UsersController } from './presentation/users.controller';
     DeleteAccountUseCase,
   ],
   // UserRepository/UserBanRepository sont consommés par le module auth (guard
-  // global + login) et chain-sync.
-  exports: [UserRepository, UserBanRepository],
+  // global + login) et chain-sync. TwoFactorRecoveryCodeRepository par les
+  // use-cases 2FA du module auth (enable/verify).
+  exports: [UserRepository, UserBanRepository, TwoFactorRecoveryCodeRepository],
 })
 export class UsersModule {}

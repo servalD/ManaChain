@@ -30,6 +30,7 @@ export class InMemoryUserRepository extends UserRepository {
   private readonly emailVerify = new Map<string, TokenEntry>();
   private readonly passwordReset = new Map<string, TokenEntry>();
   private readonly interests = new Map<string, string[]>();
+  private readonly twoFactorSecrets = new Map<string, string>();
 
   /** Helper de test : précharge un user (champs optionnels par défaut). */
   seed(
@@ -53,6 +54,7 @@ export class InMemoryUserRepository extends UserRepository {
       partial.createdAt ?? now,
       partial.updatedAt ?? now,
       partial.deletedAt ?? null,
+      partial.twoFactorEnabled ?? false,
     );
     this.users.set(user.id, user);
     if (partial.passwordHash !== undefined) {
@@ -154,11 +156,13 @@ export class InMemoryUserRepository extends UserRepository {
       e.createdAt,
       new Date(),
       new Date(),
+      false,
     );
     this.users.set(id, anonymized);
     this.passwordHashes.set(id, `deleted:${randomUUID()}`);
     this.emailVerify.delete(id);
     this.passwordReset.delete(id);
+    this.twoFactorSecrets.delete(id);
     return Promise.resolve();
   }
 
@@ -297,6 +301,28 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve();
   }
 
+  // --- 2FA TOTP ---
+
+  getTwoFactorSecret(userId: string): Promise<string | null> {
+    return Promise.resolve(this.twoFactorSecrets.get(userId) ?? null);
+  }
+
+  setTwoFactorSecret(userId: string, encryptedSecret: string): Promise<void> {
+    this.twoFactorSecrets.set(userId, encryptedSecret);
+    return Promise.resolve();
+  }
+
+  enableTwoFactor(userId: string): Promise<void> {
+    this.cloneWith(userId, { twoFactorEnabled: true });
+    return Promise.resolve();
+  }
+
+  disableTwoFactor(userId: string): Promise<void> {
+    this.cloneWith(userId, { twoFactorEnabled: false });
+    this.twoFactorSecrets.delete(userId);
+    return Promise.resolve();
+  }
+
   // --- Helpers ---
 
   private findByToken(
@@ -325,6 +351,7 @@ export class InMemoryUserRepository extends UserRepository {
         | 'verified'
         | 'passwordChanged'
         | 'ageRange'
+        | 'twoFactorEnabled'
       >
     >,
   ): User {
@@ -350,6 +377,8 @@ export class InMemoryUserRepository extends UserRepository {
       e.lastLogin,
       e.createdAt,
       new Date(),
+      undefined,
+      changes.twoFactorEnabled ?? e.twoFactorEnabled,
     );
     this.users.set(id, updated);
     return updated;

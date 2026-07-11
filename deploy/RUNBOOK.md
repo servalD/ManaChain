@@ -57,6 +57,9 @@ Référence complète : `back/.env.example`, `client/.env.example`,
   est éphémère et réservé aux tests e2e locaux).
 - `APP_JWT_SECRET` : doit rester stable entre déploiements (invalide toutes les
   sessions sinon).
+- `TWO_FACTOR_ENCRYPTION_KEY` : chiffre les secrets TOTP en base (AES-256-GCM).
+  Doit aussi rester stable — la rotation invalide le 2FA de tous les comptes
+  qui l'ont activé (ils devraient le réactiver).
 - `CHAIN_SYNC_ENABLED=true` en production dès que les adresses ci-dessous sont
   connues ; `false` acceptable pour un environnement de démo sans besoin de lire la
   chaîne (le reste de l'app fonctionne, juste sans synchronisation on-chain).

@@ -75,6 +75,14 @@ export class UserOrmEntity {
   @Column({ type: 'timestamptz', nullable: true })
   deletedAt: Date | null;
 
+  @Column({ type: 'boolean', default: false })
+  twoFactorEnabled: boolean;
+
+  // Secret TOTP chiffré (AES-256-GCM, cf. AesTwoFactorSecretCipher). Confiné
+  // à l'infra ; jamais exposé au domaine. Non sélectionné par défaut.
+  @Column({ type: 'text', nullable: true, select: false })
+  twoFactorSecret: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

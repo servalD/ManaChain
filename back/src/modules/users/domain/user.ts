@@ -25,6 +25,7 @@ export class User {
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     public readonly deletedAt: Date | null = null,
+    public readonly twoFactorEnabled: boolean = false,
   ) {}
 
   hasRole(role: Role): boolean {

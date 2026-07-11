@@ -117,6 +117,8 @@ export class TypeOrmUserRepository extends UserRepository {
         passwordResetToken: null,
         passwordResetExpires: null,
         deletedAt: new Date(),
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
       },
     );
   }
@@ -306,6 +308,39 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.linkInterests(userId, interestIds);
   }
 
+  // --- 2FA TOTP ---
+
+  async getTwoFactorSecret(userId: string): Promise<string | null> {
+    // twoFactorSecret est `select: false` → addSelect explicite.
+    const entity = await this.repository
+      .createQueryBuilder('u')
+      .addSelect('u.twoFactorSecret')
+      .where('u.id = :userId', { userId })
+      .getOne();
+    return entity?.twoFactorSecret ?? null;
+  }
+
+  async setTwoFactorSecret(
+    userId: string,
+    encryptedSecret: string,
+  ): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { twoFactorSecret: encryptedSecret },
+    );
+  }
+
+  async enableTwoFactor(userId: string): Promise<void> {
+    await this.repository.update({ id: userId }, { twoFactorEnabled: true });
+  }
+
+  async disableTwoFactor(userId: string): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { twoFactorEnabled: false, twoFactorSecret: null },
+    );
+  }
+
   // --- Helpers ---
 
   private async linkInterests(
@@ -348,6 +383,7 @@ export class TypeOrmUserRepository extends UserRepository {
       entity.createdAt,
       entity.updatedAt,
       entity.deletedAt,
+      entity.twoFactorEnabled,
     );
   }
 }

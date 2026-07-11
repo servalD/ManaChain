@@ -5,22 +5,31 @@ import {
   EmailNotVerifiedError,
   InvalidCredentialsError,
 } from '../../domain/auth.errors';
-import { FakeAppTokenService, FakePasswordHasher } from '../test-fakes';
-import { LoginUseCase } from './login.use-case';
+import {
+  FakeAppTokenService,
+  FakePasswordHasher,
+  FakeTokenGenerator,
+  InMemoryTwoFactorChallengeRepository,
+} from '../test-fakes';
+import { LoginUseCase, LoginSuccess } from './login.use-case';
 
 describe('LoginUseCase', () => {
   let repo: InMemoryUserRepository;
   let bans: InMemoryUserBanRepository;
+  let challenges: InMemoryTwoFactorChallengeRepository;
   let useCase: LoginUseCase;
 
   beforeEach(() => {
     repo = new InMemoryUserRepository();
     bans = new InMemoryUserBanRepository();
+    challenges = new InMemoryTwoFactorChallengeRepository();
     useCase = new LoginUseCase(
       repo,
       bans,
       new FakePasswordHasher(),
       new FakeAppTokenService(),
+      new FakeTokenGenerator(),
+      challenges,
     );
   });
 
@@ -31,8 +40,12 @@ describe('LoginUseCase', () => {
       passwordHash: 'hashed:S3cret!pwd',
     });
 
-    const result = await useCase.execute('ada@example.com', 'S3cret!pwd');
+    const result = (await useCase.execute(
+      'ada@example.com',
+      'S3cret!pwd',
+    )) as LoginSuccess;
 
+    expect(result.twoFactorRequired).toBe(false);
     expect(result.token).toBe(`jwt:${user.id}`);
     expect(result.user.id).toBe(user.id);
   });
@@ -81,5 +94,22 @@ describe('LoginUseCase', () => {
     await expect(
       useCase.execute('ada@example.com', 'S3cret!pwd'),
     ).rejects.toBeInstanceOf(UserBannedError);
+  });
+
+  it('returns a challenge instead of a token when 2FA is enabled', async () => {
+    const user = repo.seed({
+      email: 'ada@example.com',
+      verified: true,
+      passwordHash: 'hashed:S3cret!pwd',
+      twoFactorEnabled: true,
+    });
+
+    const result = await useCase.execute('ada@example.com', 'S3cret!pwd');
+
+    expect(result.twoFactorRequired).toBe(true);
+    if (!result.twoFactorRequired) throw new Error('expected a challenge');
+    expect(result.challengeToken).toBeTruthy();
+    const challenge = await challenges.find(result.challengeToken);
+    expect(challenge?.userId).toBe(user.id);
   });
 });
