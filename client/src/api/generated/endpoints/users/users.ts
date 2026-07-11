@@ -248,6 +248,7 @@ const {mutation: mutationOptions} = options ?
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersControllerDeleteMe>>, void> = () => {
 
+
           return  usersControllerDeleteMe()
         }
 

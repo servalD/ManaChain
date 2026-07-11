@@ -9,6 +9,10 @@ import {
   getAuthControllerForgotPasswordMutationOptions,
   getAuthControllerResetPasswordMutationOptions,
   getAuthControllerChangePasswordMutationOptions,
+  getAuthControllerSetupTwoFactorMutationOptions,
+  getAuthControllerEnableTwoFactorMutationOptions,
+  getAuthControllerDisableTwoFactorMutationOptions,
+  getAuthControllerVerifyTwoFactorMutationOptions,
 } from "@/api/generated/endpoints/auth/auth";
 import {
   usersControllerMe,
@@ -84,15 +88,23 @@ export function logout() {
   if (typeof window !== "undefined") window.location.href = "/";
 }
 
-/** Connexion email + mot de passe (remplace `AuthService.login`). */
+/**
+ * Connexion email + mot de passe (remplace `AuthService.login`). Si le 2FA est
+ * actif sur le compte, `data.twoFactorRequired` est `true` et `data.user`/
+ * `data.token` sont `null` — pas de session tant que `/auth/2fa/verify`
+ * n'a pas résolu le challenge (cf. `useTwoFactorVerify`).
+ */
 export function useLogin() {
   return useToastMutation({
     ...getAuthControllerLoginMutationOptions(),
-    successToast: (data) => ({
-      title: "Login successful",
-      description: `Welcome ${data.user.username}`,
-      variant: "success",
-    }),
+    successToast: (data) => {
+      if (data.twoFactorRequired || !data.user) return;
+      return {
+        title: "Login successful",
+        description: `Welcome ${data.user.username}`,
+        variant: "success",
+      };
+    },
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
@@ -125,6 +137,39 @@ export function useLogin() {
         };
       }
       return { title: "Connection error", description: "An unexpected error occurred", variant: "error" };
+    },
+    onSuccess: (data) => {
+      if (data.token) localStorage.setItem("Token", data.token);
+    },
+  });
+}
+
+/**
+ * Résout le challenge 2FA posé par `useLogin`/le callback Google
+ * (`?twoFactorRequired=true&challengeToken=...`) avec un code TOTP ou un code
+ * de récupération. Renvoie une session complète comme `useLogin`.
+ */
+export function useTwoFactorVerify() {
+  return useToastMutation({
+    ...getAuthControllerVerifyTwoFactorMutationOptions(),
+    errorToast: (error) => {
+      const axiosErr = asAxiosError(error);
+      const data = axiosErr?.response?.data;
+      switch (data?.error) {
+        case "TooManyTwoFactorAttemptsError":
+        case "InvalidOrExpiredTwoFactorChallengeError":
+          return {
+            title: "Session expired",
+            description: "Please log in again.",
+            variant: "error",
+          };
+        default:
+          return {
+            title: "Incorrect code",
+            description: data?.message || "Invalid two-factor authentication code",
+            variant: "error",
+          };
+      }
     },
     onSuccess: (data) => {
       if (data.token) localStorage.setItem("Token", data.token);
@@ -285,6 +330,51 @@ export function useChangePassword() {
         };
       }
       return { title: "Connection error", description: "Unable to reach the server", variant: "error" };
+    },
+  });
+}
+
+/** Démarre la configuration du 2FA : génère un secret TOTP + l'URI du QR code. */
+export function useTwoFactorSetup() {
+  return useToastMutation({
+    ...getAuthControllerSetupTwoFactorMutationOptions(),
+  });
+}
+
+/** Confirme la configuration du 2FA avec un code live et l'active. */
+export function useTwoFactorEnable() {
+  const queryClient = useQueryClient();
+  return useToastMutation({
+    ...getAuthControllerEnableTwoFactorMutationOptions(),
+    errorToast: (error) => ({
+      title: "Incorrect code",
+      description:
+        asAxiosError(error)?.response?.data?.message || "Invalid two-factor authentication code",
+      variant: "error",
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
+    },
+  });
+}
+
+/** Désactive le 2FA (confirmation par mot de passe courant). */
+export function useTwoFactorDisable() {
+  const queryClient = useQueryClient();
+  return useToastMutation({
+    ...getAuthControllerDisableTwoFactorMutationOptions(),
+    successToast: () => ({
+      title: "Two-factor authentication disabled",
+      description: "Your account no longer requires a 2FA code to sign in.",
+      variant: "success",
+    }),
+    errorToast: (error) => ({
+      title: "Error",
+      description: asAxiosError(error)?.response?.data?.message || "Incorrect password",
+      variant: "error",
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
     },
   });
 }

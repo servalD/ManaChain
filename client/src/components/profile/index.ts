@@ -6,3 +6,6 @@ export { ProfilePassword } from "./ProfilePassword";
 export { ChangePasswordForm } from "./ChangePasswordForm";
 export { ProfileDeleteAccount } from "./ProfileDeleteAccount";
 export { DeleteAccountForm } from "./DeleteAccountForm";
+export { ProfileTwoFactor } from "./ProfileTwoFactor";
+export { TwoFactorSetup } from "./TwoFactorSetup";
+export { TwoFactorDisable } from "./TwoFactorDisable";

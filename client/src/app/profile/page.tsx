@@ -13,6 +13,7 @@ import {
   ProfileInfoReadOnly,
   ProfilePersonalInfo,
   ProfilePassword,
+  ProfileTwoFactor,
   ProfileDeleteAccount,
 } from "@/components/profile";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,10 @@ export default function ProfilePage() {
 
   const handleChangePassword = () => {
     router.push("/profile/change-password");
+  };
+
+  const handleManageTwoFactor = () => {
+    router.push("/profile/two-factor");
   };
 
   const handleDeleteAccount = () => {
@@ -184,6 +189,13 @@ export default function ProfilePage() {
 
               <div className="border-t border-border pt-6">
                 <ProfilePassword onChangePasswordClick={handleChangePassword} />
+              </div>
+
+              <div className="border-t border-border pt-6">
+                <ProfileTwoFactor
+                  enabled={user?.twoFactorEnabled ?? false}
+                  onManageClick={handleManageTwoFactor}
+                />
               </div>
 
               <div className="border-t border-border pt-6">
