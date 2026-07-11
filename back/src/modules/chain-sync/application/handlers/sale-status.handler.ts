@@ -5,6 +5,7 @@ import { TokenSaleStatus } from '../../domain/token-sale';
 import { TokenHolderRepository } from '../../../tokens/domain/token-holder.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
+import { bestEffort } from '../best-effort';
 
 const HOLDERS_PAGE_SIZE = 200;
 
@@ -16,8 +17,8 @@ const HOLDERS_PAGE_SIZE = 200;
  * Pour `cancelled_by_brand` uniquement (annulation à l'initiative de la
  * marque elle-même — distincte de `cancelled_by_admin`, déjà notifiée via
  * `BanBrandUseCase`), notifie chaque détenteur du token pour qu'il sache
- * réclamer son remboursement (`claimRefund`). Best-effort, jamais bloquant —
- * même try/catch que {@link BrandFlagHandler}.
+ * réclamer son remboursement (`claimRefund`). Via {@link bestEffort}, jamais
+ * bloquant.
  */
 export class SaleStatusHandler implements ChainEventHandler {
   constructor(
@@ -40,8 +41,8 @@ export class SaleStatusHandler implements ChainEventHandler {
     }
   }
 
-  private async notifyHolders(escrowAddress: string): Promise<void> {
-    try {
+  private notifyHolders(escrowAddress: string): Promise<void> {
+    return bestEffort(async () => {
       const sale = await this.tokenSales.findByEscrowAddress(escrowAddress);
       if (!sale) return;
 
@@ -64,8 +65,6 @@ export class SaleStatusHandler implements ChainEventHandler {
         offset += holders.length;
         if (offset >= total) break;
       }
-    } catch {
-      /* notification non bloquante */
-    }
+    });
   }
 }

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Token } from '../domain/token';
 import { TokenHolder } from '../domain/token-holder';
 import { TokenTransaction } from '../domain/token-transaction';
@@ -61,7 +62,8 @@ export class PaginatedTokenTransactionsResponse {
 }
 
 export class PaginatedTokenHoldersResponse {
-  @ApiProperty({ type: TokenHolderResponse, isArray: true }) holders: TokenHolderResponse[];
+  @ApiProperty({ type: TokenHolderResponse, isArray: true })
+  holders: TokenHolderResponse[];
   @ApiProperty() total: number;
 }
 
@@ -81,7 +83,7 @@ export const toTokenResponse = (
   nftTokenId: t.nftTokenId,
   nftName: t.nftName,
   nftSymbol: t.nftSymbol,
-  createdAt: t.createdAt.toISOString(),
+  createdAt: toIso(t.createdAt),
   supportTokenAddress: chainInfo?.supportTokenAddress ?? null,
   vaultAddress: chainInfo?.vaultAddress ?? null,
   sale: chainInfo?.sale
@@ -91,8 +93,8 @@ export const toTokenResponse = (
         totalForSale: chainInfo.sale.totalForSale,
         soldAmount: chainInfo.sale.soldAmount,
         status: chainInfo.sale.status,
-        startTime: chainInfo.sale.startTime.toISOString(),
-        endTime: chainInfo.sale.endTime.toISOString(),
+        startTime: toIso(chainInfo.sale.startTime),
+        endTime: toIso(chainInfo.sale.endTime),
       }
     : null,
 });
@@ -113,7 +115,7 @@ export const toTransactionResponse = (
   amount: t.amount,
   transactionType: t.transactionType,
   pricePerToken: t.pricePerToken,
-  createdAt: t.createdAt.toISOString(),
+  createdAt: toIso(t.createdAt),
 });
 
 export const toPortfolioEntryResponse = (

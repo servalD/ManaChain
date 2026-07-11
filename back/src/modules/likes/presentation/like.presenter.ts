@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Like } from '../domain/like';
 import { LikedBrand, Liker } from '../domain/like.views';
 
@@ -54,12 +55,12 @@ export const toLikeResponse = (like: Like): LikeResponse => ({
   id: like.id,
   userId: like.userId,
   brandId: like.brandId,
-  createdAt: like.createdAt.toISOString(),
+  createdAt: toIso(like.createdAt),
 });
 
 export const toLikedBrandResponse = (v: LikedBrand): LikedBrandResponse => ({
   likeId: v.likeId,
-  likedAt: v.likedAt.toISOString(),
+  likedAt: toIso(v.likedAt),
   brand: {
     id: v.brand.id,
     ownerId: v.brand.ownerId,
@@ -68,12 +69,12 @@ export const toLikedBrandResponse = (v: LikedBrand): LikedBrandResponse => ({
     logoUrl: v.brand.logoUrl,
     websiteUrl: v.brand.websiteUrl,
     country: v.brand.country,
-    createdAt: v.brand.createdAt.toISOString(),
+    createdAt: toIso(v.brand.createdAt),
   },
 });
 
 export const toLikerResponse = (v: Liker): LikerResponse => ({
   likeId: v.likeId,
-  likedAt: v.likedAt.toISOString(),
+  likedAt: toIso(v.likedAt),
   user: { ...v.user },
 });

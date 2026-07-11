@@ -16,7 +16,7 @@ import { GetMyBalanceUseCase } from '../application/use-cases/get-my-balance.use
 import { ListTokenTransactionsUseCase } from '../application/use-cases/list-token-transactions.use-case';
 import { ListMyTransactionsUseCase } from '../application/use-cases/list-my-transactions.use-case';
 import { GetMyPortfolioUseCase } from '../application/use-cases/get-my-portfolio.use-case';
-import { PaginationQuery } from '../application/dto/pagination.query';
+import { TokensPaginationQuery } from '../application/dto/pagination.query';
 import { GetTokenChainInfoUseCase } from '../../chain-sync/application/get-token-chain-info.use-case';
 import {
   PaginatedTokenHoldersResponse,
@@ -68,7 +68,7 @@ export class TokensController {
   @ApiOkResponse({ type: PaginatedTokenTransactionsResponse })
   async myTransactions(
     @CurrentUser() user: User,
-    @Query() query: PaginationQuery,
+    @Query() query: TokensPaginationQuery,
   ): Promise<PaginatedTokenTransactionsResponse> {
     const { transactions, total } = await this.listMyTransactions.execute(
       user.id,
@@ -96,7 +96,7 @@ export class TokensController {
   @ApiOkResponse({ type: PaginatedTokenHoldersResponse })
   async holders(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query() query: PaginationQuery,
+    @Query() query: TokensPaginationQuery,
   ): Promise<PaginatedTokenHoldersResponse> {
     const { holders, total } = await this.listHolders.execute(
       id,
@@ -125,7 +125,7 @@ export class TokensController {
   @ApiOkResponse({ type: PaginatedTokenTransactionsResponse })
   async tokenTransactions(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query() query: PaginationQuery,
+    @Query() query: TokensPaginationQuery,
   ): Promise<PaginatedTokenTransactionsResponse> {
     const { transactions, total } = await this.listTokenTransactions.execute(
       id,

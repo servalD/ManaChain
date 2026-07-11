@@ -11,14 +11,8 @@ import {
   RecordTransactionParams,
   TokenTransactionRepository,
 } from '../domain/token-transaction.repository';
-import { TransactionRunner } from '../../../shared/application/transaction-runner';
 
-/** Exécute le bloc sans vraie transaction (les fakes in-memory suffisent). */
-export class FakeTransactionRunner extends TransactionRunner {
-  run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
-  }
-}
+export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
 export class InMemoryTokenRepository extends TokenRepository {
   private readonly tokens = new Map<string, Token>();

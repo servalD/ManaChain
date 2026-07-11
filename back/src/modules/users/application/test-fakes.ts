@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { TransactionRunner } from '../../../shared/application/transaction-runner';
 import { UserBan } from '../domain/user-ban';
 import {
   CreateUserBanParams,
@@ -11,12 +10,7 @@ import {
   TwoFactorRecoveryCodeRepository,
 } from '../domain/two-factor-recovery-code.repository';
 
-/** Exécute le bloc sans vraie transaction (fakes in-memory). */
-export class FakeTransactionRunner extends TransactionRunner {
-  run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
-  }
-}
+export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
 /** Fake {@link UserBanRepository} en mémoire pour les tests unitaires. */
 export class InMemoryUserBanRepository extends UserBanRepository {
@@ -80,7 +74,10 @@ export class InMemoryUserBanRepository extends UserBanRepository {
 
 /** Fake {@link TwoFactorRecoveryCodeRepository} en mémoire pour les tests unitaires. */
 export class InMemoryTwoFactorRecoveryCodeRepository extends TwoFactorRecoveryCodeRepository {
-  private readonly codes = new Map<string, TwoFactorRecoveryCode & { userId: string; usedAt: Date | null }>();
+  private readonly codes = new Map<
+    string,
+    TwoFactorRecoveryCode & { userId: string; usedAt: Date | null }
+  >();
 
   replaceAll(userId: string, codeHashes: string[]): Promise<void> {
     for (const [id, code] of this.codes.entries()) {

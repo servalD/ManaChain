@@ -14,14 +14,8 @@ import {
 } from '../domain/brand-ban.repository';
 import { InterestChecker } from '../domain/interest-checker';
 import { TemporaryPasswordGenerator } from '../domain/temporary-password-generator';
-import { TransactionRunner } from '../../../shared/application/transaction-runner';
 
-/** Exécute le bloc sans vraie transaction (fakes in-memory). */
-export class FakeTransactionRunner extends TransactionRunner {
-  run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
-  }
-}
+export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
 /** Valide les interests selon un ensemble préchargé (tout valide par défaut). */
 export class FakeInterestChecker extends InterestChecker {

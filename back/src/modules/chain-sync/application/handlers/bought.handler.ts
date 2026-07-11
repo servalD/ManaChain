@@ -9,6 +9,7 @@ import { TokenTransactionRepository } from '../../../tokens/domain/token-transac
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
+import { bestEffort } from '../best-effort';
 
 /**
  * `Bought` (TokenSaleEscrow) : trace l'achat en `token_transaction` (type
@@ -16,8 +17,8 @@ import { TransactionRunner } from '../../../../shared/application/transaction-ru
  * transfert ERC-20 escrow→acheteur déclenché par `buy()` est repris par
  * {@link Erc20TransferHandler}, seul point de vérité des soldes.
  *
- * Notifie le propriétaire de la marque (best-effort, jamais bloquant — même
- * try/catch que {@link BrandFlagHandler}).
+ * Notifie le propriétaire de la marque via {@link bestEffort} (jamais
+ * bloquant).
  */
 @Injectable()
 export class BoughtHandler implements ChainEventHandler {
@@ -72,11 +73,8 @@ export class BoughtHandler implements ChainEventHandler {
     await this.notifyBrandOwner(sale.tokenId, amount);
   }
 
-  private async notifyBrandOwner(
-    tokenId: string,
-    amount: number,
-  ): Promise<void> {
-    try {
+  private notifyBrandOwner(tokenId: string, amount: number): Promise<void> {
+    return bestEffort(async () => {
       const token = await this.tokenRepository.findById(tokenId);
       if (!token) return;
       const ownerId = await this.brandRepository.findOwnerId(token.brandId);
@@ -87,8 +85,6 @@ export class BoughtHandler implements ChainEventHandler {
         title: 'Your token was purchased',
         body: `A buyer purchased ${amount} ${token.symbol} tokens.`,
       });
-    } catch {
-      /* notification non bloquante */
-    }
+    });
   }
 }

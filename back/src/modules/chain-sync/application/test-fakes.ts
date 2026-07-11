@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { TransactionRunner } from '../../../shared/application/transaction-runner';
 import {
   BrandContractsRepository,
   CreateBrandContractsParams,
@@ -30,11 +29,7 @@ import {
 } from '../domain/event-ticket-purchase.repository';
 import { EventTicketPurchase } from '../domain/event-ticket-purchase';
 
-export class FakeTransactionRunner extends TransactionRunner {
-  run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
-  }
-}
+export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
 export class InMemoryBrandContractsRepository extends BrandContractsRepository {
   private readonly rows = new Map<string, BrandContracts>();

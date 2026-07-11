@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Event } from '../domain/event';
 import { EventTicketType } from '../../chain-sync/domain/event-ticket-type';
 import { EventTicketPurchase } from '../../chain-sync/domain/event-ticket-purchase';
@@ -70,8 +71,8 @@ export const toEventResponse = (e: Event): EventResponse => ({
   addressZipCode: e.addressZipCode,
   addressCountry: e.addressCountry,
   addressComplement: e.addressComplement,
-  startsAt: e.startsAt.toISOString(),
-  endsAt: e.endsAt?.toISOString() ?? null,
+  startsAt: toIso(e.startsAt),
+  endsAt: toIso(e.endsAt),
   maxTickets: e.maxTickets,
   minTokenBalance: e.minTokenBalance,
   status: e.status,
@@ -79,7 +80,7 @@ export const toEventResponse = (e: Event): EventResponse => ({
   eventTicketsAddress: e.eventTicketsAddress,
   ticketSaleAddress: e.ticketSaleAddress,
   paymentFree: e.paymentFree,
-  createdAt: e.createdAt.toISOString(),
+  createdAt: toIso(e.createdAt),
 });
 
 export const toEventTicketTypeResponse = (
@@ -101,5 +102,5 @@ export const toEventTicketPurchaseResponse = (
   buyerAddress: p.buyerAddress,
   quantity: p.quantity,
   paid: p.paid,
-  createdAt: p.createdAt.toISOString(),
+  createdAt: toIso(p.createdAt),
 });

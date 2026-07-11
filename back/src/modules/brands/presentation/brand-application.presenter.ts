@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { BrandApplication } from '../domain/brand-application';
 
 export class BrandApplicationResponse {
@@ -40,5 +41,5 @@ export const toApplicationResponse = (
   status: a.status,
   emailVerified: a.emailVerified,
   rejectionReason: a.rejectionReason,
-  createdAt: a.createdAt.toISOString(),
+  createdAt: toIso(a.createdAt),
 });

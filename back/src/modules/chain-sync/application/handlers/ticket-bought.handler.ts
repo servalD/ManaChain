@@ -7,14 +7,15 @@ import { UserRepository } from '../../../users/domain/user.repository';
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
+import { bestEffort } from '../best-effort';
 
 /**
  * `Bought` (TicketSale — distinct de `TokenSaleEscrow.Bought`, dispatché dans
  * un groupe de handlers séparé, voir `chain-sync.service.ts`) : trace l'achat
  * en `event_ticket_purchase`. `log.address` EST le ticketSale.
  *
- * Notifie le propriétaire de la marque (best-effort, jamais bloquant — même
- * try/catch que {@link BrandFlagHandler}).
+ * Notifie le propriétaire de la marque via {@link bestEffort} (jamais
+ * bloquant).
  */
 @Injectable()
 export class TicketBoughtHandler implements ChainEventHandler {
@@ -65,12 +66,12 @@ export class TicketBoughtHandler implements ChainEventHandler {
     await this.notifyBrandOwner(event.brandId, event.title, quantity);
   }
 
-  private async notifyBrandOwner(
+  private notifyBrandOwner(
     brandId: string,
     eventTitle: string,
     quantity: number,
   ): Promise<void> {
-    try {
+    return bestEffort(async () => {
       const ownerId = await this.brandRepository.findOwnerId(brandId);
       if (!ownerId) return;
       await this.notifications.create({
@@ -79,8 +80,6 @@ export class TicketBoughtHandler implements ChainEventHandler {
         title: 'Tickets were purchased',
         body: `A buyer purchased ${quantity} ticket(s) for "${eventTitle}".`,
       });
-    } catch {
-      /* notification non bloquante */
-    }
+    });
   }
 }

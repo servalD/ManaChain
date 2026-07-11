@@ -1,14 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { TransactionRunner } from '../../../shared/application/transaction-runner';
 import { Event, EventStatus } from '../domain/event';
 import { CreateEventParams, EventRepository } from '../domain/event.repository';
 import { EventNotFoundError } from '../domain/event.errors';
 
-export class FakeTransactionRunner extends TransactionRunner {
-  run<T>(work: () => Promise<T>): Promise<T> {
-    return work();
-  }
-}
+export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
 export class InMemoryEventRepository extends EventRepository {
   private readonly rows = new Map<string, Event>();

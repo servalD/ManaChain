@@ -4,12 +4,13 @@ import { BrandContractsRepository } from '../../domain/brand-contracts.repositor
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
+import { bestEffort } from '../best-effort';
 
 /**
  * `BrandWhitelisted`/`BrandBlacklisted` (ManaAdmin) : met à jour le flag
  * correspondant sur `brand_contracts`. Une instance par event name, voir
  * `chain-sync.module.ts`. Notifie en plus le propriétaire quand sa marque
- * vient d'être whitelistée (best-effort, ne bloque jamais l'écriture DB).
+ * vient d'être whitelistée ({@link bestEffort}, ne bloque jamais l'écriture DB).
  */
 export class BrandFlagHandler implements ChainEventHandler {
   constructor(
@@ -34,8 +35,8 @@ export class BrandFlagHandler implements ChainEventHandler {
     }
   }
 
-  private async notifyOwner(brandAddress: string): Promise<void> {
-    try {
+  private notifyOwner(brandAddress: string): Promise<void> {
+    return bestEffort(async () => {
       const owner =
         await this.userRepository.findByBlockchainAddress(brandAddress);
       if (!owner) return;
@@ -45,8 +46,6 @@ export class BrandFlagHandler implements ChainEventHandler {
         title: 'Your brand has been whitelisted',
         body: 'Your brand is now whitelisted on-chain and can open token sales.',
       });
-    } catch {
-      /* notification non bloquante */
-    }
+    });
   }
 }

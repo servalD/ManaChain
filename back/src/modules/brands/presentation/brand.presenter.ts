@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Brand, InterestRef } from '../domain/brand';
 import { BrandMedia } from '../domain/brand-media';
 import { InterestSummary } from '../domain/interest-reader';
@@ -79,7 +80,7 @@ export const toBrandResponse = (brand: Brand): BrandResponse => ({
   headquartersAddressComplement: brand.headquartersAddressComplement,
   socialMedias: brand.socialMedias,
   interests: brand.interests,
-  createdAt: brand.createdAt.toISOString(),
+  createdAt: toIso(brand.createdAt),
 });
 
 export class InterestResponse {
@@ -102,7 +103,7 @@ export const toBrandMediaResponse = (
   imageUrl: media.imageUrl,
   ipfsHash: media.ipfsHash,
   displayOrder: media.displayOrder,
-  createdAt: media.createdAt.toISOString(),
+  createdAt: toIso(media.createdAt),
 });
 
 export class BrandBanResponse {
@@ -137,8 +138,8 @@ export const toBrandBanResponse = (entry: BrandBanEntry): BrandBanResponse => ({
   reason: entry.ban.reason,
   bannedBy: entry.ban.bannedBy,
   bannedByUsername: entry.bannedByUsername,
-  bannedAt: entry.ban.bannedAt.toISOString(),
-  expiresAt: entry.ban.expiresAt ? entry.ban.expiresAt.toISOString() : null,
+  bannedAt: toIso(entry.ban.bannedAt),
+  expiresAt: toIso(entry.ban.expiresAt),
   isPermanent: entry.ban.isPermanent,
   notes: entry.ban.notes,
   blacklistTxHash: entry.ban.blacklistTxHash,

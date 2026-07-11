@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Notification } from '../domain/notification';
 import type { NotificationType } from '../domain/notification';
 
@@ -50,6 +51,6 @@ export const toNotificationResponse = (
   type: notification.type,
   title: notification.title,
   body: notification.body,
-  readAt: notification.readAt ? notification.readAt.toISOString() : null,
-  createdAt: notification.createdAt.toISOString(),
+  readAt: toIso(notification.readAt),
+  createdAt: toIso(notification.createdAt),
 });
