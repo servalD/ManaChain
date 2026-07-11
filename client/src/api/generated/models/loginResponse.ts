@@ -16,4 +16,6 @@ export interface LoginResponse {
   user: UserResponse | null;
   /** @nullable */
   token: string | null;
+  /** @nullable */
+  refreshToken: string | null;
 }

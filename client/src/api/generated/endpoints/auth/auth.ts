@@ -30,7 +30,9 @@ import type {
   EmailRequest,
   LoginRequest,
   LoginResponse,
+  LogoutRequest,
   MessageResponse,
+  RefreshRequest,
   RegisterRequest,
   ResetPasswordRequest,
   TwoFactorDisableRequest,
@@ -947,4 +949,132 @@ export const useAuthControllerVerifyTwoFactor = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getAuthControllerVerifyTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Échanger un refresh token contre une nouvelle session
+ */
+export const authControllerRefresh = (
+    refreshRequest: RefreshRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoginResponse>(
+      {url: `/api/auth/refresh`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: refreshRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerRefreshMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext> => {
+
+const mutationKey = ['authControllerRefresh'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerRefresh>>, {data: RefreshRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerRefresh(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerRefresh>>>
+    export type AuthControllerRefreshMutationBody = RefreshRequest
+    export type AuthControllerRefreshMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Échanger un refresh token contre une nouvelle session
+ */
+export const useAuthControllerRefresh = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerRefresh>>,
+        TError,
+        {data: RefreshRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerRefreshMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Révoquer un refresh token
+ */
+export const authControllerLogout = (
+    logoutRequest: LogoutRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<MessageResponse>(
+      {url: `/api/auth/logout`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: logoutRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext> => {
+
+const mutationKey = ['authControllerLogout'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerLogout>>, {data: LogoutRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerLogout(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerLogout>>>
+    export type AuthControllerLogoutMutationBody = LogoutRequest
+    export type AuthControllerLogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Révoquer un refresh token
+ */
+export const useAuthControllerLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerLogout>>,
+        TError,
+        {data: LogoutRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerLogoutMutationOptions(options), queryClient);
     }

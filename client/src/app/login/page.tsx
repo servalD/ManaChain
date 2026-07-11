@@ -78,9 +78,10 @@ function LoginPageContent() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
-  // Handle Google OAuth callback: token + role in URL -> store token and redirect by role
+  // Handle Google OAuth callback: token + refreshToken + role in URL -> store session and redirect by role
   useEffect(() => {
     const token = searchParams.get("token");
+    const refreshToken = searchParams.get("refreshToken");
     const role = searchParams.get("role");
     const error = searchParams.get("error");
 
@@ -110,8 +111,9 @@ function LoginPageContent() {
       return;
     }
 
-    if (token && role) {
+    if (token && refreshToken && role) {
       localStorage.setItem("Token", token);
+      localStorage.setItem("RefreshToken", refreshToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       toasterRef.current?.show({
         title: t("toasts.signedInTitle"),

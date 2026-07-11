@@ -1,4 +1,4 @@
-import Axios, { AxiosRequestConfig, AxiosError } from "axios";
+import Axios, { AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig } from "axios";
 import { ApiService } from "@/services/api.service";
 
 const API_ORIGIN = ApiService.baseURL.replace(/\/api\/?$/, "");
@@ -18,6 +18,67 @@ axiosInstance.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Instance nue (aucun intercepteur) pour l'appel de refresh lui-même : passer
+// par `axiosInstance` re-déclencherait cet intercepteur de réponse en boucle.
+const refreshInstance = Axios.create({ baseURL: API_ORIGIN });
+
+function clearStoredSession() {
+  localStorage.removeItem("Token");
+  localStorage.removeItem("RefreshToken");
+}
+
+// Mutex : si N requêtes 401 arrivent en même temps, un seul appel /auth/refresh
+// part (la rotation invaliderait sinon le refresh token au 2e appel concurrent,
+// forçant une déconnexion pour rien).
+let refreshPromise: Promise<string | null> | null = null;
+
+function refreshSession(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  const refreshToken = localStorage.getItem("RefreshToken");
+  if (!refreshToken) return Promise.resolve(null);
+
+  refreshPromise = refreshInstance
+    .post<{ token: string; refreshToken: string }>("/api/auth/refresh", { refreshToken })
+    .then(({ data }) => {
+      localStorage.setItem("Token", data.token);
+      localStorage.setItem("RefreshToken", data.refreshToken);
+      return data.token;
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshPromise = null;
+    });
+
+  return refreshPromise;
+}
+
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  _retried?: boolean;
+}
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const config = error.config as RetryableConfig | undefined;
+
+    if (error.response?.status !== 401 || !config || config._retried) {
+      return Promise.reject(error);
+    }
+    config._retried = true;
+
+    const newToken = await refreshSession();
+    if (!newToken) {
+      clearStoredSession();
+      if (typeof window !== "undefined") window.location.href = "/";
+      return Promise.reject(error);
+    }
+
+    config.headers.Authorization = `Bearer ${newToken}`;
+    return axiosInstance(config);
+  },
+);
 
 export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
   const source = Axios.CancelToken.source();

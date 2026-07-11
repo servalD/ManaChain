@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  authControllerLogout,
   getAuthControllerRegisterMutationOptions,
   getAuthControllerLoginMutationOptions,
   getAuthControllerVerifyEmailMutationOptions,
@@ -31,8 +32,15 @@ function getToken(): string | null {
   return localStorage.getItem("Token");
 }
 
-function clearSession() {
+function storeSession(token: string, refreshToken: string) {
+  localStorage.setItem("Token", token);
+  localStorage.setItem("RefreshToken", refreshToken);
+}
+
+/** Nettoie la session locale sans effet de bord (toast/redirect) — cf. `logout()` pour la déconnexion complète. */
+export function clearSession() {
   localStorage.removeItem("Token");
+  localStorage.removeItem("RefreshToken");
 }
 
 /**
@@ -81,8 +89,14 @@ export async function checkSession(): Promise<UserResponse | null> {
   }
 }
 
-/** Déconnexion (remplace `AuthService.logout`). */
+/** Déconnexion (remplace `AuthService.logout`). Révoque le refresh token côté serveur, best-effort. */
 export function logout() {
+  const refreshToken = typeof window !== "undefined" ? localStorage.getItem("RefreshToken") : null;
+  if (refreshToken) {
+    void authControllerLogout({ refreshToken }).catch(() => {
+      /* la session locale est nettoyée dans tous les cas */
+    });
+  }
   clearSession();
   toast({ title: "Logout successful", description: "See you soon on Mana Chain", variant: "default" });
   if (typeof window !== "undefined") window.location.href = "/";
@@ -139,7 +153,7 @@ export function useLogin() {
       return { title: "Connection error", description: "An unexpected error occurred", variant: "error" };
     },
     onSuccess: (data) => {
-      if (data.token) localStorage.setItem("Token", data.token);
+      if (data.token && data.refreshToken) storeSession(data.token, data.refreshToken);
     },
   });
 }
@@ -172,7 +186,7 @@ export function useTwoFactorVerify() {
       }
     },
     onSuccess: (data) => {
-      if (data.token) localStorage.setItem("Token", data.token);
+      if (data.token && data.refreshToken) storeSession(data.token, data.refreshToken);
     },
   });
 }
@@ -323,6 +337,9 @@ export function useChangePassword() {
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
+        if (axiosErr.response.data?.error === "InvalidCredentialsError") {
+          return { title: "Incorrect password", description: "Your current password is incorrect", variant: "error" };
+        }
         return {
           title: "Modification error",
           description: axiosErr.response.data?.message || "Unable to change password",

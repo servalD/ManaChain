@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useResetPassword, useChangePassword } from "@/hooks/api/useAuth";
+import { clearSession, useResetPassword, useChangePassword } from "@/hooks/api/useAuth";
 import { Button } from "@/components/ui/button";
 import { getPasswordCriteria, isValidPassword } from "@/utils/validation";
 import { Lock, ArrowLeft } from "lucide-react";
@@ -28,6 +28,7 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
   const router = useRouter();
   const isResetFlow = !!resetToken;
 
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,7 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
     e.preventDefault();
     setError(null);
 
-    if (!newPassword || !confirmPassword) {
+    if (!newPassword || !confirmPassword || (!isResetFlow && !currentPassword)) {
       setError("Please fill in both fields.");
       return;
     }
@@ -68,9 +69,18 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
       );
     } else {
       changePassword.mutate(
-        { data: { newPassword } },
+        { data: { currentPassword, newPassword } },
         {
-          onSuccess: () => router.push(redirectTo ?? "/profile"),
+          // Le back révoque tous les refresh tokens actifs au changement de
+          // mot de passe. Sans `redirectTo` explicite (flux profil "standard"),
+          // on force la reconnexion (le JWT courant reste valide jusqu'à son
+          // expiration, mais son refresh silencieux ne fonctionnera plus).
+          // Un `redirectTo` explicite (ex. onboarding marque) garde le flux
+          // existant : la session en cours n'est pas coupée.
+          onSuccess: () => {
+            if (!redirectTo) clearSession();
+            router.push(redirectTo ?? "/login");
+          },
           onSettled: () => setIsSubmitting(false),
         }
       );
@@ -94,6 +104,27 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isResetFlow && (
+            <div>
+              <label
+                htmlFor="current-password"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
+                Current password
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className={inputClassName}
+                placeholder="Current password"
+                autoComplete="current-password"
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="new-password"
