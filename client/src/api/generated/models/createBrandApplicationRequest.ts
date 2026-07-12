@@ -29,8 +29,11 @@ export interface CreateBrandApplicationRequest {
   headquartersZipCode: string;
   /** @nullable */
   headquartersAddressComplement?: string | null;
-  /** @nullable */
-  registrationProofUrl?: string | null;
+  /**
+     * Identifiant retourné par POST /brands/applications/registration-proof
+     * @nullable
+     */
+  registrationProofUploadId?: string | null;
   /** @nullable */
   motivation?: string | null;
   /** @nullable */

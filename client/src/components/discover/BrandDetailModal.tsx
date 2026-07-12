@@ -161,12 +161,11 @@ export function BrandDetailModal({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (brand) {
-                        // Trigger the swipe first to remove the card
+                        // Trigger the swipe, which itself invokes onSwipeLeft — calling
+                        // both would fire the handler twice for the same brand.
                         if (onTriggerSwipeLeft) {
                           onTriggerSwipeLeft();
-                        }
-                        // Then call the handler
-                        if (onSwipeLeft) {
+                        } else if (onSwipeLeft) {
                           onSwipeLeft(brand);
                         }
                         // Close the modal
@@ -182,12 +181,11 @@ export function BrandDetailModal({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (brand) {
-                        // Trigger the swipe first to remove the card
+                        // Trigger the swipe, which itself invokes onSwipeRight — calling
+                        // both would fire the like request twice for the same brand.
                         if (onTriggerSwipeRight) {
                           onTriggerSwipeRight();
-                        }
-                        // Then call the handler
-                        if (onSwipeRight) {
+                        } else if (onSwipeRight) {
                           onSwipeRight(brand);
                         }
                         // Close the modal

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -9,10 +10,17 @@ import {
   Post,
   Put,
   Query,
+  StreamableFile,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -29,14 +37,19 @@ import { ListBrandApplicationsUseCase } from '../application/use-cases/list-bran
 import { GetBrandApplicationUseCase } from '../application/use-cases/get-brand-application.use-case';
 import { ApproveBrandApplicationUseCase } from '../application/use-cases/approve-brand-application.use-case';
 import { RejectBrandApplicationUseCase } from '../application/use-cases/reject-brand-application.use-case';
+import { UploadBrandApplicationProofUseCase } from '../application/use-cases/upload-brand-application-proof.use-case';
+import { DeleteBrandApplicationProofUploadUseCase } from '../application/use-cases/delete-brand-application-proof-upload.use-case';
+import { GetBrandApplicationRegistrationProofUseCase } from '../application/use-cases/get-brand-application-registration-proof.use-case';
 import { CreateBrandApplicationRequest } from '../application/dto/create-brand-application.request';
 import { VerifyApplicationEmailRequest } from '../application/dto/verify-application-email.request';
 import { ListApplicationsQuery } from '../application/dto/list-applications.query';
 import { RejectApplicationRequest } from '../application/dto/reject-application.request';
+import { InvalidRegistrationProofFileError } from '../domain/brand.errors';
 import {
   ApproveApplicationResponse,
   BrandApplicationResponse,
   PaginatedApplicationsResponse,
+  RegistrationProofUploadResponse,
   toApplicationResponse,
 } from './brand-application.presenter';
 
@@ -50,6 +63,9 @@ export class BrandApplicationsController {
     private readonly getApplication: GetBrandApplicationUseCase,
     private readonly approveApplication: ApproveBrandApplicationUseCase,
     private readonly rejectApplication: RejectBrandApplicationUseCase,
+    private readonly uploadProof: UploadBrandApplicationProofUseCase,
+    private readonly deleteProofUpload: DeleteBrandApplicationProofUploadUseCase,
+    private readonly getProof: GetBrandApplicationRegistrationProofUseCase,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -66,6 +82,49 @@ export class BrandApplicationsController {
       }),
     });
     return toApplicationResponse(application);
+  }
+
+  @Post('registration-proof')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiOperation({
+    summary:
+      'Uploader temporairement un justificatif d’immatriculation (avant dépôt de candidature)',
+  })
+  @ApiCreatedResponse({ type: RegistrationProofUploadResponse })
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
+  async uploadRegistrationProof(
+    @CurrentUser() user: User,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<RegistrationProofUploadResponse> {
+    if (!file) {
+      throw new InvalidRegistrationProofFileError('No file provided');
+    }
+    const uploadId = await this.uploadProof.execute(user.id, {
+      buffer: file.buffer,
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    return { uploadId };
+  }
+
+  @Delete('registration-proof/:uploadId')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Annuler un justificatif temporairement uploadé' })
+  async deleteRegistrationProofUpload(
+    @Param('uploadId', ParseUUIDPipe) uploadId: string,
+  ): Promise<{ message: string }> {
+    await this.deleteProofUpload.execute(uploadId);
+    return { message: 'Upload deleted' };
   }
 
   @Public()
@@ -102,6 +161,22 @@ export class BrandApplicationsController {
   ): Promise<BrandApplicationResponse> {
     const application = await this.getApplication.execute(id);
     return toApplicationResponse(application);
+  }
+
+  @Get(':id/registration-proof')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Télécharger le justificatif d’immatriculation (admin)',
+  })
+  async downloadRegistrationProof(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<StreamableFile> {
+    const proof = await this.getProof.execute(id);
+    return new StreamableFile(proof.data, {
+      type: proof.mimeType,
+      disposition: `inline; filename="${encodeURIComponent(proof.fileName)}"`,
+    });
   }
 
   @Put(':id/approve')

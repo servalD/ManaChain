@@ -155,12 +155,12 @@ export function BrandSwipeCard({ brands, onSwipeRight, onSwipeLeft, onButtonClic
               >
                 {/* Cover Image */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center bg-accent/30"
+                  className="absolute inset-0 bg-cover bg-center bg-card"
                   style={brand.coverImage ? { backgroundImage: `url(${PinataService.normalizeIpfsUrl(brand.coverImage)})` } : {}}
                 >
                   {/* Placeholder if no image */}
                   {!brand.coverImage && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-violet-500/20 to-fuchsia-500/20">
+                    <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-violet-950 to-fuchsia-950">
                       <div className="text-center p-8">
                         <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-violet-500/30 flex items-center justify-center">
                           <span className="text-4xl">🏢</span>

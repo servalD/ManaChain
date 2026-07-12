@@ -17,12 +17,18 @@ export class BrandApplicationResponse {
   @ApiProperty() emailVerified: boolean;
   @ApiProperty({ type: String, nullable: true }) rejectionReason: string | null;
   @ApiProperty({ format: 'date-time' }) createdAt: string;
+  @ApiProperty({ type: String, nullable: true })
+  registrationProofFileName: string | null;
 }
 
 export class PaginatedApplicationsResponse {
   @ApiProperty({ type: BrandApplicationResponse, isArray: true })
   applications: BrandApplicationResponse[];
   @ApiProperty() total: number;
+}
+
+export class RegistrationProofUploadResponse {
+  @ApiProperty({ format: 'uuid' }) uploadId: string;
 }
 
 export class ApproveApplicationResponse {
@@ -51,4 +57,5 @@ export const toApplicationResponse = (
   emailVerified: a.emailVerified,
   rejectionReason: a.rejectionReason,
   createdAt: toIso(a.createdAt),
+  registrationProofFileName: a.registrationProofFileName,
 });

@@ -9,7 +9,11 @@ import {
   InvalidInterestSelectionError,
   RegistrationNumberTakenError,
 } from '../../domain/brand.errors';
-import { FakeBrandApplicationMailer, FakeInterestChecker } from '../test-fakes';
+import {
+  FakeBrandApplicationMailer,
+  FakeInterestChecker,
+  InMemoryBrandApplicationProofUploadStore,
+} from '../test-fakes';
 import { CreateBrandApplicationUseCase } from './create-brand-application.use-case';
 
 describe('CreateBrandApplicationUseCase', () => {
@@ -44,6 +48,7 @@ describe('CreateBrandApplicationUseCase', () => {
       new FakeTokenGenerator(),
       users,
       mailer,
+      new InMemoryBrandApplicationProofUploadStore(),
     );
   });
 

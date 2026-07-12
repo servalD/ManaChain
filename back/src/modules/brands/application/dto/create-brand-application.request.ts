@@ -8,6 +8,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
 } from 'class-validator';
 
@@ -83,10 +84,16 @@ export class CreateBrandApplicationRequest {
   @IsString()
   headquartersAddressComplement?: string | null;
 
-  @ApiPropertyOptional({ type: String, nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'uuid',
+    nullable: true,
+    description:
+      'Identifiant retourné par POST /brands/applications/registration-proof',
+  })
   @IsOptional()
-  @IsString()
-  registrationProofUrl?: string | null;
+  @IsUUID()
+  registrationProofUploadId?: string | null;
 
   // Additional
   @ApiPropertyOptional({ type: String, nullable: true })

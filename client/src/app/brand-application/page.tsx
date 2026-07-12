@@ -61,7 +61,7 @@ interface FormData {
   };
   how_did_you_hear_about_us: string;
   // Documents
-  registration_proof_url: string;
+  registration_proof_upload_id: string;
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -84,7 +84,7 @@ const DEFAULT_FORM_DATA: FormData = {
   estimated_community_size: '',
   social_media_links: {},
   how_did_you_hear_about_us: '',
-  registration_proof_url: '',
+  registration_proof_upload_id: '',
 };
 
 export default function BrandApplicationPage() {
@@ -209,7 +209,7 @@ export default function BrandApplicationPage() {
         break;
       case 5:
         validation = validateDocuments({
-          registration_proof_url: formData.registration_proof_url,
+          registration_proof_upload_id: formData.registration_proof_upload_id,
         });
         break;
       default:
@@ -270,7 +270,7 @@ export default function BrandApplicationPage() {
         ? formData.social_media_links
         : undefined,
       how_did_you_hear_about_us: formData.how_did_you_hear_about_us || undefined,
-      registration_proof_url: formData.registration_proof_url || undefined,
+      registration_proof_upload_id: formData.registration_proof_upload_id || undefined,
     };
 
     // mutateAsync rejects on error (errorToast already shown by the hook) — propagates
@@ -404,9 +404,9 @@ export default function BrandApplicationPage() {
               </Step>
 
               <Step>
-                <Documents 
+                <Documents
                   formData={{
-                    registration_proof_url: formData.registration_proof_url,
+                    registration_proof_upload_id: formData.registration_proof_upload_id,
                   }}
                   onChange={handleChange}
                   errors={validationErrors}

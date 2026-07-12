@@ -408,6 +408,37 @@
           "confirm": "Reject Application"
         }
       },
+      "brandApplicationDetail": {
+        "back": "Back to applications",
+        "loading": "Loading...",
+        "notFound": "Application not found",
+        "contactSection": "Contact",
+        "brandSection": "Brand",
+        "legalSection": "Legal",
+        "documentsSection": "Documents",
+        "email": "Email",
+        "phone": "Phone",
+        "name": "Name",
+        "website": "Website",
+        "description": "Description",
+        "registrationNumber": "Registration number",
+        "country": "Country",
+        "createdAt": "Submitted on",
+        "registrationProof": {
+          "label": "Business registration proof",
+          "none": "No document was provided",
+          "view": "View document",
+          "loadError": "Could not load the registration proof"
+        },
+        "approveAction": "Approve",
+        "rejectAction": "Reject",
+        "statuses": {
+          "pending": "Pending",
+          "needsReview": "Needs Review",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        }
+      },
       "brandWhitelistTable": {
         "noWalletLinked": "No wallet linked",
         "checking": "Checking…",

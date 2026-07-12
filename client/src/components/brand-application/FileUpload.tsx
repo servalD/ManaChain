@@ -17,6 +17,19 @@ interface FileUploadProps {
   fieldName?: string; // For tracking file metadata
   onUploadStart?: () => void;
   onUploadComplete?: (url: string) => void;
+  /**
+   * Overrides the default Pinata/IPFS upload — used for fields backed by a
+   * different storage (e.g. the registration proof, stored server-side, not
+   * on IPFS). `value` becomes whatever opaque identifier the override returns.
+   */
+  uploadOverride?: (file: File) => Promise<string>;
+  /** Overrides the default Pinata unpin call, paired with `uploadOverride`. */
+  removeOverride?: (value: string) => Promise<void>;
+  /**
+   * Skips the URL-based image/PDF sniffing (irrelevant once `value` is an
+   * opaque ID rather than a URL) and always renders the PDF preview.
+   */
+  forcePdfPreview?: boolean;
 }
 
 export function FileUpload({
@@ -30,6 +43,9 @@ export function FileUpload({
   fieldName = "",
   onUploadStart,
   onUploadComplete,
+  uploadOverride,
+  removeOverride,
+  forcePdfPreview = false,
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -85,24 +101,31 @@ export function FileUpload({
 
     setIsUploading(true);
     onUploadStart?.();
-    
+
     try {
+      if (uploadOverride) {
+        const uploadId = await uploadOverride(file);
+        onChange(uploadId);
+        onUploadComplete?.(uploadId);
+        return;
+      }
+
       // Upload to Pinata IPFS
       const ipfsUrl = await PinataService.uploadFile(file);
-      
+
       // Extract and store IPFS hash for later deletion
       const ipfsHash = PinataService.extractIpfsHash(ipfsUrl);
       setCurrentIpfsHash(ipfsHash);
-      
+
       // Save file metadata to cache
       if (fieldName) {
         FormCacheService.saveFileMetadata(fieldName, ipfsHash, ipfsUrl);
       }
-      
+
       // Update form with the IPFS URL
       onChange(ipfsUrl);
       onUploadComplete?.(ipfsUrl);
-      
+
     } catch (error) {
       console.error('Error uploading file:', error);
       // Error toast is already shown by PinataService
@@ -144,35 +167,41 @@ export function FileUpload({
       cancelText: "Cancel",
       onConfirm: async () => {
         try {
+          if (removeOverride) {
+            if (value) await removeOverride(value);
+            onChange('');
+            return;
+          }
+
           // Try to delete from Pinata if we have the hash
           let hashToDelete = currentIpfsHash;
-          
+
           // If not in state, try to get from cache
           if (!hashToDelete && fieldName) {
             hashToDelete = FormCacheService.getFileIpfsHash(fieldName);
           }
-          
+
           // If still no hash, try to extract from the current value
           if (!hashToDelete && value) {
             hashToDelete = PinataService.extractIpfsHash(value);
           }
-          
+
           // Delete from Pinata if we have a hash
           if (hashToDelete) {
             await PinataService.deleteFile(hashToDelete);
-            
+
             // Remove from cache metadata
             if (fieldName) {
               FormCacheService.removeFileMetadata(fieldName);
             }
-            
+
             toast({
               title: "File removed",
               description: "The file has been deleted",
               variant: "success",
             });
           }
-          
+
           // Clear the value
           setCurrentIpfsHash(null);
           onChange('');
@@ -189,8 +218,8 @@ export function FileUpload({
     });
   };
 
-  const isImage = value && (value.startsWith('data:image') || /\.(png|svg|jpeg|jpg)$/i.test(value));
-  const isPdf = value && (value.startsWith('data:application/pdf') || value.endsWith('.pdf'));
+  const isImage = !forcePdfPreview && value && (value.startsWith('data:image') || /\.(png|svg|jpeg|jpg)$/i.test(value));
+  const isPdf = forcePdfPreview || (value && (value.startsWith('data:application/pdf') || value.endsWith('.pdf')));
 
   return (
     <div className="space-y-2">

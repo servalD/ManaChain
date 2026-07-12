@@ -38,7 +38,7 @@ export interface FormData {
   };
   how_did_you_hear_about_us: string;
   // Documents
-  registration_proof_url: string;
+  registration_proof_upload_id: string;
 }
 
 export interface FileMetadata {

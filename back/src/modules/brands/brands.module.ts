@@ -7,10 +7,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 // ORM entities
 import { BrandOrmEntity } from './infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from './infrastructure/brand-application.orm-entity';
+import { BrandApplicationProofUploadOrmEntity } from './infrastructure/brand-application-proof-upload.orm-entity';
 import { BrandMediaOrmEntity } from './infrastructure/brand-media.orm-entity';
 // Ports
 import { BrandRepository } from './domain/brand.repository';
 import { BrandApplicationRepository } from './domain/brand-application.repository';
+import { BrandApplicationProofUploadStore } from './domain/brand-application-proof-upload.store';
 import { BrandMediaRepository } from './domain/brand-media.repository';
 import { InterestChecker } from './domain/interest-checker';
 import { InterestReader } from './domain/interest-reader';
@@ -23,6 +25,7 @@ import { BrandBanRepository } from './domain/brand-ban.repository';
 // Adapters
 import { TypeOrmBrandRepository } from './infrastructure/typeorm-brand.repository';
 import { TypeOrmBrandApplicationRepository } from './infrastructure/typeorm-brand-application.repository';
+import { TypeOrmBrandApplicationProofUploadStore } from './infrastructure/typeorm-brand-application-proof-upload.store';
 import { TypeOrmBrandMediaRepository } from './infrastructure/typeorm-brand-media.repository';
 import { TypeOrmInterestChecker } from './infrastructure/typeorm-interest-checker';
 import { TypeOrmInterestReader } from './infrastructure/typeorm-interest-reader';
@@ -52,6 +55,9 @@ import { ListBrandApplicationsUseCase } from './application/use-cases/list-brand
 import { GetBrandApplicationUseCase } from './application/use-cases/get-brand-application.use-case';
 import { ApproveBrandApplicationUseCase } from './application/use-cases/approve-brand-application.use-case';
 import { RejectBrandApplicationUseCase } from './application/use-cases/reject-brand-application.use-case';
+import { UploadBrandApplicationProofUseCase } from './application/use-cases/upload-brand-application-proof.use-case';
+import { DeleteBrandApplicationProofUploadUseCase } from './application/use-cases/delete-brand-application-proof-upload.use-case';
+import { GetBrandApplicationRegistrationProofUseCase } from './application/use-cases/get-brand-application-registration-proof.use-case';
 import { ListInterestsUseCase } from './application/use-cases/list-interests.use-case';
 import { BanBrandUseCase } from './application/use-cases/ban-brand.use-case';
 import { UnbanBrandUseCase } from './application/use-cases/unban-brand.use-case';
@@ -60,6 +66,8 @@ import { ListBrandBansUseCase } from './application/use-cases/list-brand-bans.us
 import { BrandApplicationsController } from './presentation/brand-applications.controller';
 import { BrandsController } from './presentation/brands.controller';
 import { InterestsController } from './presentation/interests.controller';
+// Schedulers
+import { RegistrationProofUploadCleanupScheduler } from './infrastructure/registration-proof-upload-cleanup.scheduler';
 
 /**
  * Module marques : CRUD marques + médias + cycle de candidature. Consomme
@@ -71,6 +79,7 @@ import { InterestsController } from './presentation/interests.controller';
     TypeOrmModule.forFeature([
       BrandOrmEntity,
       BrandApplicationOrmEntity,
+      BrandApplicationProofUploadOrmEntity,
       BrandMediaOrmEntity,
     ]),
     UsersModule,
@@ -88,6 +97,10 @@ import { InterestsController } from './presentation/interests.controller';
     {
       provide: BrandApplicationRepository,
       useClass: TypeOrmBrandApplicationRepository,
+    },
+    {
+      provide: BrandApplicationProofUploadStore,
+      useClass: TypeOrmBrandApplicationProofUploadStore,
     },
     { provide: BrandMediaRepository, useClass: TypeOrmBrandMediaRepository },
     { provide: InterestChecker, useClass: TypeOrmInterestChecker },
@@ -126,10 +139,14 @@ import { InterestsController } from './presentation/interests.controller';
     GetBrandApplicationUseCase,
     ApproveBrandApplicationUseCase,
     RejectBrandApplicationUseCase,
+    UploadBrandApplicationProofUseCase,
+    DeleteBrandApplicationProofUploadUseCase,
+    GetBrandApplicationRegistrationProofUseCase,
     ListInterestsUseCase,
     BanBrandUseCase,
     UnbanBrandUseCase,
     ListBrandBansUseCase,
+    RegistrationProofUploadCleanupScheduler,
   ],
   // Exporté pour les modules `likes` et `tokens` (délégation de leurs ports de
   // lecture marque au vrai repository, fin du SQL dupliqué).

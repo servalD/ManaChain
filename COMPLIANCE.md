@@ -83,8 +83,22 @@ mais ne garantit pas l'effacement sur des nœuds tiers ayant déjà mis le conte
 cache. **Recommandation** : ne jamais uploader autre chose que des visuels
 volontairement publics (avatar, logo) — ne jamais utiliser IPFS pour un document
 justificatif contenant des données sensibles (ex. pièce d'identité d'une
-candidature marque) ; vérifier qu'aucun flux actuel ne le fait
-(`brand-application/FileUpload.tsx` à auditer si des justificatifs y transitent).
+candidature marque).
+
+**Corrigé le 2026-07-12** : l'audit a confirmé que `registrationProofUrl`
+transitait bien par ce flux Pinata (même endpoint générique que le logo),
+exposé sans contrôle d'accès via la gateway publique. Le justificatif est
+désormais stocké en base (`brand_application.registration_proof_data`, colonne
+`bytea` en `select: false` — jamais chargée sur un simple `findById`/`list`),
+jamais sur IPFS. Upload en deux temps : `POST /brands/applications/
+registration-proof` (authentifié, retourne un `uploadId` temporaire dans
+`brand_application_proof_upload`, purgé après 48h si jamais rattaché à une
+candidature) puis `POST /brands/applications` consomme cet `uploadId`.
+Lecture strictement réservée à l'admin via `GET /brands/applications/:id/
+registration-proof` (`@Roles(Role.ADMIN)`), jamais exposée en JSON (seul
+`registrationProofFileName` l'est, pour affichage). Voir
+`back/src/modules/brands/domain/brand-application-proof-upload.store.ts` et
+la migration `1750000000010-BrandApplicationRegistrationProofFile.ts`.
 
 ### 1.5 Sous-traitants — registre
 
@@ -98,7 +112,7 @@ l'action reste à faire par le responsable de traitement, pas par ce repo.
 | Sous-traitant | Donnée transmise | Localisation / transfert hors UE | DPA signé ? |
 |---|---|---|---|
 | **Dynamic Labs** (`@dynamic-labs/*`, `Web3Provider.tsx`) | Widget de connexion wallet côté client — l'adresse publique transite par leur SDK ; email seulement si l'utilisateur choisit une méthode de connexion email via leur widget (à confirmer selon la config de l'environnement Dynamic utilisé, `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
-| **Pinata** (IPFS pinning) | Fichiers uploadés (avatars, logos, médias, métadonnées JSON) | À vérifier dans leur DPA — infrastructure IPFS distribuée par nature | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
+| **Pinata** (IPFS pinning) | Fichiers uploadés (avatars, logos, médias, métadonnées JSON) — le justificatif d'immatriculation n'y transite plus depuis 2026-07-12, voir §1.4 | À vérifier dans leur DPA — infrastructure IPFS distribuée par nature | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
 | **Resend** (`back/.env` → `RESEND_API_KEY`) | Email, contenu des emails transactionnels (vérification, reset password, rappel de rotation de mot de passe, notifications candidature) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) | ◻ à faire — vérifier leur DPA/trust center avant mise en prod (`RESEND_API_KEY` vide = mode simulation) |
 | **Sentry** (`SENTRY_DSN`) | Stack traces, contexte de requête (à auditer pour s'assurer qu'aucun PII n'y fuite — email/mot de passe ne doivent jamais apparaître dans un message d'exception) | Selon la région du projet Sentry configuré | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
 

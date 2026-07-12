@@ -12,6 +12,4 @@ export interface AuthResponse {
   user: UserResponse;
   /** @nullable */
   token: string | null;
-  /** @nullable */
-  refreshToken: string | null;
 }

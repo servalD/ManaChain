@@ -408,6 +408,37 @@
           "confirm": "Rejeter la candidature"
         }
       },
+      "brandApplicationDetail": {
+        "back": "Retour aux candidatures",
+        "loading": "Chargement...",
+        "notFound": "Candidature introuvable",
+        "contactSection": "Contact",
+        "brandSection": "Marque",
+        "legalSection": "Informations légales",
+        "documentsSection": "Documents",
+        "email": "Email",
+        "phone": "Téléphone",
+        "name": "Nom",
+        "website": "Site web",
+        "description": "Description",
+        "registrationNumber": "Numéro d'immatriculation",
+        "country": "Pays",
+        "createdAt": "Déposée le",
+        "registrationProof": {
+          "label": "Justificatif d'immatriculation",
+          "none": "Aucun document fourni",
+          "view": "Voir le document",
+          "loadError": "Impossible de charger le justificatif"
+        },
+        "approveAction": "Approuver",
+        "rejectAction": "Rejeter",
+        "statuses": {
+          "pending": "En attente",
+          "needsReview": "À revoir",
+          "approved": "Approuvée",
+          "rejected": "Rejetée"
+        }
+      },
       "brandWhitelistTable": {
         "noWalletLinked": "Aucun wallet lié",
         "checking": "Vérification…",

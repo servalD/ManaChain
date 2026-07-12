@@ -7,6 +7,7 @@ import {
   BrandApplicationRepository,
   CreateBrandApplicationParams,
   ListApplicationsParams,
+  RegistrationProofFile,
 } from '../domain/brand-application.repository';
 import { BrandApplicationNotFoundError } from '../domain/brand.errors';
 import { BrandApplicationOrmEntity } from './brand-application.orm-entity';
@@ -62,7 +63,9 @@ export class TypeOrmBrandApplicationRepository extends BrandApplicationRepositor
       estimatedCommunitySize: params.estimatedCommunitySize ?? null,
       socialMediaLinks: params.socialMediaLinks ?? null,
       howDidYouHearAboutUs: params.howDidYouHearAboutUs ?? null,
-      registrationProofUrl: params.registrationProofUrl ?? null,
+      registrationProofData: params.registrationProofData ?? null,
+      registrationProofMimeType: params.registrationProofMimeType ?? null,
+      registrationProofFileName: params.registrationProofFileName ?? null,
       status: 'pending',
       emailVerified: false,
       emailVerificationToken: params.emailVerificationToken,
@@ -137,6 +140,27 @@ export class TypeOrmBrandApplicationRepository extends BrandApplicationRepositor
     return rows.map((r) => r.interest_id);
   }
 
+  async findRegistrationProofFile(
+    id: string,
+  ): Promise<RegistrationProofFile | null> {
+    const entity = await this.repository
+      .createQueryBuilder('a')
+      .select([
+        'a.id',
+        'a.registrationProofData',
+        'a.registrationProofMimeType',
+        'a.registrationProofFileName',
+      ])
+      .where('a.id = :id', { id })
+      .getOne();
+    if (!entity?.registrationProofData) return null;
+    return {
+      data: entity.registrationProofData,
+      mimeType: entity.registrationProofMimeType ?? 'application/octet-stream',
+      fileName: entity.registrationProofFileName ?? 'registration-proof.pdf',
+    };
+  }
+
   async approve(id: string, adminUserId: string): Promise<void> {
     await this.repository.update(
       { id },
@@ -189,7 +213,7 @@ export class TypeOrmBrandApplicationRepository extends BrandApplicationRepositor
       e.estimatedCommunitySize,
       e.socialMediaLinks,
       e.howDidYouHearAboutUs,
-      e.registrationProofUrl,
+      e.registrationProofFileName,
       e.status,
       e.emailVerified,
       e.rejectionReason,

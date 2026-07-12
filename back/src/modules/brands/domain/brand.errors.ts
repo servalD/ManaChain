@@ -115,3 +115,15 @@ export class InvalidOrExpiredApplicationTokenError extends ValidationDomainExcep
     super(message);
   }
 }
+
+export class InvalidRegistrationProofFileError extends ValidationDomainException {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class RegistrationProofNotFoundError extends NotFoundDomainException {
+  constructor() {
+    super('Registration proof not found for this application');
+  }
+}

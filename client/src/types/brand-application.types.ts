@@ -25,7 +25,7 @@ export interface CreateBrandApplicationData {
   headquarters_city: string;
   headquarters_zip_code: string;
   headquarters_address_complement?: string;
-  registration_proof_url?: string;
+  registration_proof_upload_id?: string;
 
   // Additional Information
   motivation?: string;

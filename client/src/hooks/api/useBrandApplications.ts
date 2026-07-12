@@ -43,7 +43,7 @@ export function toCreateBrandApplicationRequest(
     headquartersCity: data.headquarters_city,
     headquartersZipCode: data.headquarters_zip_code,
     headquartersAddressComplement: data.headquarters_address_complement,
-    registrationProofUrl: data.registration_proof_url,
+    registrationProofUploadId: data.registration_proof_upload_id,
     motivation: data.motivation,
     estimatedCommunitySize: data.estimated_community_size,
     socialMediaLinks: data.social_media_links,

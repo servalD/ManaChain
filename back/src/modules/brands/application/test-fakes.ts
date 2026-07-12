@@ -18,6 +18,10 @@ import {
 } from '../domain/brand-ban.repository';
 import { InterestChecker } from '../domain/interest-checker';
 import { TemporaryPasswordGenerator } from '../domain/temporary-password-generator';
+import {
+  BrandApplicationProofUploadStore,
+  ProofUploadFile,
+} from '../domain/brand-application-proof-upload.store';
 
 export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
@@ -31,6 +35,31 @@ export class FakeInterestChecker extends InterestChecker {
   allExist(interestIds: string[]): Promise<boolean> {
     if (this.valid === null) return Promise.resolve(true);
     return Promise.resolve(interestIds.every((id) => this.valid!.has(id)));
+  }
+}
+
+/** Fake {@link BrandApplicationProofUploadStore} pour les tests unitaires. */
+export class InMemoryBrandApplicationProofUploadStore extends BrandApplicationProofUploadStore {
+  private readonly store = new Map<string, ProofUploadFile>();
+
+  create(_uploadedBy: string, file: ProofUploadFile): Promise<string> {
+    const id = randomUUID();
+    this.store.set(id, file);
+    return Promise.resolve(id);
+  }
+
+  consume(uploadId: string): Promise<ProofUploadFile | null> {
+    const file = this.store.get(uploadId) ?? null;
+    this.store.delete(uploadId);
+    return Promise.resolve(file);
+  }
+
+  delete(uploadId: string): Promise<boolean> {
+    return Promise.resolve(this.store.delete(uploadId));
+  }
+
+  deleteOlderThan(): Promise<number> {
+    return Promise.resolve(0);
   }
 }
 

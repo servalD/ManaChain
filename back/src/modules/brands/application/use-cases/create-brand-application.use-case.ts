@@ -6,6 +6,7 @@ import {
   BrandApplicationRepository,
   CreateBrandApplicationParams,
 } from '../../domain/brand-application.repository';
+import { BrandApplicationProofUploadStore } from '../../domain/brand-application-proof-upload.store';
 import { BrandRepository } from '../../domain/brand.repository';
 import { InterestChecker } from '../../domain/interest-checker';
 import { BrandApplicationMailer } from '../../domain/brand-application-mailer.port';
@@ -18,8 +19,15 @@ import {
 
 export type CreateBrandApplicationInput = Omit<
   CreateBrandApplicationParams,
-  'emailVerificationToken' | 'emailVerificationExpires'
->;
+  | 'emailVerificationToken'
+  | 'emailVerificationExpires'
+  | 'registrationProofData'
+  | 'registrationProofMimeType'
+  | 'registrationProofFileName'
+> & {
+  /** Référence retournée par `UploadBrandApplicationProofUseCase`. */
+  registrationProofUploadId?: string | null;
+};
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -37,6 +45,7 @@ export class CreateBrandApplicationUseCase {
     private readonly tokenGenerator: SecureTokenGenerator,
     private readonly userRepository: UserRepository,
     private readonly mailer: BrandApplicationMailer,
+    private readonly proofUploadStore: BrandApplicationProofUploadStore,
   ) {}
 
   async execute(
@@ -70,9 +79,27 @@ export class CreateBrandApplicationUseCase {
       throw new ApplicationContactEmailAlreadyRegisteredError();
     }
 
+    const { registrationProofUploadId, ...rest } = input;
+    let registrationProofData: Buffer | null = null;
+    let registrationProofMimeType: string | null = null;
+    let registrationProofFileName: string | null = null;
+    if (registrationProofUploadId) {
+      const proof = await this.proofUploadStore.consume(
+        registrationProofUploadId,
+      );
+      if (proof) {
+        registrationProofData = proof.data;
+        registrationProofMimeType = proof.mimeType;
+        registrationProofFileName = proof.fileName;
+      }
+    }
+
     const token = this.tokenGenerator.generate();
     let application = await this.applicationRepository.create({
-      ...input,
+      ...rest,
+      registrationProofData,
+      registrationProofMimeType,
+      registrationProofFileName,
       emailVerificationToken: token,
       emailVerificationExpires: new Date(Date.now() + VERIFICATION_TTL_MS),
     });

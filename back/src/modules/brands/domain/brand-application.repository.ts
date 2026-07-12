@@ -19,10 +19,18 @@ export interface CreateBrandApplicationParams {
   estimatedCommunitySize?: number | null;
   socialMediaLinks?: Record<string, string> | null;
   howDidYouHearAboutUs?: string | null;
-  registrationProofUrl?: string | null;
+  registrationProofData?: Buffer | null;
+  registrationProofMimeType?: string | null;
+  registrationProofFileName?: string | null;
   interestIds: string[];
   emailVerificationToken: string;
   emailVerificationExpires: Date;
+}
+
+export interface RegistrationProofFile {
+  data: Buffer;
+  mimeType: string;
+  fileName: string;
 }
 
 export interface ListApplicationsParams {
@@ -54,6 +62,10 @@ export abstract class BrandApplicationRepository {
     params: ListApplicationsParams,
   ): Promise<{ applications: BrandApplication[]; total: number }>;
   abstract findInterestIds(applicationId: string): Promise<string[]>;
+  /** Charge le fichier justificatif (jamais inclus dans `findById`/`list`). */
+  abstract findRegistrationProofFile(
+    id: string,
+  ): Promise<RegistrationProofFile | null>;
   abstract approve(id: string, adminUserId: string): Promise<void>;
   abstract reject(
     id: string,

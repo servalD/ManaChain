@@ -10,6 +10,7 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
 import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
 import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from '../../modules/brands/infrastructure/brand-application.orm-entity';
+import { BrandApplicationProofUploadOrmEntity } from '../../modules/brands/infrastructure/brand-application-proof-upload.orm-entity';
 import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-media.orm-entity';
 import { BrandTokenOrmEntity } from '../../modules/tokens/infrastructure/brand-token.orm-entity';
 import { TokenHolderOrmEntity } from '../../modules/tokens/infrastructure/token-holder.orm-entity';
@@ -58,6 +59,7 @@ import { NotificationOrmEntity } from '../../modules/notifications/infrastructur
           BrandLikeOrmEntity,
           BrandOrmEntity,
           BrandApplicationOrmEntity,
+          BrandApplicationProofUploadOrmEntity,
           BrandMediaOrmEntity,
           BrandTokenOrmEntity,
           TokenHolderOrmEntity,
