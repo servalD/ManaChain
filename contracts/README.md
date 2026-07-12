@@ -91,7 +91,7 @@ Configuration métier (admin, marque de démo, event, ventes) dans
 
 ```shell
 # Déploiement complet (MockUSDC + ManaAdmin + factories) — écrit config/deploy.json
-forge script script/DeployAll.s.sol --rpc-url fuji --broadcast
+forge script script/DeployAll.s.sol --rpc-url fuji --broadcast --verify -vvvv
 
 # Redéploiement partiel : un seul module
 forge script script/DeployBrandModule.s.sol --rpc-url fuji --broadcast
