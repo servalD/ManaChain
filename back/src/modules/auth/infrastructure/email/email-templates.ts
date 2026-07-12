@@ -85,6 +85,22 @@ export const passwordChangedEmail = (
   text: `Hi ${username}, your Mana Chain password was changed. If this wasn't you, contact support.`,
 });
 
+export const passwordExpiryReminderEmail = (
+  username: string,
+  changePasswordUrl: string,
+  logoUrl: string,
+): RenderedEmail => ({
+  subject: 'Time to update your password — Mana Chain',
+  html: layout(
+    logoUrl,
+    `<h2>Password rotation reminder</h2>
+     <p>Hi ${username}, it's been a while since you last changed your Mana Chain password. As a security best practice, we recommend updating it regularly.</p>
+     ${button(changePasswordUrl, 'Change my password')}
+     <p style="color:#666; font-size:13px;">This is just a reminder — your account isn't blocked and you can ignore this email if you'd rather keep your current password.</p>`,
+  ),
+  text: `Hi ${username}, it's been a while since you last changed your Mana Chain password. Update it here: ${changePasswordUrl} (this is just a reminder, your account isn't blocked).`,
+});
+
 export const twoFactorEnabledEmail = (
   username: string,
   logoUrl: string,

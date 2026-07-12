@@ -23,4 +23,10 @@ export abstract class Mailer {
   abstract sendTwoFactorEnabled(to: string, username: string): Promise<void>;
 
   abstract sendTwoFactorDisabled(to: string, username: string): Promise<void>;
+
+  /** Rappel de rotation du mot de passe (backlog sécu CNIL, 60 jours). */
+  abstract sendPasswordExpiryReminder(
+    to: string,
+    username: string,
+  ): Promise<void>;
 }

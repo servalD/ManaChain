@@ -57,13 +57,13 @@ describe('Auth & RBAC (e2e)', () => {
     // Login avant vérification → refusé.
     await http().post('/api/auth/login').send({ email, password }).expect(403);
 
-    // Récupère le token de vérification émis (email en simulation) depuis la DB.
-    const rows = await ctx.dataSource.query<
-      { email_verification_token: string }[]
-    >(`SELECT email_verification_token FROM "user" WHERE email = $1`, [email]);
+    // Récupère le token de vérification capturé par le Mailer de test (le
+    // token en base est désormais hashé, cf. M-1 — seul l'email contient le
+    // token en clair).
+    const verification = ctx.mailer.verifications.find((v) => v.to === email);
     await http()
       .post('/api/auth/verify-email')
-      .send({ token: rows[0].email_verification_token })
+      .send({ token: verification?.token })
       .expect(200);
 
     const login = await http()

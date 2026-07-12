@@ -254,9 +254,38 @@ export class TypeOrmUserRepository extends UserRepository {
         passwordChanged: true,
         passwordResetToken: null,
         passwordResetExpires: null,
+        passwordChangedAt: new Date(),
+        passwordReminderSentAt: null,
       },
     );
     return this.getOrThrow(id);
+  }
+
+  async listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]> {
+    const entities = await this.repository
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.email', 'u.username'])
+      .where('u.deletedAt IS NULL')
+      .andWhere('u.passwordHash != :sentinel', {
+        sentinel: OAUTH_GOOGLE_PASSWORD_SENTINEL,
+      })
+      .andWhere('u.passwordChangedAt <= :cutoff', { cutoff })
+      .andWhere(
+        '(u.passwordReminderSentAt IS NULL OR u.passwordReminderSentAt <= :cutoff)',
+        { cutoff },
+      )
+      .getMany();
+    return entities.map((e) => ({
+      id: e.id,
+      email: e.email,
+      username: e.username,
+    }));
+  }
+
+  async markPasswordReminderSent(id: string): Promise<void> {
+    await this.repository.update({ id }, { passwordReminderSentAt: new Date() });
   }
 
   // --- Brands ---

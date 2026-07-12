@@ -52,6 +52,7 @@ export class FakeMailer extends Mailer {
   readonly changed: string[] = [];
   readonly twoFactorEnabled: string[] = [];
   readonly twoFactorDisabled: string[] = [];
+  readonly passwordExpiryReminders: string[] = [];
 
   sendEmailVerification(to: string, _u: string, token: string): Promise<void> {
     this.verifications.push({ to, token });
@@ -75,6 +76,10 @@ export class FakeMailer extends Mailer {
   }
   sendTwoFactorDisabled(to: string): Promise<void> {
     this.twoFactorDisabled.push(to);
+    return Promise.resolve();
+  }
+  sendPasswordExpiryReminder(to: string): Promise<void> {
+    this.passwordExpiryReminders.push(to);
     return Promise.resolve();
   }
 }

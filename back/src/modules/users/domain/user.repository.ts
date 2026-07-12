@@ -128,8 +128,24 @@ export abstract class UserRepository {
     token: string,
     expiresAt: Date,
   ): Promise<void>;
-  /** Remplace le hash, force `password_changed=true` et purge le token de reset. */
+  /**
+   * Remplace le hash, force `password_changed=true`, purge le token de reset
+   * et relance le compteur de rotation CNIL (`password_changed_at=NOW()`,
+   * `password_reminder_sent_at=NULL`).
+   */
   abstract updatePassword(id: string, passwordHash: string): Promise<User>;
+
+  /**
+   * Comptes avec mot de passe local (hors Google) dont le mot de passe date
+   * d'avant `cutoff` ET dont le rappel n'a jamais été envoyé depuis, ou a été
+   * envoyé avant `cutoff` (rappel récurrent tous les N jours). Backlog sécu
+   * CNIL : rotation conseillée à 60 jours (email seul, pas de blocage).
+   */
+  abstract listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]>;
+  /** Marque le rappel de rotation comme envoyé (relance le délai de 60j). */
+  abstract markPasswordReminderSent(id: string): Promise<void>;
 
   // --- Brands (jalon 3) ---
   /** Positionne le flag `is_brand` (création/suppression d'une marque). */

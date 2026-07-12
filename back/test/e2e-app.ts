@@ -6,6 +6,8 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { AppTokenService } from '../src/modules/auth/application/ports/app-token.service';
 import { PasswordHasher } from '../src/modules/auth/application/ports/password-hasher.port';
+import { Mailer } from '../src/modules/auth/application/ports/mailer.port';
+import { FakeMailer } from '../src/modules/auth/application/test-fakes';
 import { User } from '../src/modules/users/domain/user';
 import { UserRepository } from '../src/modules/users/domain/user.repository';
 import { Role } from '../src/shared/enums/role.enum';
@@ -13,6 +15,12 @@ import { Role } from '../src/shared/enums/role.enum';
 export interface E2EContext {
   app: INestApplication<App>;
   dataSource: DataSource;
+  /**
+   * Capture les emails envoyés (Mailer réel remplacé par ce spy) — les tests
+   * n'ont plus besoin de lire les tokens directement en base, ce qui ne
+   * marcherait plus depuis qu'ils y sont hashés (cf. M-1, SECURITY_AUDIT.md).
+   */
+  mailer: FakeMailer;
 }
 
 /**
@@ -22,9 +30,13 @@ export interface E2EContext {
  * rejoue les migrations (baseline + colonnes) — ce qui couvre aussi la migration.
  */
 export async function createE2EApp(): Promise<E2EContext> {
+  const mailer = new FakeMailer();
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(Mailer)
+    .useValue(mailer)
+    .compile();
 
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
   app.setGlobalPrefix('api', { exclude: ['health', 'metrics'] });
@@ -41,7 +53,7 @@ export async function createE2EApp(): Promise<E2EContext> {
   await dataSource.runMigrations();
 
   await app.init();
-  return { app, dataSource };
+  return { app, dataSource, mailer };
 }
 
 /** Ferme proprement l'app et supprime le schéma de test. */

@@ -56,6 +56,14 @@ export class UserOrmEntity {
   @Column({ type: 'boolean', default: true })
   passwordChanged: boolean;
 
+  /** Remis à `NOW()` à chaque changement/reset réussi — base du rappel de rotation CNIL (60j). */
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
+  passwordChangedAt: Date;
+
+  /** Dernier envoi de l'email de rappel de rotation ; NULL = jamais envoyé pour ce mot de passe. */
+  @Column({ type: 'timestamptz', nullable: true })
+  passwordReminderSentAt: Date | null;
+
   @Column({ type: 'text', nullable: true })
   emailVerificationToken: string | null;
 

@@ -5,6 +5,7 @@ import { EmailSender } from '../../../../infrastructure/email/email-sender';
 import { Mailer } from '../../application/ports/mailer.port';
 import {
   passwordChangedEmail,
+  passwordExpiryReminderEmail,
   passwordResetEmail,
   twoFactorDisabledEmail,
   twoFactorEnabledEmail,
@@ -57,6 +58,14 @@ export class EmailMailer extends Mailer {
     return this.sender.send({
       to,
       ...passwordChangedEmail(username, this.logoUrl),
+    });
+  }
+
+  sendPasswordExpiryReminder(to: string, username: string): Promise<void> {
+    const url = `${this.frontendUrl}/profile/change-password`;
+    return this.sender.send({
+      to,
+      ...passwordExpiryReminderEmail(username, url, this.logoUrl),
     });
   }
 

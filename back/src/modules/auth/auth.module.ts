@@ -39,6 +39,8 @@ import { DisableTwoFactorUseCase } from './application/use-cases/disable-two-fac
 import { VerifyTwoFactorUseCase } from './application/use-cases/verify-two-factor.use-case';
 import { RefreshSessionUseCase } from './application/use-cases/refresh-session.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
+import { SendPasswordExpiryRemindersUseCase } from './application/use-cases/send-password-expiry-reminders.use-case';
+import { PasswordExpiryReminderScheduler } from './infrastructure/password-expiry-reminder.scheduler';
 
 /**
  * Module d'authentification. Consomme `UserRepository`/`TwoFactorRecoveryCodeRepository`
@@ -79,6 +81,8 @@ import { LogoutUseCase } from './application/use-cases/logout.use-case';
     VerifyTwoFactorUseCase,
     RefreshSessionUseCase,
     LogoutUseCase,
+    SendPasswordExpiryRemindersUseCase,
+    PasswordExpiryReminderScheduler,
   ],
   // PasswordHasher + SecureTokenGenerator réutilisés par le module brands
   // (création du compte BRANDUSER, token de vérification de candidature).

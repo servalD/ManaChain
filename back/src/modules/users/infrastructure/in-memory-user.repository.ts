@@ -31,10 +31,16 @@ export class InMemoryUserRepository extends UserRepository {
   private readonly passwordReset = new Map<string, TokenEntry>();
   private readonly interests = new Map<string, string[]>();
   private readonly twoFactorSecrets = new Map<string, string>();
+  private readonly passwordChangedAt = new Map<string, Date>();
+  private readonly passwordReminderSentAt = new Map<string, Date | null>();
 
   /** Helper de test : précharge un user (champs optionnels par défaut). */
   seed(
-    partial: Partial<User> & { id?: string; passwordHash?: string } = {},
+    partial: Partial<User> & {
+      id?: string;
+      passwordHash?: string;
+      passwordChangedAt?: Date;
+    } = {},
   ): User {
     const now = new Date();
     const user = new User(
@@ -60,6 +66,7 @@ export class InMemoryUserRepository extends UserRepository {
     if (partial.passwordHash !== undefined) {
       this.passwordHashes.set(user.id, partial.passwordHash);
     }
+    this.passwordChangedAt.set(user.id, partial.passwordChangedAt ?? now);
     return user;
   }
 
@@ -257,7 +264,32 @@ export class InMemoryUserRepository extends UserRepository {
     }
     this.passwordHashes.set(id, passwordHash);
     this.passwordReset.delete(id);
+    this.passwordChangedAt.set(id, new Date());
+    this.passwordReminderSentAt.set(id, null);
     return Promise.resolve(this.cloneWith(id, { passwordChanged: true }));
+  }
+
+  listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]> {
+    const due = [...this.users.values()].filter((u) => {
+      if (u.deletedAt) return false;
+      if (this.passwordHashes.get(u.id) === OAUTH_GOOGLE_PASSWORD_SENTINEL) {
+        return false;
+      }
+      const changedAt = this.passwordChangedAt.get(u.id);
+      if (!changedAt || changedAt > cutoff) return false;
+      const reminderAt = this.passwordReminderSentAt.get(u.id);
+      return !reminderAt || reminderAt <= cutoff;
+    });
+    return Promise.resolve(
+      due.map((u) => ({ id: u.id, email: u.email, username: u.username })),
+    );
+  }
+
+  markPasswordReminderSent(id: string): Promise<void> {
+    this.passwordReminderSentAt.set(id, new Date());
+    return Promise.resolve();
   }
 
   // --- Brands ---
