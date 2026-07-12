@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface ResetPasswordRequest {
-  /** Token de reset reçu par email */
-  token: string;
-  /** @minLength 12 */
-  newPassword: string;
+export interface ApproveApplicationResponse {
+  userId: string;
+  brandId: string;
+  username: string;
+  temporaryPassword?: string;
 }

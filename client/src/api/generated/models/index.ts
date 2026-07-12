@@ -7,6 +7,7 @@
  */
 
 export * from './activityPointResponse';
+export * from './approveApplicationResponse';
 export * from './authResponse';
 export * from './banBrandRequest';
 export * from './banUserRequest';

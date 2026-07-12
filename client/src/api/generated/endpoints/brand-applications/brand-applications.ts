@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApproveApplicationResponse,
   BrandApplicationResponse,
   BrandApplicationsControllerListParams,
   CreateBrandApplicationRequest,
@@ -376,7 +377,7 @@ export const brandApplicationsControllerApprove = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<ApproveApplicationResponse>(
       {url: `/api/brands/applications/${id}/approve`, method: 'PUT', signal
     },
       );

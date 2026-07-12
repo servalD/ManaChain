@@ -12,7 +12,7 @@ export interface RegisterRequest {
   username: string;
   firstName: string;
   lastName: string;
-  /** @minLength 8 */
+  /** @minLength 12 */
   password: string;
   ageRange: RegisterRequestAgeRange;
   interests?: string[];
