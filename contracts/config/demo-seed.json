@@ -1,0 +1,151 @@
+{
+  "admin": {
+    "operatorPrivateKeyEnv": "PK_ADMIN_OPERATOR",
+    "bootstrapEmail": "admin@demo.local",
+    "bootstrapUsername": "demo_admin",
+    "bootstrapFirstName": "Demo",
+    "bootstrapLastName": "Admin",
+    "bootstrapPassword": "Demo-Admin-Pass1!",
+    "bootstrapAgeRange": "25-34"
+  },
+  "brandCount": 2,
+  "brands": [
+    {
+      "privateKeyEnv": "PK_BRAND_1",
+      "application": {
+        "brandName": "Aurora Threads",
+        "description": "Marque de vêtements techniques éco-responsables.",
+        "interestLabels": ["Mode"],
+        "contactEmail": "contact@aurora-threads.demo",
+        "contactFirstName": "Alice",
+        "contactLastName": "Martin",
+        "contactPhone": "+33600000001",
+        "websiteUrl": "https://aurora-threads.demo",
+        "businessRegistrationNumber": "AURORA-DEMO-0001",
+        "country": "France",
+        "headquartersStreet": "1 rue de la Mode",
+        "headquartersCity": "Paris",
+        "headquartersZipCode": "75001"
+      },
+      "logoImagePath": "demo/assets/brand1-logo.png",
+      "mediaImagePaths": ["demo/assets/brand1-1.jpg", "demo/assets/brand1-2.jpg"],
+      "nftName": "Aurora Threads Genesis",
+      "nftSymbol": "AURG",
+      "tokenName": "Aurora Threads Support Token",
+      "tokenSymbol": "AURT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand1",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "2000000",
+        "totalForSale": "500000000000000000000",
+        "startTime": 1700000000,
+        "endTime": 4102444800
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Aurora Threads — Défilé Capsule",
+          "imagePath": "demo/assets/brand1-event1.jpg",
+          "uri": "https://api.example.com/event/aurora-1/{id}.json",
+          "startTime": 1700000000,
+          "endTime": 4102444800,
+          "freeEvent": false,
+          "ticketTypeCount": 2,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 100, "price": "15000000" },
+            { "tokenId": 1, "supply": 20, "price": "50000000" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_2",
+      "application": {
+        "brandName": "Kolibri Coffee",
+        "description": "Torréfacteur artisanal en circuit court.",
+        "interestLabels": ["Food"],
+        "contactEmail": "contact@kolibri-coffee.demo",
+        "contactFirstName": "Bruno",
+        "contactLastName": "Petit",
+        "contactPhone": "+33600000002",
+        "websiteUrl": "https://kolibri-coffee.demo",
+        "businessRegistrationNumber": "KOLIBRI-DEMO-0002",
+        "country": "France",
+        "headquartersStreet": "2 rue du Torréfacteur",
+        "headquartersCity": "Lyon",
+        "headquartersZipCode": "69001"
+      },
+      "logoImagePath": "demo/assets/brand2-logo.png",
+      "mediaImagePaths": ["demo/assets/brand2-1.jpg"],
+      "nftName": "Kolibri Coffee Genesis",
+      "nftSymbol": "KOLG",
+      "tokenName": "Kolibri Coffee Support Token",
+      "tokenSymbol": "KOLT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand2",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "1000000",
+        "totalForSale": "300000000000000000000",
+        "startTime": 1700000000,
+        "endTime": 4102444800
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Kolibri Coffee — Cupping Session",
+          "imagePath": "demo/assets/brand2-event1.jpg",
+          "uri": "https://api.example.com/event/kolibri-1/{id}.json",
+          "startTime": 1700000000,
+          "endTime": 4102444800,
+          "freeEvent": false,
+          "ticketTypeCount": 1,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 50, "price": "10000000" }
+          ]
+        }
+      ]
+    }
+  ],
+  "clientCount": 2,
+  "clients": [
+    {
+      "privateKeyEnv": "PK_CLIENT_1",
+      "email": "client1@demo.local",
+      "username": "demo_client1",
+      "firstName": "Chloé",
+      "lastName": "Durand",
+      "password": "Demo-Client1-Pass1!",
+      "ageRange": "25-34",
+      "usdcFaucetAmount": "1000000000",
+      "purchaseCount": 2,
+      "purchases": [
+        { "brandIndex": 0, "tokenAmount": "50000000000000000000" },
+        { "brandIndex": 1, "tokenAmount": "20000000000000000000" }
+      ],
+      "ticketPurchaseCount": 1,
+      "ticketPurchases": [
+        { "eventIndex": 0, "ticketTypeIndex": 0, "quantity": 2 }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_CLIENT_2",
+      "email": "client2@demo.local",
+      "username": "demo_client2",
+      "firstName": "David",
+      "lastName": "Girard",
+      "password": "Demo-Client2-Pass1!",
+      "ageRange": "35-44",
+      "usdcFaucetAmount": "1000000000",
+      "purchaseCount": 1,
+      "purchases": [
+        { "brandIndex": 0, "tokenAmount": "10000000000000000000" }
+      ],
+      "ticketPurchaseCount": 1,
+      "ticketPurchases": [
+        { "eventIndex": 1, "ticketTypeIndex": 0, "quantity": 1 }
+      ]
+    }
+  ]
+}
