@@ -83,17 +83,23 @@ export const toTwoFactorRequiredResponse = (
 });
 
 export class TwoFactorSetupResponse {
-  @ApiProperty({ description: 'Secret Base32, pour saisie manuelle si le QR ne peut pas être scanné' })
+  @ApiProperty({
+    description:
+      'Secret Base32, pour saisie manuelle si le QR ne peut pas être scanné',
+  })
   secret: string;
 
-  @ApiProperty({ description: 'URI otpauth://totp/... pour générer le QR code côté client' })
+  @ApiProperty({
+    description: 'URI otpauth://totp/... pour générer le QR code côté client',
+  })
   otpauthUri: string;
 }
 
 export class TwoFactorEnableResponse {
   @ApiProperty({
     type: [String],
-    description: "Codes de récupération à usage unique, affichés une seule fois",
+    description:
+      'Codes de récupération à usage unique, affichés une seule fois',
   })
   recoveryCodes: string[];
 }

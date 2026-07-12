@@ -63,7 +63,10 @@ import { PasswordExpiryReminderScheduler } from './infrastructure/password-expir
       provide: TwoFactorChallengeRepository,
       useClass: TypeOrmTwoFactorChallengeRepository,
     },
-    { provide: RefreshTokenRepository, useClass: TypeOrmRefreshTokenRepository },
+    {
+      provide: RefreshTokenRepository,
+      useClass: TypeOrmRefreshTokenRepository,
+    },
     // Use-cases
     AuthenticateBearerUseCase,
     RegisterUseCase,

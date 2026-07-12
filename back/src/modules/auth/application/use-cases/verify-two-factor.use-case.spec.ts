@@ -53,7 +53,10 @@ describe('VerifyTwoFactorUseCase', () => {
   });
 
   const seedUserWithChallenge = async () => {
-    const user = repo.seed({ email: 'ada@example.com', twoFactorEnabled: true });
+    const user = repo.seed({
+      email: 'ada@example.com',
+      twoFactorEnabled: true,
+    });
     await repo.setTwoFactorSecret(user.id, 'enc:FAKE_SECRET');
     await challenges.create(user.id, 'challenge-1', futureDate());
     return user;
@@ -104,9 +107,9 @@ describe('VerifyTwoFactorUseCase', () => {
   });
 
   it('rejects an unknown or expired challenge', async () => {
-    await expect(
-      useCase.execute('missing', '424242'),
-    ).rejects.toBeInstanceOf(InvalidOrExpiredTwoFactorChallengeError);
+    await expect(useCase.execute('missing', '424242')).rejects.toBeInstanceOf(
+      InvalidOrExpiredTwoFactorChallengeError,
+    );
   });
 
   it('rejects a banned user even with a valid code', async () => {

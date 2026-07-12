@@ -30,7 +30,11 @@ describe('RefreshSessionUseCase', () => {
 
   it('rotates the refresh token and signs a new access token', async () => {
     const user = repo.seed({ email: 'ada@example.com' });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
 
     const result = await useCase.execute('refresh-1');
 
@@ -38,7 +42,9 @@ describe('RefreshSessionUseCase', () => {
     expect(result.token).toBe(`jwt:${user.id}`);
     expect(result.refreshToken).not.toBe('refresh-1');
     expect((await refreshTokens.find('refresh-1'))?.revokedAt).not.toBeNull();
-    expect((await refreshTokens.find(result.refreshToken))?.revokedAt).toBeNull();
+    expect(
+      (await refreshTokens.find(result.refreshToken))?.revokedAt,
+    ).toBeNull();
   });
 
   it('rejects an unknown refresh token', async () => {
@@ -49,7 +55,11 @@ describe('RefreshSessionUseCase', () => {
 
   it('rejects an expired refresh token', async () => {
     const user = repo.seed({ email: 'ada@example.com' });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() - 1000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() - 1000),
+    );
 
     await expect(useCase.execute('refresh-1')).rejects.toBeInstanceOf(
       InvalidTokenError,
@@ -58,8 +68,16 @@ describe('RefreshSessionUseCase', () => {
 
   it('revokes the whole session on reuse of an already-revoked token (theft detection)', async () => {
     const user = repo.seed({ email: 'ada@example.com' });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() + 60_000));
-    await refreshTokens.create(user.id, 'refresh-2', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
+    await refreshTokens.create(
+      user.id,
+      'refresh-2',
+      new Date(Date.now() + 60_000),
+    );
     await refreshTokens.revoke('refresh-1');
 
     await expect(useCase.execute('refresh-1')).rejects.toBeInstanceOf(
@@ -70,7 +88,11 @@ describe('RefreshSessionUseCase', () => {
 
   it('rejects a refresh for a banned user', async () => {
     const user = repo.seed({ email: 'ada@example.com' });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
     await bans.create({
       userId: user.id,
       reason: 'Fraud',

@@ -1,4 +1,8 @@
-import { IpfsStorage, MediaFile, UploadedMedia } from './ports/ipfs-storage.port';
+import {
+  IpfsStorage,
+  MediaFile,
+  UploadedMedia,
+} from './ports/ipfs-storage.port';
 import { MediaReferenceChecker } from './ports/media-reference.port';
 
 export class FakeIpfsStorage extends IpfsStorage {

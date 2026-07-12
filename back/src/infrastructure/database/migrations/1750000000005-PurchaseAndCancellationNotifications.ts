@@ -6,9 +6,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * (token/ticket) et annulation de vente initiée par la marque elle-même
  * (distincte de `cancelled_by_admin`, déjà couverte par `brand_banned`).
  */
-export class PurchaseAndCancellationNotifications1750000000005
-  implements MigrationInterface
-{
+export class PurchaseAndCancellationNotifications1750000000005 implements MigrationInterface {
   name = 'PurchaseAndCancellationNotifications1750000000005';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

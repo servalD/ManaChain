@@ -185,7 +185,10 @@ export class BrandsController {
 
   @Public()
   @Get(':id/engagement-history')
-  @ApiOperation({ summary: "Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)" })
+  @ApiOperation({
+    summary:
+      "Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)",
+  })
   @ApiParam({ name: 'id', format: 'uuid' })
   @ApiOkResponse({ type: EngagementPointResponse, isArray: true })
   engagementHistory(

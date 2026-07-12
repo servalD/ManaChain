@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { Env } from '../../../infrastructure/config/env.validation';
 import { TwoFactorSecretCipher } from '../application/ports/two-factor-secret-cipher.port';

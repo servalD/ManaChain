@@ -62,8 +62,8 @@ describe('DisableTwoFactorUseCase', () => {
       passwordHash: 'hashed:S3cret!pwd',
     });
 
-    await expect(
-      useCase.execute(user.id, 'S3cret!pwd'),
-    ).rejects.toBeInstanceOf(TwoFactorNotEnabledError);
+    await expect(useCase.execute(user.id, 'S3cret!pwd')).rejects.toBeInstanceOf(
+      TwoFactorNotEnabledError,
+    );
   });
 });

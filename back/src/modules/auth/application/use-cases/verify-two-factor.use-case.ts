@@ -72,9 +72,8 @@ export class VerifyTwoFactorUseCase {
 
     const valid = await this.verifyCode(user.id, code);
     if (!valid) {
-      const attempts = await this.challengeRepository.incrementAttempts(
-        challengeToken,
-      );
+      const attempts =
+        await this.challengeRepository.incrementAttempts(challengeToken);
       if (attempts >= MAX_ATTEMPTS) {
         await this.challengeRepository.delete(challengeToken);
         throw new TooManyTwoFactorAttemptsError();
@@ -100,11 +99,13 @@ export class VerifyTwoFactorUseCase {
 
   private async verifyCode(userId: string, code: string): Promise<boolean> {
     if (TOTP_FORMAT.test(code.trim())) {
-      const encryptedSecret = await this.userRepository.getTwoFactorSecret(
-        userId,
-      );
+      const encryptedSecret =
+        await this.userRepository.getTwoFactorSecret(userId);
       if (!encryptedSecret) return false;
-      return this.totpService.verify(code.trim(), this.cipher.decrypt(encryptedSecret));
+      return this.totpService.verify(
+        code.trim(),
+        this.cipher.decrypt(encryptedSecret),
+      );
     }
     return this.tryRecoveryCode(userId, code);
   }

@@ -22,11 +22,7 @@ export class TypeOrmTwoFactorChallengeRepository extends TwoFactorChallengeRepos
     super();
   }
 
-  async create(
-    userId: string,
-    token: string,
-    expiresAt: Date,
-  ): Promise<void> {
+  async create(userId: string, token: string, expiresAt: Date): Promise<void> {
     await this.db.manager.query(
       `INSERT INTO user_two_factor_challenge (token, user_id, expires_at)
        VALUES ($1, $2, $3)`,
@@ -46,7 +42,9 @@ export class TypeOrmTwoFactorChallengeRepository extends TwoFactorChallengeRepos
     // Contrairement à `INSERT ... RETURNING` (rows renvoyées directement),
     // TypeORM renvoie `UPDATE ... RETURNING` sous forme de tuple
     // `[rows, affectedCount]` — d'où la déstructuration `[rows]` ici.
-    const [rows] = await this.db.manager.query<[{ attempts: number }[], number]>(
+    const [rows] = await this.db.manager.query<
+      [{ attempts: number }[], number]
+    >(
       `UPDATE user_two_factor_challenge SET attempts = attempts + 1
         WHERE token = $1 RETURNING attempts`,
       [token],

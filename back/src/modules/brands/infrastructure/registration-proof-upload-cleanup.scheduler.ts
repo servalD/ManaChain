@@ -19,7 +19,9 @@ export class RegistrationProofUploadCleanupScheduler {
       new Date(Date.now() - MAX_AGE_MS),
     );
     if (deleted > 0) {
-      this.logger.log(`Deleted ${deleted} orphaned registration-proof upload(s)`);
+      this.logger.log(
+        `Deleted ${deleted} orphaned registration-proof upload(s)`,
+      );
     }
   }
 }

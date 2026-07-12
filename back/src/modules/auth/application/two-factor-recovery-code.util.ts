@@ -4,4 +4,7 @@
  * casse, sans tiret) — tolère qu'il soit tapé avec ou sans le séparateur affiché.
  */
 export const normalizeRecoveryCode = (input: string): string =>
-  input.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  input
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');

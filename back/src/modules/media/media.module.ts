@@ -11,7 +11,10 @@ import { MediaController } from './presentation/media.controller';
   controllers: [MediaController],
   providers: [
     { provide: IpfsStorage, useClass: PinataIpfsStorage },
-    { provide: MediaReferenceChecker, useClass: TypeOrmMediaReferenceRepository },
+    {
+      provide: MediaReferenceChecker,
+      useClass: TypeOrmMediaReferenceRepository,
+    },
     UploadMediaUseCase,
     DeleteMediaUseCase,
   ],

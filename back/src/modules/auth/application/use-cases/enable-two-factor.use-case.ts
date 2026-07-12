@@ -37,9 +37,8 @@ export class EnableTwoFactorUseCase {
     if (!user) throw new UserNotFoundError(userId);
     if (user.twoFactorEnabled) throw new TwoFactorAlreadyEnabledError();
 
-    const encryptedSecret = await this.userRepository.getTwoFactorSecret(
-      userId,
-    );
+    const encryptedSecret =
+      await this.userRepository.getTwoFactorSecret(userId);
     if (!encryptedSecret) throw new TwoFactorSetupNotStartedError();
 
     const secret = this.cipher.decrypt(encryptedSecret);

@@ -2,7 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class TwoFactorVerifyRequest {
-  @ApiProperty({ description: 'Challenge renvoyé par /auth/login ou /auth/google/callback' })
+  @ApiProperty({
+    description: 'Challenge renvoyé par /auth/login ou /auth/google/callback',
+  })
   @IsString()
   @IsNotEmpty()
   challengeToken: string;

@@ -31,7 +31,11 @@ describe('ChangePasswordUseCase', () => {
       username: 'ada',
       passwordHash: 'hashed:S3cret!pwd',
     });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
 
     await useCase.execute(user.id, 'S3cret!pwd', 'N3wSecret!pwd');
 
@@ -46,7 +50,11 @@ describe('ChangePasswordUseCase', () => {
       email: 'ada@example.com',
       passwordHash: 'hashed:S3cret!pwd',
     });
-    await refreshTokens.create(user.id, 'refresh-1', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      user.id,
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
 
     await expect(
       useCase.execute(user.id, 'wrong', 'N3wSecret!pwd'),

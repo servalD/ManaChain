@@ -11,7 +11,11 @@ describe('LogoutUseCase', () => {
   });
 
   it('revokes the refresh token', async () => {
-    await refreshTokens.create('user-1', 'refresh-1', new Date(Date.now() + 60_000));
+    await refreshTokens.create(
+      'user-1',
+      'refresh-1',
+      new Date(Date.now() + 60_000),
+    );
 
     await useCase.execute('refresh-1');
 

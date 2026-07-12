@@ -45,7 +45,15 @@ describe('BoughtHandler', () => {
       notifications,
       new FakeTransactionRunner(),
     );
-    return { tokenSales, users, tokens, transactions, brands, notifications, handler };
+    return {
+      tokenSales,
+      users,
+      tokens,
+      transactions,
+      brands,
+      notifications,
+      handler,
+    };
   };
 
   it('records a purchase transaction and increases sold_amount', async () => {

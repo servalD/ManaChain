@@ -24,9 +24,9 @@ describe('DeleteMediaUseCase', () => {
   it('refuses to unpin a CID referenced by another user', async () => {
     referenceChecker.seedOwnedByOther('cidTaken1');
 
-    await expect(
-      useCase.execute('user-1', 'cidTaken1'),
-    ).rejects.toBeInstanceOf(MediaNotOwnedError);
+    await expect(useCase.execute('user-1', 'cidTaken1')).rejects.toBeInstanceOf(
+      MediaNotOwnedError,
+    );
     expect(storage.unpinned).toHaveLength(0);
   });
 

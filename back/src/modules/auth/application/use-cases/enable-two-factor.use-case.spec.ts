@@ -59,17 +59,20 @@ describe('EnableTwoFactorUseCase', () => {
   it('rejects enabling without a prior setup', async () => {
     const user = repo.seed({ email: 'ada@example.com' });
 
-    await expect(
-      useCase.execute(user.id, '424242'),
-    ).rejects.toBeInstanceOf(TwoFactorSetupNotStartedError);
+    await expect(useCase.execute(user.id, '424242')).rejects.toBeInstanceOf(
+      TwoFactorSetupNotStartedError,
+    );
   });
 
   it('rejects enabling twice', async () => {
-    const user = repo.seed({ email: 'ada@example.com', twoFactorEnabled: true });
+    const user = repo.seed({
+      email: 'ada@example.com',
+      twoFactorEnabled: true,
+    });
     await repo.setTwoFactorSecret(user.id, 'enc:FAKE_SECRET');
 
-    await expect(
-      useCase.execute(user.id, '424242'),
-    ).rejects.toBeInstanceOf(TwoFactorAlreadyEnabledError);
+    await expect(useCase.execute(user.id, '424242')).rejects.toBeInstanceOf(
+      TwoFactorAlreadyEnabledError,
+    );
   });
 });

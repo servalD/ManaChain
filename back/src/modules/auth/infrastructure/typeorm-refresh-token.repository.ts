@@ -23,11 +23,7 @@ export class TypeOrmRefreshTokenRepository extends RefreshTokenRepository {
     super();
   }
 
-  async create(
-    userId: string,
-    token: string,
-    expiresAt: Date,
-  ): Promise<void> {
+  async create(userId: string, token: string, expiresAt: Date): Promise<void> {
     await this.db.manager.query(
       `INSERT INTO refresh_token (token_hash, user_id, expires_at)
        VALUES ($1, $2, $3)`,

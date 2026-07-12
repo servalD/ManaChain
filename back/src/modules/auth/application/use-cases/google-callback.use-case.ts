@@ -26,8 +26,7 @@ export interface GoogleCallbackTwoFactorRequired {
 }
 
 export type GoogleCallbackResult =
-  | GoogleCallbackSuccess
-  | GoogleCallbackTwoFactorRequired;
+  GoogleCallbackSuccess | GoogleCallbackTwoFactorRequired;
 
 /**
  * Callback Google : échange le code contre un profil, puis find-or-create.

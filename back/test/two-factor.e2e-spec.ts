@@ -50,7 +50,11 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    expect(login.body).toMatchObject({ twoFactorRequired: true, user: null, token: null });
+    expect(login.body).toMatchObject({
+      twoFactorRequired: true,
+      user: null,
+      token: null,
+    });
     const { challengeToken } = login.body as { challengeToken: string };
 
     // Wrong code does not consume the challenge; it's rejected.
@@ -73,7 +77,8 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    const challengeToken2 = (login2.body as { challengeToken: string }).challengeToken;
+    const challengeToken2 = (login2.body as { challengeToken: string })
+      .challengeToken;
     await http()
       .post('/api/auth/2fa/verify')
       .send({ challengeToken: challengeToken2, code: recoveryCodes[0] })
@@ -83,7 +88,8 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    const challengeToken3 = (login3.body as { challengeToken: string }).challengeToken;
+    const challengeToken3 = (login3.body as { challengeToken: string })
+      .challengeToken;
     await http()
       .post('/api/auth/2fa/verify')
       .send({ challengeToken: challengeToken3, code: recoveryCodes[0] })
@@ -139,14 +145,18 @@ describe('2FA TOTP (e2e)', () => {
       const res = await http()
         .post('/api/auth/2fa/verify')
         .send({ challengeToken, code: '000000' });
-      expect(res.body.error).toBe('InvalidTwoFactorCodeError');
+      expect((res.body as { error: string }).error).toBe(
+        'InvalidTwoFactorCodeError',
+      );
     }
 
     const locked = await http()
       .post('/api/auth/2fa/verify')
       .send({ challengeToken, code: '000000' })
       .expect(401);
-    expect(locked.body.error).toBe('TooManyTwoFactorAttemptsError');
+    expect((locked.body as { error: string }).error).toBe(
+      'TooManyTwoFactorAttemptsError',
+    );
 
     // The challenge is gone — even the correct code is now rejected.
     await http()

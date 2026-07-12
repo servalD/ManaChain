@@ -22,9 +22,7 @@ export class GetBrandApplicationRegistrationProofUseCase {
       throw new BrandApplicationNotFoundError();
     }
     const proof =
-      await this.applicationRepository.findRegistrationProofFile(
-        applicationId,
-      );
+      await this.applicationRepository.findRegistrationProofFile(applicationId);
     if (!proof) {
       throw new RegistrationProofNotFoundError();
     }

@@ -249,7 +249,9 @@ export class AuthController {
 
   @Post('2fa/setup')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Démarrer la configuration du 2FA (génère un secret TOTP)' })
+  @ApiOperation({
+    summary: 'Démarrer la configuration du 2FA (génère un secret TOTP)',
+  })
   @ApiOkResponse({ type: TwoFactorSetupResponse })
   setupTwoFactor(@CurrentUser() user: User): Promise<TwoFactorSetupResponse> {
     return this.setupTwoFactorUseCase.execute(user.id);
@@ -258,7 +260,9 @@ export class AuthController {
   @Post('2fa/enable')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Activer le 2FA (confirme le secret avec un code live)' })
+  @ApiOperation({
+    summary: 'Activer le 2FA (confirme le secret avec un code live)',
+  })
   @ApiOkResponse({ type: TwoFactorEnableResponse })
   async enableTwoFactor(
     @CurrentUser() user: User,
@@ -274,7 +278,9 @@ export class AuthController {
   @Post('2fa/disable')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Désactiver le 2FA (confirmation par mot de passe)' })
+  @ApiOperation({
+    summary: 'Désactiver le 2FA (confirmation par mot de passe)',
+  })
   @ApiOkResponse({ type: MessageResponse })
   async disableTwoFactor(
     @CurrentUser() user: User,
@@ -288,27 +294,41 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('2fa/verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Résoudre le challenge 2FA posé par /auth/login ou /auth/google/callback' })
+  @ApiOperation({
+    summary:
+      'Résoudre le challenge 2FA posé par /auth/login ou /auth/google/callback',
+  })
   @ApiOkResponse({ type: LoginResponse })
   async verifyTwoFactor(
     @Body() body: TwoFactorVerifyRequest,
   ): Promise<LoginResponse> {
     const { user, token, refreshToken } =
       await this.verifyTwoFactorUseCase.execute(body.challengeToken, body.code);
-    return toLoginSuccessResponse(user, token, refreshToken, 'Login successful');
+    return toLoginSuccessResponse(
+      user,
+      token,
+      refreshToken,
+      'Login successful',
+    );
   }
 
   @Public()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Échanger un refresh token contre une nouvelle session' })
+  @ApiOperation({
+    summary: 'Échanger un refresh token contre une nouvelle session',
+  })
   @ApiOkResponse({ type: LoginResponse })
   async refresh(@Body() body: RefreshRequest): Promise<LoginResponse> {
-    const { user, token, refreshToken } = await this.refreshSessionUseCase.execute(
-      body.refreshToken,
+    const { user, token, refreshToken } =
+      await this.refreshSessionUseCase.execute(body.refreshToken);
+    return toLoginSuccessResponse(
+      user,
+      token,
+      refreshToken,
+      'Session refreshed',
     );
-    return toLoginSuccessResponse(user, token, refreshToken, 'Session refreshed');
   }
 
   @Public()
@@ -331,8 +351,7 @@ export class AuthController {
       infer: true,
     });
     return (
-      !!bootstrapEmail &&
-      bootstrapEmail.toLowerCase() === email.toLowerCase()
+      !!bootstrapEmail && bootstrapEmail.toLowerCase() === email.toLowerCase()
     );
   }
 }

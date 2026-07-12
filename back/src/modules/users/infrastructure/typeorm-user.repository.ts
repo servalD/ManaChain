@@ -285,7 +285,10 @@ export class TypeOrmUserRepository extends UserRepository {
   }
 
   async markPasswordReminderSent(id: string): Promise<void> {
-    await this.repository.update({ id }, { passwordReminderSentAt: new Date() });
+    await this.repository.update(
+      { id },
+      { passwordReminderSentAt: new Date() },
+    );
   }
 
   // --- Brands ---

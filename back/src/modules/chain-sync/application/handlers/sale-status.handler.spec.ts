@@ -61,10 +61,10 @@ describe('SaleStatusHandler', () => {
       logIndex: 0,
     });
 
-    const { notifications: list } = await notifications.listByUser(
-      'holder-1',
-      { limit: 10, offset: 0 },
-    );
+    const { notifications: list } = await notifications.listByUser('holder-1', {
+      limit: 10,
+      offset: 0,
+    });
     expect(list).toHaveLength(0);
   });
 

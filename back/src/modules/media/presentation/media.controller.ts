@@ -22,10 +22,7 @@ import { User } from '../../users/domain/user';
 import { UploadMediaUseCase } from '../application/use-cases/upload-media.use-case';
 import { DeleteMediaUseCase } from '../application/use-cases/delete-media.use-case';
 import { InvalidMediaFileError } from '../domain/media.errors';
-import {
-  MediaUploadResponse,
-  toMediaUploadResponse,
-} from './media.presenter';
+import { MediaUploadResponse, toMediaUploadResponse } from './media.presenter';
 
 /**
  * Remplace les anciennes routes Next `client/src/app/api/pinata/*`, qui

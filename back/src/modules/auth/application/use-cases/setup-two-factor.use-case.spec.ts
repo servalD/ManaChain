@@ -29,7 +29,10 @@ describe('SetupTwoFactorUseCase', () => {
   });
 
   it('rejects setup if 2FA is already enabled', async () => {
-    const user = repo.seed({ email: 'ada@example.com', twoFactorEnabled: true });
+    const user = repo.seed({
+      email: 'ada@example.com',
+      twoFactorEnabled: true,
+    });
 
     await expect(useCase.execute(user.id)).rejects.toBeInstanceOf(
       TwoFactorAlreadyEnabledError,

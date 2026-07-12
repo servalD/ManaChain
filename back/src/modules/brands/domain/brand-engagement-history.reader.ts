@@ -14,5 +14,8 @@ export interface EngagementPoint {
  * {@link BrandTokenStatsReader}.
  */
 export abstract class BrandEngagementHistoryReader {
-  abstract getHistory(brandId: string, days: number): Promise<EngagementPoint[]>;
+  abstract getHistory(
+    brandId: string,
+    days: number,
+  ): Promise<EngagementPoint[]>;
 }

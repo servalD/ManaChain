@@ -8,9 +8,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * candidat termine le formulaire (avant qu'une ligne `brand_application`
  * n'existe) ; la candidature "consomme" (et supprime) cette ligne temporaire.
  */
-export class BrandApplicationRegistrationProofFile1750000000010
-  implements MigrationInterface
-{
+export class BrandApplicationRegistrationProofFile1750000000010 implements MigrationInterface {
   name = 'BrandApplicationRegistrationProofFile1750000000010';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

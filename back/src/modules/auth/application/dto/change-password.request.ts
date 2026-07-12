@@ -3,7 +3,9 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { IsStrongPassword } from './password.rules';
 
 export class ChangePasswordRequest {
-  @ApiProperty({ description: 'Mot de passe courant, requis pour confirmer l’identité' })
+  @ApiProperty({
+    description: 'Mot de passe courant, requis pour confirmer l’identité',
+  })
   @IsString()
   @IsNotEmpty()
   currentPassword: string;
