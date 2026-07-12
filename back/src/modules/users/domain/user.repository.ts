@@ -37,6 +37,10 @@ export interface CreateLocalUserParams {
   emailVerificationToken: string;
   emailVerificationExpires: Date;
   interests?: string[];
+  /** Rôle à l'inscription. Absent → CLIENT (défaut colonne). Réservé au bootstrap admin. */
+  role?: Role;
+  /** Vérifié dès la création. Absent → false. Réservé à SKIP_EMAIL_VERIFICATION (dev/démo). */
+  verified?: boolean;
 }
 
 /** Données nécessaires au provisionnement d'un compte depuis Google OAuth. */

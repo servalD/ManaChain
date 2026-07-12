@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
+import { Role } from '../../../shared/enums/role.enum';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -95,7 +96,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Inscription (compte local)' })
   @ApiCreatedResponse({ type: AuthResponse })
   async register(@Body() body: RegisterRequest): Promise<AuthResponse> {
-    const user = await this.registerUseCase.execute(body);
+    const user = await this.registerUseCase.execute({
+      ...body,
+      role: this.isBootstrapAdminEmail(body.email) ? Role.ADMIN : undefined,
+      verified: this.config.get('SKIP_EMAIL_VERIFICATION', { infer: true })
+        ? true
+        : undefined,
+    });
     return toAuthResponse(
       user,
       null,
@@ -316,5 +323,16 @@ export class AuthController {
 
   private get frontendUrl(): string {
     return this.config.get('FRONTEND_URL', { infer: true });
+  }
+
+  /** Bootstrap : promeut en ADMIN l'inscription correspondant à `BOOTSTRAP_ADMIN_EMAIL`. */
+  private isBootstrapAdminEmail(email: string): boolean {
+    const bootstrapEmail = this.config.get('BOOTSTRAP_ADMIN_EMAIL', {
+      infer: true,
+    });
+    return (
+      !!bootstrapEmail &&
+      bootstrapEmail.toLowerCase() === email.toLowerCase()
+    );
   }
 }

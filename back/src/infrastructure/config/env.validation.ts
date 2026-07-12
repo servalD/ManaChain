@@ -70,6 +70,19 @@ export const envSchema = z.object({
   SALE_FACTORY_ADDRESS: z.string().optional(),
   EVENT_FACTORY_ADDRESS: z.string().optional(),
   USDC_ADDRESS: z.string().optional(),
+
+  // Bootstrap : email qui, à l'inscription, reçoit le rôle ADMIN au lieu du
+  // défaut CLIENT. Absent → comportement inchangé. Sert uniquement à amorcer
+  // le tout premier compte admin d'un environnement (dev/démo) sans SQL manuel.
+  BOOTSTRAP_ADMIN_EMAIL: z.string().optional(),
+
+  // Dev/démo uniquement : marque les comptes et candidatures de marque comme
+  // vérifiés dès la création, sans passer par le lien email (aucun bypass
+  // n'existe côté token, qui est haché en base). Ne JAMAIS activer en prod.
+  SKIP_EMAIL_VERIFICATION: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

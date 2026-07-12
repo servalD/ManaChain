@@ -200,8 +200,8 @@ export class InMemoryUserRepository extends UserRepository {
       firstName: params.firstName,
       lastName: params.lastName,
       ageRange: params.ageRange,
-      verified: false,
-      role: Role.CLIENT,
+      verified: params.verified ?? false,
+      role: params.role ?? Role.CLIENT,
       passwordHash: params.passwordHash,
     });
     this.emailVerify.set(user.id, {
