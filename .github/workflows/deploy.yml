@@ -1,6 +1,7 @@
 # Déploiement sur le cluster Swarm (manuel : workflow_dispatch).
 # Migre la base depuis la NOUVELLE image puis met à jour back et client.
-# Échoue explicitement si le cluster est éteint (cf. infra/scripts/cluster-start.sh).
+# Échoue explicitement si le cluster est éteint (cf. `ansible-playbook cluster-start.yml`
+# dans infra/ansible/, voir infra/README.md § Cycle de vie quotidien).
 #
 # Secrets requis :
 #   ACR_LOGIN_SERVER / ACR_USERNAME / ACR_PASSWORD

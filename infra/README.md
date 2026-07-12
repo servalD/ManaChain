@@ -145,6 +145,10 @@ ansible-playbook deploy.yml --ask-vault-pass
 Le playbook : login ACR → secrets Swarm → migrations TypeORM (one-shot) →
 `docker stack deploy` → backup post-déploiement.
 
+Ordre de démarrage applicatif détaillé (migrations avant back, chain-sync
+avant trafic, etc.) et variables d'env par app : voir
+[`deploy/RUNBOOK.md`](../../deploy/RUNBOOK.md).
+
 Les déploiements suivants passent par le workflow GitHub **Deploy**
 (workflow_dispatch, tag d'image en entrée — secrets additionnels :
 `MANAGER_HOST`, `MANAGER_SSH_PRIVATE_KEY`, `DB_HOST`, `DB_NAME`, `DB_USER`,
@@ -192,5 +196,6 @@ ansible-playbook cluster-stop.yml    # backup puis deallocate (0 € compute)
 | `infra/ansible/cluster-*.yml`  | allumage / extinction (deallocate) des VMs                                                                  |
 | `deploy/stack.yml.j2`          | définition de la stack Swarm (traefik, back, client, prometheus, grafana, node-exporter, cadvisor, backup) |
 | `deploy/backup.sh.j2`          | script de sauvegarde 3-2-1                                                                                  |
+| `deploy/RUNBOOK.md`            | ordre de démarrage applicatif, variables d'env par app, procédure de redéploiement des contrats             |
 | `deploy/monitoring/`           | configs Prometheus/Grafana (prod + profil dev) — détail dans[infra/MONITORING.md](MONITORING.md)           |
 | `.github/workflows/`           | CI back/client + déploiement                                                                               |
