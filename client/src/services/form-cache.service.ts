@@ -12,6 +12,8 @@ export interface FormData {
   contact_first_name: string;
   contact_last_name: string;
   contact_phone: string;
+  /** Country selected in the phone dropdown — the dial code isn't part of `contact_phone` itself. */
+  contact_phone_country_code: string;
   // Brand Information
   brand_name: string;
   industry_type: string;

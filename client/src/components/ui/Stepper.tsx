@@ -5,7 +5,12 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   initialStep?: number;
   onStepChange?: (step: number) => void;
-  onFinalStepCompleted?: () => void;
+  /**
+   * Called on the final "Complete" click. May return a Promise — the stepper waits
+   * for it before collapsing to the completed state, and stays on the last step
+   * (instead of showing a blank collapsed view) if it rejects.
+   */
+  onFinalStepCompleted?: () => void | Promise<void>;
   /**
    * Optional guard function to control if a step change is allowed.
    * Return false to prevent navigation to the requested step.
@@ -52,23 +57,36 @@ export default function Stepper({
 }: StepperProps) {
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [direction, setDirection] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const stepsArray = Children.toArray(children);
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
   const isLastStep = currentStep === totalSteps;
 
-  const updateStep = (newStep: number) => {
+  const updateStep = async (newStep: number) => {
     // Let parent decide if navigation is allowed (e.g. validation)
     if (!canChangeStep(newStep, currentStep)) {
       return;
     }
 
-    setCurrentStep(newStep);
     if (newStep > totalSteps) {
-      onFinalStepCompleted();
-    } else {
-      onStepChange(newStep);
+      // Wait for the async completion handler before collapsing to the completed
+      // view — on rejection, stay on the last step instead of going blank (the
+      // caller's own toast already tells the user what went wrong).
+      setIsSubmitting(true);
+      try {
+        await onFinalStepCompleted();
+        setCurrentStep(newStep);
+      } catch {
+        // stay put
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
     }
+
+    setCurrentStep(newStep);
+    onStepChange(newStep);
   };
 
   const handleBack = () => {
@@ -159,15 +177,15 @@ export default function Stepper({
               <button
                 type="button"
                 onClick={isLastStep ? handleComplete : handleNext}
-                disabled={isNextDisabled}
+                disabled={isNextDisabled || isSubmitting}
                 className={`duration-350 flex items-center justify-center rounded-full py-1.5 px-3.5 font-medium tracking-tight text-white transition ${
-                  isNextDisabled
+                  isNextDisabled || isSubmitting
                     ? 'bg-green-500/60 cursor-not-allowed opacity-60'
                     : 'bg-green-500 hover:bg-green-600 active:bg-green-700'
                 }`}
                 {...nextButtonProps}
               >
-                {isLastStep ? 'Complete' : nextButtonText}
+                {isLastStep ? (isSubmitting ? 'Submitting…' : 'Complete') : nextButtonText}
               </button>
             </div>
           </div>

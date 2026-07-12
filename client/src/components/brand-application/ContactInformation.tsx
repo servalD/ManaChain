@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { COUNTRY_PHONE_CODES, CountryPhoneCode } from "@/utils/constants";
+import { COUNTRY_PHONE_CODES } from "@/utils/constants";
 
 interface ContactInformationProps {
   formData: {
@@ -28,8 +28,6 @@ export function ContactInformation({
   useEffect(() => {
     setLocalCountryCode(selectedCountryCode);
   }, [selectedCountryCode]);
-
-  const selectedCountry = COUNTRY_PHONE_CODES.find(c => c.code === localCountryCode) || COUNTRY_PHONE_CODES.find(c => c.code === 'GB')!;
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCode = e.target.value;
@@ -138,8 +136,11 @@ export function ContactInformation({
               aria-label="Country code"
             >
               {COUNTRY_PHONE_CODES.map((country) => (
+                // Code first (a letter) so the browser's native type-ahead-to-jump
+                // works when typing — it matches against the option's leading text,
+                // and the flag emoji leading it (as before) can never match a keypress.
                 <option key={country.code} value={country.code}>
-                  {country.flag} {country.dialCode} {country.code}
+                  {country.code} {country.flag} {country.dialCode}
                 </option>
               ))}
             </select>
