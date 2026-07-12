@@ -132,7 +132,7 @@ async function setBlockchainAddress(token: string, address: string): Promise<voi
   await apiFetch('/users/me/blockchain-address', {
     method: 'PUT',
     token,
-    body: JSON.stringify({ address }),
+    body: JSON.stringify({ blockchainAddress: address }),
   });
 }
 
@@ -189,10 +189,11 @@ async function runPre(): Promise<void> {
 
     const brandAddress = privateKeyToAddress(requireEnv(brand.privateKeyEnv) as `0x${string}`);
     const interestIds = await resolveInterestIds(brand.application.interestLabels);
+    const { interestLabels: _interestLabels, ...applicationFields } = brand.application;
 
     const application = await apiFetch<{ id: string }>('/brands/applications', {
       method: 'POST',
-      body: JSON.stringify({ ...brand.application, interestIds }),
+      body: JSON.stringify({ ...applicationFields, interestIds }),
     });
     console.log(`  application ${application.id} created`);
 
