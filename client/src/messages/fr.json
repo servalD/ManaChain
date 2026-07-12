@@ -655,6 +655,18 @@
           "moreDetails": "Plus de détails"
         }
       },
+      "saleManagement": {
+        "title": "Gestion de la vente",
+        "soldOf": "{sold} / {total} tokens vendus",
+        "endSaleButton": "Clôturer la vente",
+        "cancelButton": "Annuler la vente",
+        "claimButton": "Réclamer les fonds",
+        "cancelledHint": "Vente annulée — les détenteurs peuvent réclamer un remboursement.",
+        "toasts": {
+          "confirmedTitle": "Transaction confirmée",
+          "confirmedMessage": "La mise à jour peut prendre quelques instants à apparaître."
+        }
+      },
       "tokenSetupWizard": {
         "connectWallet": {
           "title": "Connectez votre wallet",

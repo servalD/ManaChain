@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatUnits } from "viem";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Users, Heart, Coins, MoreHorizontal } from "lucide-react";
@@ -9,8 +10,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import PinataService from "@/services/pinata.service";
 import { TokenSetupWizard } from "./TokenSetupWizard";
+import { SaleManagementPanel } from "./SaleManagementPanel";
 import { useTokenHoldersCount } from "@/hooks/api/useTokens";
 import { useBrandEngagementHistory } from "@/hooks/api/useBrands";
+import { getTokensControllerByBrandQueryKey } from "@/api/generated/endpoints/tokens/tokens";
 import type { EngagementPointResponse, TokenResponse } from "@/api/generated/models";
 
 /** Formate les points d'historique renvoyés par l'API pour le LineChart (date affichable, timezone-safe). */
@@ -43,6 +46,7 @@ interface MyBrandChartProps {
 export function MyBrandChart({ brandId, hasToken = false, token, brandName, brandLogo = null }: MyBrandChartProps) {
   const t = useTranslations("dashboard.brand.myBrandChart");
   const locale = useLocale();
+  const queryClient = useQueryClient();
   const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const resolvedBrandName = brandName ?? t("defaultBrandName");
   const { data: holdersPage } = useTokenHoldersCount(token?.id, { enabled: hasToken });
@@ -418,6 +422,18 @@ export function MyBrandChart({ brandId, hasToken = false, token, brandName, bran
           </table>
         </div>
       </div>
+
+      {/* Gestion de la vente — écran manquant de la Phase 3, voir SaleManagementPanel */}
+      {token?.sale && (
+        <SaleManagementPanel
+          sale={token.sale}
+          onChanged={async () => {
+            await queryClient.invalidateQueries({
+              queryKey: getTokensControllerByBrandQueryKey(brandId),
+            });
+          }}
+        />
+      )}
     </div>
   );
 }
