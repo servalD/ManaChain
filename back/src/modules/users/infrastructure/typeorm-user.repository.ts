@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { IsNull, Repository } from 'typeorm';
 import { DatabaseContext } from '../../../infrastructure/database/database-context';
@@ -155,7 +155,7 @@ export class TypeOrmUserRepository extends UserRepository {
       isBrand: false,
       role: Role.CLIENT,
       passwordChanged: true,
-      emailVerificationToken: params.emailVerificationToken,
+      emailVerificationToken: this.hash(params.emailVerificationToken),
       emailVerificationExpires: params.emailVerificationExpires,
     });
     const saved = await this.repository.save(created);
@@ -184,7 +184,7 @@ export class TypeOrmUserRepository extends UserRepository {
     token: string,
   ): Promise<UserWithTokenExpiry | null> {
     const entity = await this.repository.findOne({
-      where: { emailVerificationToken: token },
+      where: { emailVerificationToken: this.hash(token) },
     });
     if (!entity) return null;
     return {
@@ -201,7 +201,7 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.repository.update(
       { id },
       {
-        emailVerificationToken: token,
+        emailVerificationToken: this.hash(token),
         emailVerificationExpires: expiresAt,
       },
     );
@@ -223,7 +223,7 @@ export class TypeOrmUserRepository extends UserRepository {
     token: string,
   ): Promise<UserWithTokenExpiry | null> {
     const entity = await this.repository.findOne({
-      where: { passwordResetToken: token },
+      where: { passwordResetToken: this.hash(token) },
     });
     if (!entity) return null;
     return {
@@ -240,7 +240,7 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.repository.update(
       { id },
       {
-        passwordResetToken: token,
+        passwordResetToken: this.hash(token),
         passwordResetExpires: expiresAt,
       },
     );
@@ -355,6 +355,11 @@ export class TypeOrmUserRepository extends UserRepository {
         [userId, interestId],
       );
     }
+  }
+
+  /** Même approche que `TypeOrmRefreshTokenRepository` : on ne stocke jamais le token en clair. */
+  private hash(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private async getOrThrow(id: string): Promise<User> {
