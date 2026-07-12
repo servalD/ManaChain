@@ -133,7 +133,7 @@ export default class PinataService {
       if (asAxiosError(error)?.response?.status === 404) {
         return true;
       }
-      
+
       // Don't show error toast for delete failures (could be already deleted)
       console.error("Error deleting file from Pinata:", error);
       return false;
@@ -185,7 +185,7 @@ export default class PinataService {
    */
   static normalizeIpfsUrl(url: string | null | undefined): string {
     if (!url) return '';
-    
+
     // Helper to get proxy URL
     const getProxyUrl = (hash: string): string => {
       // Use absolute URL if we're in the browser, relative otherwise (for SSR)
@@ -195,7 +195,7 @@ export default class PinataService {
       // For SSR, use relative URL (Next.js will handle it)
       return `/api/pinata/proxy?hash=${hash}`;
     };
-    
+
     // If it's already a proxy route, ensure it's absolute if in browser
     if (url.startsWith('/api/pinata/proxy')) {
       if (typeof window !== 'undefined' && !url.startsWith('http')) {
@@ -203,7 +203,7 @@ export default class PinataService {
       }
       return url;
     }
-    
+
     // Extract IPFS hash from URL if it's a full Pinata gateway URL
     const ipfsHashMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
     if (ipfsHashMatch && ipfsHashMatch[1]) {
@@ -211,7 +211,7 @@ export default class PinataService {
       // Use proxy route for authenticated access
       return getProxyUrl(ipfsHash);
     }
-    
+
     // If it's already a full URL with protocol and not a Pinata gateway, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       // Check if it's a Pinata gateway URL that we should proxy
@@ -223,17 +223,17 @@ export default class PinataService {
       }
       return url;
     }
-    
+
     // If it starts with //, add https:
     if (url.startsWith('//')) {
       return `https:${url}`;
     }
-    
+
     // If it's just a hash, use proxy route
     if (!url.includes('/') && url.length > 10) {
       return getProxyUrl(url);
     }
-    
+
     // Otherwise, add https://
     return `https://${url}`;
   }
