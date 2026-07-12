@@ -8,7 +8,8 @@ import Toaster, { ToasterRef } from "@/components/ui/toast";
 import { useLogin, useTwoFactorVerify } from "@/hooks/api/useAuth";
 import { ApiService } from "@/services/api.service";
 import axios from "axios";
-import { isValidEmail } from "@/utils/validation";
+import { isValidEmail, isSafeInternalPath } from "@/utils/validation";
+import { savePostAuthRedirect, getPostAuthRedirect, clearPostAuthRedirect } from "@/utils/post-auth-redirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { OtpInput } from "@/components/ui/otp-input";
@@ -78,6 +79,19 @@ function LoginPageContent() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
+  // Optional post-login redirect target (e.g. `/login?redirect=/brand-application`),
+  // used by pages that require auth but have no dedicated route guard. Falls back to
+  // the normal role-based destination when absent or unsafe. Also persisted to
+  // localStorage (and re-read from there when the URL has no `redirect`) because a
+  // fresh registration requires clicking an emailed verification link — which drops
+  // any query param — before the user ever gets back to /login.
+  const redirectParam = searchParams.get("redirect");
+  const safeRedirect = isSafeInternalPath(redirectParam) ? redirectParam : getPostAuthRedirect();
+
+  useEffect(() => {
+    if (isSafeInternalPath(redirectParam)) savePostAuthRedirect(redirectParam);
+  }, [redirectParam]);
+
   // Handle Google OAuth callback: token + refreshToken + role in URL -> store session and redirect by role
   useEffect(() => {
     const token = searchParams.get("token");
@@ -121,10 +135,11 @@ function LoginPageContent() {
         variant: "success",
         duration: 2000,
       });
-      const redirectPath = getRedirectPathByRole(role);
+      const redirectPath = safeRedirect ?? getRedirectPathByRole(role);
+      clearPostAuthRedirect();
       router.replace(redirectPath);
     }
-  }, [searchParams, router, t]);
+  }, [searchParams, router, t, safeRedirect]);
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -165,7 +180,13 @@ function LoginPageContent() {
           }
           if (!result.user) return;
           // Redirect based on user role; brands with passwordChanged=false must set password first
-          const redirectPath = getRedirectPathByRole(result.user.role, result.user);
+          // regardless of `redirect` — that gate isn't skippable.
+          const mustChangePassword =
+            result.user.role === "BRANDUSER" && result.user.passwordChanged === false;
+          const redirectPath = !mustChangePassword && safeRedirect
+            ? safeRedirect
+            : getRedirectPathByRole(result.user.role, result.user);
+          clearPostAuthRedirect();
           setTimeout(() => {
             router.push(redirectPath);
           }, 1000);
@@ -183,7 +204,12 @@ function LoginPageContent() {
       {
         onSuccess: (result) => {
           if (!result.user) return;
-          const redirectPath = getRedirectPathByRole(result.user.role, result.user);
+          const mustChangePassword =
+            result.user.role === "BRANDUSER" && result.user.passwordChanged === false;
+          const redirectPath = !mustChangePassword && safeRedirect
+            ? safeRedirect
+            : getRedirectPathByRole(result.user.role, result.user);
+          clearPostAuthRedirect();
           router.push(redirectPath);
         },
         onSettled: () => setTwoFactorCode(""),
@@ -201,7 +227,7 @@ function LoginPageContent() {
   };
 
   const handleCreateAccount = () => {
-    router.push('/register');
+    router.push(safeRedirect ? `/register?redirect=${encodeURIComponent(safeRedirect)}` : '/register');
   };
 
   if (twoFactorChallenge) {

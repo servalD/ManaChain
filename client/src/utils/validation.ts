@@ -11,6 +11,15 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
+ * Whether a string is safe to use as a post-login redirect target: a relative,
+ * same-app path only. Rejects protocol-relative ("//evil.com") and absolute
+ * URLs to avoid an open-redirect via the `redirect` query param.
+ */
+export function isSafeInternalPath(path: string | null | undefined): path is string {
+  return !!path && path.startsWith('/') && !path.startsWith('//') && !path.includes('://');
+}
+
+/**
  * Get password validation criteria
  * Returns individual criteria for UI display
  */

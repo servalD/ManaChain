@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useVerifyEmail, useResendVerification } from "@/hooks/api/useAuth";
 import { useVerifyBrandApplicationEmail } from "@/hooks/api/useBrandApplications";
+import { getPostAuthRedirect } from "@/utils/post-auth-redirect";
 
 interface VerifyEmailProps {
   token: string | null;
@@ -19,6 +20,14 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
   const verifyBrandEmail = useVerifyBrandApplicationEmail();
   const verifyUserEmail = useVerifyEmail();
   const resendVerification = useResendVerification();
+
+  // The verification link is opened fresh from an email — it never carries the
+  // `?redirect=` a pre-registration page (e.g. /brand-application) wanted. That
+  // target was persisted to localStorage during register/login; recover it here.
+  const loginPath = (() => {
+    const redirect = getPostAuthRedirect();
+    return redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login";
+  })();
 
   useEffect(() => {
     if (!token) {
@@ -36,7 +45,7 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
             setMessage("Your email has been successfully verified! You can now log in to your account.");
             // Redirect to login after 3 seconds
             setTimeout(() => {
-              router.push("/login");
+              router.push(loginPath);
             }, 3000);
           },
           onError: () => {
@@ -125,7 +134,7 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
             <div className="flex flex-col w-full gap-3 pt-4">
               {status === "success" && type === "user" && (
                 <button
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push(loginPath)}
                   className="w-full rounded-2xl py-3 px-4 font-medium text-white transition-all hover:scale-[1.02]"
                   style={{
                     background: 'linear-gradient(to right, #7c3aed, #a855f7)',
@@ -148,7 +157,7 @@ export default function VerifyEmail({ token, type }: VerifyEmailProps) {
               {status === "error" && type === "user" && (
                 <>
                   <button
-                    onClick={() => router.push("/login")}
+                    onClick={() => router.push(loginPath)}
                     className="w-full rounded-2xl py-3 px-4 font-medium text-foreground border border-border bg-accent/50 hover:bg-accent transition-all"
                   >
                     Go to Login
