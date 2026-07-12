@@ -47,7 +47,7 @@ export function useWalletSync(refreshUser: () => Promise<UserResponse | null>) {
       toast({
         title: "Wallet Connected",
         description: "Your registered wallet has been connected successfully.",
-        variant: "success",
+        variant: "warning",
       });
     } else {
       try {
