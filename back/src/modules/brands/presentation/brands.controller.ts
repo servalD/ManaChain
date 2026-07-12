@@ -29,21 +29,34 @@ import { GetBrandUseCase } from '../application/use-cases/get-brand.use-case';
 import { GetBrandByUserUseCase } from '../application/use-cases/get-brand-by-user.use-case';
 import { ListBrandsUseCase } from '../application/use-cases/list-brands.use-case';
 import { ListActiveBrandsUseCase } from '../application/use-cases/list-active-brands.use-case';
+import { ListBrandsForWhitelistUseCase } from '../application/use-cases/list-brands-for-whitelist.use-case';
 import { UpdateBrandUseCase } from '../application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from '../application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from '../application/use-cases/get-brand-stats.use-case';
+import { GetBrandEngagementHistoryUseCase } from '../application/use-cases/get-brand-engagement-history.use-case';
 import { ListBrandMediaUseCase } from '../application/use-cases/list-brand-media.use-case';
 import { ConfirmBrandMediaUseCase } from '../application/use-cases/confirm-brand-media.use-case';
 import { DeleteBrandMediaUseCase } from '../application/use-cases/delete-brand-media.use-case';
+import { BanBrandUseCase } from '../application/use-cases/ban-brand.use-case';
+import { UnbanBrandUseCase } from '../application/use-cases/unban-brand.use-case';
+import { ListBrandBansUseCase } from '../application/use-cases/list-brand-bans.use-case';
 import { CreateBrandRequest } from '../application/dto/create-brand.request';
 import { UpdateBrandRequest } from '../application/dto/update-brand.request';
 import { ListBrandsQuery } from '../application/dto/list-brands.query';
 import { ConfirmMediaRequest } from '../application/dto/confirm-media.request';
+import { BanBrandRequest } from '../application/dto/ban-brand.request';
+import { ListBansQuery } from '../application/dto/list-bans.query';
+import { HistoryRangeQuery } from '../../../shared/application/dto/history-range.query';
 import {
+  BrandBanResponse,
   BrandMediaResponse,
   BrandResponse,
   BrandStatsResponse,
+  EngagementPointResponse,
+  PaginatedBrandBansResponse,
   PaginatedBrandsResponse,
+  PaginatedBrandWhitelistResponse,
+  toBrandBanResponse,
   toBrandMediaResponse,
   toBrandResponse,
 } from './brand.presenter';
@@ -57,12 +70,17 @@ export class BrandsController {
     private readonly getBrandByUser: GetBrandByUserUseCase,
     private readonly listBrands: ListBrandsUseCase,
     private readonly listActiveBrands: ListActiveBrandsUseCase,
+    private readonly listBrandsForWhitelist: ListBrandsForWhitelistUseCase,
     private readonly updateBrand: UpdateBrandUseCase,
     private readonly deleteBrand: DeleteBrandUseCase,
     private readonly getBrandStats: GetBrandStatsUseCase,
+    private readonly getBrandEngagementHistory: GetBrandEngagementHistoryUseCase,
     private readonly listMedia: ListBrandMediaUseCase,
     private readonly confirmMedia: ConfirmBrandMediaUseCase,
     private readonly deleteMedia: DeleteBrandMediaUseCase,
+    private readonly banBrand: BanBrandUseCase,
+    private readonly unbanBrand: UnbanBrandUseCase,
+    private readonly listBrandBans: ListBrandBansUseCase,
   ) {}
 
   // --- Création / liste ---
@@ -104,6 +122,39 @@ export class BrandsController {
     return { brands: brands.map(toBrandResponse), total };
   }
 
+  @Get('admin/whitelist')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Marques + adresse blockchain du propriétaire (whitelist on-chain, admin)',
+  })
+  @ApiOkResponse({ type: PaginatedBrandWhitelistResponse })
+  async listForWhitelist(
+    @Query() query: ListBrandsQuery,
+  ): Promise<PaginatedBrandWhitelistResponse> {
+    const { brands, total } = await this.listBrandsForWhitelist.execute(query);
+    return {
+      brands: brands.map((entry) => ({
+        brand: toBrandResponse(entry.brand),
+        ownerBlockchainAddress: entry.ownerBlockchainAddress,
+      })),
+      total,
+    };
+  }
+
+  @Get('admin/bans')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lister les bans de marques (admin)' })
+  @ApiOkResponse({ type: PaginatedBrandBansResponse })
+  async bans(
+    @Query() query: ListBansQuery,
+  ): Promise<PaginatedBrandBansResponse> {
+    const { bans, total } = await this.listBrandBans.execute(query);
+    return { bans: bans.map(toBrandBanResponse), total };
+  }
+
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Récupérer sa propre marque' })
@@ -130,6 +181,21 @@ export class BrandsController {
   @ApiOkResponse({ type: BrandStatsResponse })
   stats(@Param('id', ParseUUIDPipe) id: string): Promise<BrandStatsResponse> {
     return this.getBrandStats.execute(id);
+  }
+
+  @Public()
+  @Get(':id/engagement-history')
+  @ApiOperation({
+    summary:
+      "Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)",
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: EngagementPointResponse, isArray: true })
+  engagementHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: HistoryRangeQuery,
+  ): Promise<EngagementPointResponse[]> {
+    return this.getBrandEngagementHistory.execute(id, query.days);
   }
 
   // --- Médias ---
@@ -178,6 +244,44 @@ export class BrandsController {
   ): Promise<{ message: string }> {
     await this.deleteMedia.execute(user.id, id, mediaId);
     return { message: 'Media deleted' };
+  }
+
+  // --- Bans (D8) ---
+
+  @Post(':id/ban')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Bannir une marque (admin) — le front a déjà passé les tx on-chain (blacklist + éventuel cancel-sale)',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiCreatedResponse({ type: BrandBanResponse })
+  async ban(
+    @CurrentUser() admin: User,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: BanBrandRequest,
+  ): Promise<BrandBanResponse> {
+    const ban = await this.banBrand.execute(admin.id, id, body);
+    const brand = await this.getBrand.execute(id);
+    return toBrandBanResponse({
+      ban,
+      brandName: brand.name,
+      bannedByUsername: admin.username,
+    });
+  }
+
+  @Delete(':id/ban')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lever le ban d’une marque (admin)' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  async unban(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    await this.unbanBrand.execute(id);
+    return { message: 'Ban lifted' };
   }
 
   // --- /:id générique (en dernier) ---

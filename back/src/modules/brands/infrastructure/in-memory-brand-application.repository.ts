@@ -5,6 +5,7 @@ import {
   BrandApplicationRepository,
   CreateBrandApplicationParams,
   ListApplicationsParams,
+  RegistrationProofFile,
 } from '../domain/brand-application.repository';
 import { BrandApplicationNotFoundError } from '../domain/brand.errors';
 
@@ -45,7 +46,7 @@ export class InMemoryBrandApplicationRepository extends BrandApplicationReposito
       partial.estimatedCommunitySize ?? null,
       partial.socialMediaLinks ?? null,
       partial.howDidYouHearAboutUs ?? null,
-      partial.registrationProofUrl ?? null,
+      partial.registrationProofFileName ?? null,
       partial.status ?? 'pending',
       partial.emailVerified ?? false,
       partial.rejectionReason ?? null,
@@ -134,6 +135,12 @@ export class InMemoryBrandApplicationRepository extends BrandApplicationReposito
     return Promise.resolve(this.store.get(applicationId)?.interestIds ?? []);
   }
 
+  findRegistrationProofFile(
+    _id: string,
+  ): Promise<RegistrationProofFile | null> {
+    return Promise.resolve(null);
+  }
+
   approve(id: string): Promise<void> {
     this.replace(id, { status: 'approved' });
     return Promise.resolve();
@@ -173,7 +180,7 @@ export class InMemoryBrandApplicationRepository extends BrandApplicationReposito
       a.estimatedCommunitySize,
       a.socialMediaLinks,
       a.howDidYouHearAboutUs,
-      a.registrationProofUrl,
+      a.registrationProofFileName,
       changes.status ?? a.status,
       changes.emailVerified ?? a.emailVerified,
       changes.rejectionReason !== undefined

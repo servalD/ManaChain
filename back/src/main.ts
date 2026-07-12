@@ -7,12 +7,29 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { Env } from './infrastructure/config/env.validation';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService<Env, true>);
+
+  // 1 hop : traefik tourne en mode host sur le manager (deploy/stack.yml.j2).
+  // Sans ça, le ThrottlerGuard verrait l'IP de l'overlay pour toutes les
+  // requêtes prod et son garde-fou par IP deviendrait global.
+  app.set('trust proxy', 1);
+
+  // CSP désactivée : API JSON pure, elle casserait sinon Swagger UI
+  // (scripts inline sur /api/docs) sans bénéfice pour les autres routes.
+  // CORP cross-origin : /api/assets/ (logo des emails) est chargé par des
+  // clients mail sur d'autres origines.
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
   // Assets statiques (logo des emails) servis sous /api/assets.
   app.useStaticAssets(join(__dirname, '..', 'assets'), {

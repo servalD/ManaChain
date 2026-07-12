@@ -5,21 +5,36 @@ import {
   UserRepository,
 } from '../../../users/domain/user.repository';
 import { OAuthEmailUsesPasswordError } from '../../domain/auth.errors';
+import { TwoFactorChallengeRepository } from '../../domain/two-factor-challenge.repository';
 import { OAuthProvider } from '../ports/oauth-provider.port';
 import { AppTokenService } from '../ports/app-token.service';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
-import { toAppJwtClaims } from '../jwt-claims';
+import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
+import { createTwoFactorChallenge } from '../create-two-factor-challenge';
+import { issueSession } from '../session';
 
-export interface GoogleCallbackResult {
+export interface GoogleCallbackSuccess {
+  twoFactorRequired: false;
   token: string;
+  refreshToken: string;
   role: Role;
 }
+
+export interface GoogleCallbackTwoFactorRequired {
+  twoFactorRequired: true;
+  challengeToken: string;
+}
+
+export type GoogleCallbackResult =
+  GoogleCallbackSuccess | GoogleCallbackTwoFactorRequired;
 
 /**
  * Callback Google : échange le code contre un profil, puis find-or-create.
  * - email déjà inscrit avec mot de passe → {@link OAuthEmailUsesPasswordError}.
- * - email déjà inscrit via Google → reconnexion.
- * - email inconnu → création d'un compte Google (vérifié) avec un username unique.
+ * - email déjà inscrit via Google, 2FA actif → challenge (cf. `LoginUseCase`).
+ * - email déjà inscrit via Google, pas de 2FA → reconnexion directe.
+ * - email inconnu → création d'un compte Google (vérifié) avec un username
+ *   unique — jamais de 2FA actif sur un compte tout juste créé.
  * Renvoie le JWT + le rôle (le contrôleur fait la redirection front).
  */
 @Injectable()
@@ -29,6 +44,8 @@ export class GoogleCallbackUseCase {
     private readonly userRepository: UserRepository,
     private readonly tokenService: AppTokenService,
     private readonly tokenGenerator: SecureTokenGenerator,
+    private readonly challengeRepository: TwoFactorChallengeRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
   ) {}
 
   async execute(code: string): Promise<GoogleCallbackResult> {
@@ -41,10 +58,21 @@ export class GoogleCallbackUseCase {
       if (existing.passwordHash !== OAUTH_GOOGLE_PASSWORD_SENTINEL) {
         throw new OAuthEmailUsesPasswordError();
       }
-      return {
-        token: this.tokenService.sign(toAppJwtClaims(existing.user)),
-        role: existing.user.role,
-      };
+      if (existing.user.twoFactorEnabled) {
+        const challengeToken = await createTwoFactorChallenge(
+          this.tokenGenerator,
+          this.challengeRepository,
+          existing.user.id,
+        );
+        return { twoFactorRequired: true, challengeToken };
+      }
+      const session = await issueSession(
+        existing.user,
+        this.tokenService,
+        this.tokenGenerator,
+        this.refreshTokenRepository,
+      );
+      return { twoFactorRequired: false, ...session, role: existing.user.role };
     }
 
     const username = await this.generateUniqueUsername(profile.email);
@@ -55,10 +83,13 @@ export class GoogleCallbackUseCase {
       lastName: profile.lastName || '',
     });
 
-    return {
-      token: this.tokenService.sign(toAppJwtClaims(user)),
-      role: user.role,
-    };
+    const session = await issueSession(
+      user,
+      this.tokenService,
+      this.tokenGenerator,
+      this.refreshTokenRepository,
+    );
+    return { twoFactorRequired: false, ...session, role: user.role };
   }
 
   private async generateUniqueUsername(email: string): Promise<string> {

@@ -1,36 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Heart, TrendingUp, Calendar } from "lucide-react";
+import { useMyActivityHistory } from "@/hooks/api/useAuth";
+import type { ActivityPointResponse } from "@/api/generated/models";
 
-// Mock activity data
-const generateActivityData = (days: number) => {
-  const data = [];
-  const today = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    
-    // Generate random activity counts
-    const likes = Math.floor(Math.random() * 5) + 1;
-    const tokens = Math.floor(Math.random() * 3);
-    const events = Math.floor(Math.random() * 2);
-    const total = likes + tokens + events;
-    
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      likes,
-      tokens,
-      events,
-      total,
-      fullDate: date.toISOString(),
-    });
-  }
-  
-  return data;
-};
+/** Formate l'historique d'activité pour le LineChart : compteurs journaliers (pas cumulés). */
+function formatActivityData(points: ActivityPointResponse[]) {
+  return points.map((point) => {
+    const date = new Date(`${point.date}T00:00:00Z`);
+    return {
+      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+      likes: point.likesGiven,
+      tokens: point.tokenPurchases,
+      events: point.eventsAttended,
+      total: point.likesGiven + point.tokenPurchases + point.eventsAttended,
+      fullDate: point.date,
+    };
+  });
+}
 
 const timeRanges = [
   { label: "7D", days: 7 },
@@ -39,10 +29,12 @@ const timeRanges = [
 ] as const;
 
 export function ActivityTimeline() {
-  const [selectedRange, setSelectedRange] = useState<number>(30);
+  const t = useTranslations("dashboard.client.activityTimeline");
+  const [selectedRange, setSelectedRange] = useState<7 | 30 | 90>(30);
   const [axisColor, setAxisColor] = useState<string>("#ffffff");
-  const data = generateActivityData(selectedRange);
-  
+  const { data: history } = useMyActivityHistory(selectedRange);
+  const data = formatActivityData(history ?? []);
+
   // Get the actual color from CSS variable based on theme
   useEffect(() => {
     const updateAxisColor = () => {
@@ -75,9 +67,9 @@ export function ActivityTimeline() {
     <div className="space-y-4 pt-8 w-full">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Activity Timeline</h2>
+          <h2 className="text-xl font-bold">{t("title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Track your engagement and interactions over time
+            {t("subtitle")}
           </p>
         </div>
         
@@ -104,21 +96,21 @@ export function ActivityTimeline() {
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Heart className="h-4 w-4 text-violet-500" />
-            <span className="text-sm text-muted-foreground">Likes</span>
+            <span className="text-sm text-muted-foreground">{t("likes")}</span>
           </div>
           <div className="text-2xl font-bold">{totalLikes}</div>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-fuchsia-500" />
-            <span className="text-sm text-muted-foreground">Supports</span>
+            <span className="text-sm text-muted-foreground">{t("supports")}</span>
           </div>
           <div className="text-2xl font-bold">{totalTokens}</div>
         </div>
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="h-4 w-4 text-indigo-500" />
-            <span className="text-sm text-muted-foreground">Events Attended</span>
+            <span className="text-sm text-muted-foreground">{t("eventsAttended")}</span>
           </div>
           <div className="text-2xl font-bold">{totalEvents}</div>
         </div>
@@ -155,15 +147,15 @@ export function ActivityTimeline() {
                   fontWeight: 600,
                 }}
                 formatter={(value: number | undefined, name: string | undefined) => {
-                  const label = name === "likes" ? "Likes" : name === "tokens" ? "Supports" : "Events Attended";
+                  const label = name === "likes" ? t("likes") : name === "tokens" ? t("supports") : t("eventsAttended");
                   return [value ?? 0, label];
                 }}
               />
-              <Legend 
+              <Legend
                 wrapperStyle={{ paddingTop: "20px" }}
                 iconType="line"
                 formatter={(value: string) => {
-                  return value === "likes" ? "Likes" : value === "tokens" ? "Supports" : "Events Attended";
+                  return value === "likes" ? t("likes") : value === "tokens" ? t("supports") : t("eventsAttended");
                 }}
               />
               <Line 

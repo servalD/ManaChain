@@ -24,4 +24,6 @@ export interface UserResponse {
   /** False tant qu’un compte marque créé avec un mot de passe temporaire ne l’a pas changé. */
   passwordChanged: boolean;
   createdAt: string;
+  /** Authentification à deux facteurs (TOTP) active. */
+  twoFactorEnabled: boolean;
 }

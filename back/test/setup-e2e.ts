@@ -33,6 +33,7 @@ const E2E_ENV_DEFAULTS: Record<string, string> = {
   DATABASE_PASSWORD: 'manachain_test',
   APP_JWT_SECRET: 'test-only-secret-change-me-please-32',
   APP_JWT_EXPIRES_IN: '1h',
+  TWO_FACTOR_ENCRYPTION_KEY: 'test-only-2fa-key-change-me-please-32',
 };
 
 for (const [key, value] of Object.entries(E2E_ENV_DEFAULTS)) {

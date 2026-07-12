@@ -333,7 +333,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               <span className="px-4 text-sm text-muted-foreground bg-background absolute">{tCommon('orContinueWith')}</span>
             </div>
 
-            <button onClick={onGoogleSignUp} className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-accent/50 transition-colors text-foreground">
+            <button
+              onClick={onGoogleSignUp}
+              disabled={selectedInterests.length < 3 || selectedInterests.length > 5}
+              className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-accent/50 transition-colors text-foreground disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
                 <GoogleIcon />
                 {tCommon('continueWithGoogle')}
             </button>

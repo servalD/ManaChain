@@ -14,7 +14,6 @@
       "faq": "FAQ",
       "signIn": "Se connecter",
       "signUp": "S'inscrire",
-      "applyAsBrand": "Devenir une marque",
       "userMenuAriaLabel": "Menu utilisateur",
       "menuAriaLabel": "Menu"
     },
@@ -33,7 +32,6 @@
       "descriptionMiddle": "pour montrer votre soutien et participer à une nouvelle forme d'",
       "descriptionAuthenticEngagement": "engagement authentique",
       "descriptionSuffix": "avec les marques qui vous tiennent à cœur.",
-      "ctaCreateCommunity": "Créer ma communauté",
       "ctaDiscoverProjects": "Découvrir les projets"
     },
     "stats": {
@@ -202,7 +200,7 @@
       "emailPlaceholder": "Saisissez votre adresse email",
       "passwordLabel": "Mot de passe",
       "passwordPlaceholder": "Créez un mot de passe",
-      "passwordCriteriaLength": "Au moins 8 caractères",
+      "passwordCriteriaLength": "Au moins 12 caractères",
       "passwordCriteriaDigit": "Au moins un chiffre",
       "passwordCriteriaSpecial": "Au moins un caractère spécial",
       "interestsLabel": "Centres d'intérêt",
@@ -212,6 +210,791 @@
       "createAccountButton": "Créer un compte",
       "alreadyHaveAccount": "Vous avez déjà un compte ?",
       "signIn": "Se connecter"
+    }
+  },
+  "dashboard": {
+    "admin": {
+      "brandsPage": {
+        "title": "Parcourir les marques",
+        "description": "Whitelistez une marque on-chain pour lui permettre de déployer son module de badge. Connectez votre wallet opérateur ci-dessus — la transaction échoue s'il ne détient pas le rôle opérateur sur ManaAdmin.",
+        "toasts": {
+          "loggedOutTitle": "Déconnecté",
+          "loggedOutMessage": "À bientôt !"
+        }
+      },
+      "dashboardPage": {
+        "title": "Tableau de bord admin",
+        "toasts": {
+          "loggedOutTitle": "Déconnecté",
+          "loggedOutMessage": "À bientôt !"
+        }
+      },
+      "activeBrandsTable": {
+        "title": "Marques actives",
+        "loading": "Chargement...",
+        "resultsCount": "{count, plural, one {# marque trouvée} other {# marques trouvées}}",
+        "searchPlaceholder": "Rechercher par nom ou ID...",
+        "empty": "Aucune marque trouvée",
+        "banAction": "Bannir",
+        "detailsAction": "Détails",
+        "columns": {
+          "brand": "Marque",
+          "id": "ID",
+          "country": "Pays",
+          "created": "Créée le",
+          "actions": "Actions"
+        }
+      },
+      "activeUsersTable": {
+        "title": "Utilisateurs actifs",
+        "loading": "Chargement...",
+        "resultsCount": "{count, plural, one {# utilisateur trouvé} other {# utilisateurs trouvés}}",
+        "searchPlaceholder": "Rechercher par nom, email ou ID...",
+        "empty": "Aucun utilisateur trouvé",
+        "unverified": "Non vérifié",
+        "banAction": "Bannir",
+        "detailsAction": "Détails",
+        "columns": {
+          "user": "Utilisateur",
+          "id": "ID",
+          "role": "Rôle",
+          "created": "Créé le",
+          "actions": "Actions"
+        }
+      },
+      "activeUsersBrandsChart": {
+        "title": "Utilisateurs et marques",
+        "subtitle": "Totaux actuels de la plateforme",
+        "users": "Utilisateurs",
+        "brands": "Marques",
+        "snapshotNote": "Instantané à l'instant présent — un graphique de tendance historique nécessiterait un endpoint back-end dédié, pas encore construit."
+      },
+      "banBrandModal": {
+        "title": "Bannir une marque",
+        "description": "Signe une tx de blacklist (+ une tx d'annulation de vente si une vente est ouverte), puis enregistre l'entrée d'audit.",
+        "brandLabel": "Marque",
+        "searchPlaceholder": "Rechercher par nom de marque…",
+        "change": "Changer",
+        "noWalletLinked": "aucun wallet lié",
+        "openSaleWarning": "Cette marque a une vente de badge ouverte — elle sera également annulée on-chain.",
+        "reasonLabel": "Motif",
+        "reasonPlaceholder": "Pourquoi cette marque est-elle bannie ?",
+        "permanentBan": "Ban permanent",
+        "expiresAtLabel": "Expire le",
+        "notesLabel": "Notes internes (optionnel)",
+        "cancel": "Annuler",
+        "confirmingBlacklist": "Confirmation de la tx de blacklist…",
+        "confirmingCancelSale": "Confirmation de la tx d'annulation de vente…",
+        "saving": "Enregistrement…",
+        "submit": "Bannir la marque",
+        "toasts": {
+          "bannedTitle": "Marque bannie",
+          "bannedMessage": "{name} a été bannie.",
+          "selectBrandTitle": "Sélectionnez une marque",
+          "selectBrandMessage": "Recherchez et choisissez une marque à bannir.",
+          "reasonRequiredTitle": "Motif requis",
+          "reasonRequiredMessage": "Expliquez pourquoi cette marque est bannie.",
+          "expiryRequiredTitle": "Date d'expiration requise",
+          "expiryRequiredMessage": "Définissez une date d'expiration pour un ban temporaire.",
+          "noWalletTitle": "Aucun wallet lié",
+          "noWalletMessage": "Cette marque n'a pas d'adresse on-chain — impossible de la blacklister on-chain."
+        }
+      },
+      "banManagementTable": {
+        "title": "Gestion des bans",
+        "subtitle": "Consultez et gérez les bans d'utilisateurs et de marques",
+        "newBan": "Nouveau ban",
+        "userBansTab": "Bans utilisateurs",
+        "brandBansTab": "Bans marques",
+        "searchPlaceholderUsers": "Rechercher des utilisateurs par nom ou motif…",
+        "searchPlaceholderBrands": "Rechercher des marques par nom ou motif…",
+        "empty": "Aucun ban trouvé",
+        "deletedUser": "Utilisateur supprimé",
+        "deletedBrand": "Marque supprimée",
+        "statusActive": "Actif",
+        "statusLifted": "Levé",
+        "permanent": "Permanent",
+        "remaining": "{time} restant",
+        "remainingParenthesized": "({time} restant)",
+        "detailsAction": "Détails",
+        "liftBan": "Lever le ban",
+        "columns": {
+          "user": "Utilisateur",
+          "brand": "Marque",
+          "reason": "Motif",
+          "bannedBy": "Banni par",
+          "date": "Date",
+          "status": "Statut",
+          "actions": "Actions"
+        },
+        "detailsModal": {
+          "title": "Détails du ban",
+          "description": "Informations complètes sur ce ban",
+          "userInformation": "INFORMATIONS UTILISATEUR",
+          "brandInformation": "INFORMATIONS MARQUE",
+          "id": "ID : {id}",
+          "banInformation": "INFORMATIONS DU BAN",
+          "bannedAt": "Banni le",
+          "type": "Type",
+          "temporary": "Temporaire",
+          "expiresAt": "Expire le",
+          "never": "Jamais",
+          "notSet": "Non défini",
+          "blacklistTx": "Tx de blacklist",
+          "cancelSaleTx": "Tx d'annulation de vente",
+          "internalNotes": "Notes internes"
+        }
+      },
+      "banUserModal": {
+        "title": "Bannir un utilisateur",
+        "description": "Crée une entrée d'audit et bloque immédiatement la connexion/l'accès API.",
+        "userLabel": "Utilisateur",
+        "searchPlaceholder": "Rechercher par nom d'utilisateur ou email…",
+        "change": "Changer",
+        "reasonLabel": "Motif",
+        "reasonPlaceholder": "Pourquoi cet utilisateur est-il banni ?",
+        "permanentBan": "Ban permanent",
+        "expiresAtLabel": "Expire le",
+        "notesLabel": "Notes internes (optionnel)",
+        "cancel": "Annuler",
+        "banning": "Bannissement…",
+        "submit": "Bannir l'utilisateur",
+        "toasts": {
+          "selectUserTitle": "Sélectionnez un utilisateur",
+          "selectUserMessage": "Recherchez et choisissez un utilisateur à bannir.",
+          "reasonRequiredTitle": "Motif requis",
+          "reasonRequiredMessage": "Expliquez pourquoi cet utilisateur est banni.",
+          "expiryRequiredTitle": "Date d'expiration requise",
+          "expiryRequiredMessage": "Définissez une date d'expiration pour un ban temporaire.",
+          "bannedTitle": "Utilisateur banni",
+          "bannedMessage": "{name} a été banni."
+        }
+      },
+      "brandApplicationsTable": {
+        "title": "Candidatures de marques",
+        "loading": "Chargement...",
+        "resultsCount": "{count, plural, one {# candidature trouvée} other {# candidatures trouvées}}",
+        "searchPlaceholder": "Rechercher par nom de marque, email ou ID...",
+        "empty": "Aucune candidature trouvée",
+        "approveAction": "Approuver",
+        "rejectAction": "Rejeter",
+        "detailsAction": "Détails",
+        "columns": {
+          "brand": "Marque",
+          "contact": "Contact",
+          "status": "Statut",
+          "created": "Créée le",
+          "actions": "Actions"
+        },
+        "statuses": {
+          "all": "Tous les statuts",
+          "pending": "En attente",
+          "needsReview": "À revoir",
+          "approved": "Approuvée",
+          "rejected": "Rejetée"
+        },
+        "toasts": {
+          "errorTitle": "Erreur",
+          "reasonRequiredMessage": "Le motif de rejet est requis."
+        },
+        "rejectModal": {
+          "title": "Rejeter la candidature",
+          "description": "Veuillez indiquer un motif de rejet pour cette candidature. Ce motif sera envoyé au candidat.",
+          "reasonLabel": "Motif du rejet",
+          "reasonPlaceholder": "Saisissez le motif du rejet...",
+          "notesLabel": "Notes internes (optionnel)",
+          "notesPlaceholder": "Ajoutez des notes internes (non visibles par le candidat)...",
+          "cancel": "Annuler",
+          "confirm": "Rejeter la candidature"
+        }
+      },
+      "brandApplicationDetail": {
+        "back": "Retour aux candidatures",
+        "loading": "Chargement...",
+        "notFound": "Candidature introuvable",
+        "contactSection": "Contact",
+        "brandSection": "Marque",
+        "legalSection": "Informations légales",
+        "documentsSection": "Documents",
+        "email": "Email",
+        "phone": "Téléphone",
+        "name": "Nom",
+        "website": "Site web",
+        "description": "Description",
+        "registrationNumber": "Numéro d'immatriculation",
+        "country": "Pays",
+        "createdAt": "Déposée le",
+        "registrationProof": {
+          "label": "Justificatif d'immatriculation",
+          "none": "Aucun document fourni",
+          "view": "Voir le document",
+          "loadError": "Impossible de charger le justificatif"
+        },
+        "approveAction": "Approuver",
+        "rejectAction": "Rejeter",
+        "statuses": {
+          "pending": "En attente",
+          "needsReview": "À revoir",
+          "approved": "Approuvée",
+          "rejected": "Rejetée"
+        }
+      },
+      "brandWhitelistTable": {
+        "noWalletLinked": "Aucun wallet lié",
+        "checking": "Vérification…",
+        "whitelisted": "Whitelistée",
+        "notWhitelisted": "Non whitelistée",
+        "confirming": "Confirmation…",
+        "remove": "Retirer",
+        "whitelistOnChain": "Whitelister on-chain",
+        "empty": "Aucune marque trouvée",
+        "columns": {
+          "brand": "Marque",
+          "ownerWallet": "Wallet du propriétaire",
+          "status": "Statut",
+          "action": "Action"
+        },
+        "toasts": {
+          "updatedTitle": "Whitelist mise à jour",
+          "removedMessage": "{name} a été retirée de la whitelist.",
+          "whitelistedMessage": "{name} est maintenant whitelistée."
+        }
+      },
+      "notificationCenter": {
+        "title": "Centre de notifications",
+        "subtitle": "Envoyez des notifications à tous les utilisateurs ou marques de la plateforme",
+        "recipients": {
+          "heading": "Destinataires",
+          "allUsersLabel": "Tous les utilisateurs",
+          "allUsersDescription": "Envoyer à tous les utilisateurs de la plateforme",
+          "allBrandsLabel": "Toutes les marques",
+          "allBrandsDescription": "Envoyer à tous les comptes marques",
+          "everyoneLabel": "Tout le monde",
+          "everyoneDescription": "Envoyer à tout le monde",
+          "recipientsColon": "Destinataires :"
+        },
+        "form": {
+          "heading": "Détails de la notification",
+          "titleLabel": "Titre",
+          "titlePlaceholder": "Saisissez le titre de la notification...",
+          "characterCount": "{count}/{max} caractères",
+          "messageLabel": "Message",
+          "markdownSupported": "(Markdown pris en charge)",
+          "editTab": "Éditer",
+          "previewTab": "Aperçu",
+          "messagePlaceholder": "Saisissez le message de la notification... (Markdown pris en charge : **gras**, *italique*, [liens](url), etc.)",
+          "previewPlaceholder": "L'aperçu markdown apparaîtra ici...",
+          "sending": "Envoi en cours...",
+          "sendButton": "Envoyer la notification"
+        },
+        "preview": {
+          "heading": "Aperçu",
+          "placeholderTitle": "Titre de la notification",
+          "toAllUsers": "À : Tous les utilisateurs",
+          "toAllBrands": "À : Toutes les marques",
+          "toEveryone": "À : Tous les utilisateurs et marques",
+          "messagePlaceholder": "Le message de la notification apparaîtra ici...",
+          "recipientsLabel": "Destinataires :",
+          "titleLengthLabel": "Longueur du titre :",
+          "messageLengthLabel": "Longueur du message :",
+          "lengthRatio": "{count}/{max}"
+        },
+        "toasts": {
+          "validationErrorTitle": "Erreur de validation",
+          "validationErrorMessage": "Veuillez remplir le titre et le message.",
+          "sentTitle": "Notifications envoyées",
+          "sentMessage": "Envoyée à {count, plural, one {# destinataire} other {# destinataires}}."
+        }
+      }
+    },
+    "brand": {
+      "dashboardPage": {
+        "heading": "Tableau de bord marque",
+        "noBrandFound": "Aucune marque trouvée. Contactez le support si vous pensez qu'il s'agit d'une erreur.",
+        "toasts": {
+          "loggedOutTitle": "Déconnecté",
+          "loggedOutMessage": "À bientôt !"
+        }
+      },
+      "changePasswordRequiredPage": {
+        "title": "Définissez votre mot de passe",
+        "description": "Bienvenue ! Pour des raisons de sécurité, veuillez définir votre propre mot de passe avant d'accéder à votre tableau de bord."
+      },
+      "eventsPage": {
+        "heading": "Mes événements",
+        "createEvent": "Créer un événement",
+        "connectWalletHint": "Connectez votre wallet ci-dessus pour créer un événement.",
+        "cancel": "Annuler",
+        "noEvents": "Aucun événement pour le moment — créez le premier.",
+        "toasts": {
+          "loggedOutTitle": "Déconnecté",
+          "loggedOutMessage": "À bientôt !"
+        },
+        "table": {
+          "title": "Titre",
+          "starts": "Début",
+          "status": "Statut",
+          "statusValues": {
+            "draft": "Brouillon",
+            "published": "Publié",
+            "cancelled": "Annulé",
+            "completed": "Terminé"
+          }
+        }
+      },
+      "brandEvents": {
+        "heading": "Événements",
+        "createEvent": "Créer un événement",
+        "upcoming": "À venir",
+        "past": "Passés",
+        "show": "Afficher :",
+        "noUpcomingEvents": "Aucun événement à venir",
+        "noPastEvents": "Aucun événement passé",
+        "table": {
+          "eventName": "Nom de l'événement",
+          "date": "Date",
+          "type": "Type",
+          "status": "Statut",
+          "actions": "Actions",
+          "moreDetails": "Plus de détails",
+          "statusValues": {
+            "published": "Publié",
+            "draft": "Brouillon",
+            "cancelled": "Annulé"
+          }
+        }
+      },
+      "brandContentMedia": {
+        "heading": "Contenu et médias",
+        "uploading": "Envoi en cours...",
+        "dropzoneHint": "Cliquez pour envoyer ou glissez-déposez",
+        "dropzoneFormats": "PNG, JPG, GIF jusqu'à 5 Mo",
+        "noMediaYet": "Aucun média envoyé pour le moment",
+        "pending": "En attente",
+        "mediaLabel": "Média {id}",
+        "toasts": {
+          "invalidFileTypeTitle": "Type de fichier invalide",
+          "invalidFileTypeMessage": "Veuillez envoyer un fichier image",
+          "fileTooLargeTitle": "Fichier trop volumineux",
+          "fileTooLargeMessage": "La taille maximale est de 5 Mo",
+          "uploadSuccessTitle": "Envoi réussi",
+          "uploadSuccessMessage": "Image envoyée sur IPFS. Veuillez confirmer pour l'enregistrer.",
+          "uploadFailedTitle": "Échec de l'envoi",
+          "uploadFailedFallback": "Une erreur est survenue lors de l'envoi de l'image",
+          "errorTitle": "Erreur",
+          "brandIdRequired": "L'identifiant de la marque est requis",
+          "mediaConfirmedTitle": "Média confirmé",
+          "mediaConfirmedMessage": "Votre image a été enregistrée",
+          "uploadCancelledTitle": "Envoi annulé",
+          "uploadCancelledMessage": "L'image a été retirée d'IPFS",
+          "mediaNotFound": "Média introuvable",
+          "mediaDeletedTitle": "Média supprimé",
+          "mediaDeletedMessage": "Le média a été supprimé"
+        }
+      },
+      "brandNotifications": {
+        "heading": "Notifications",
+        "all": "Toutes",
+        "unreadCount": "Non lues ({count})",
+        "markAllAsRead": "Tout marquer comme lu",
+        "noUnreadNotifications": "Aucune notification non lue",
+        "noNotifications": "Aucune notification",
+        "markAsRead": "Marquer comme lu",
+        "showLess": "Afficher moins",
+        "showAll": "Tout afficher ({count})",
+        "justNow": "À l'instant",
+        "minutesAgo": "{count, plural, one {il y a # minute} other {il y a # minutes}}",
+        "hoursAgo": "{count, plural, one {il y a # heure} other {il y a # heures}}",
+        "daysAgo": "{count, plural, one {il y a # jour} other {il y a # jours}}"
+      },
+      "eventSetupWizard": {
+        "draftStep": {
+          "title": "Étape 1 — Détails de l'événement",
+          "description": "Enregistré comme brouillon avant tout déploiement on-chain.",
+          "titleLabel": "Titre",
+          "titlePlaceholder": "Lancement de produit",
+          "typeLabel": "Type",
+          "typePlaceholder": "Rencontre",
+          "startsAtLabel": "Début",
+          "endsAtLabel": "Fin (optionnel)",
+          "descriptionLabel": "Description (optionnel)",
+          "saveDraft": "Enregistrer le brouillon",
+          "toasts": {
+            "missingFieldsTitle": "Champs manquants",
+            "missingFieldsMessage": "Le titre, le type et la date de début sont requis."
+          }
+        },
+        "deployModuleStep": {
+          "title": "Étape 2 — Déployer le contrat de billets",
+          "description": "Déploie un contrat ERC-1155 pour les billets de cet événement, détenu par votre wallet.",
+          "uploadingMetadata": "Envoi des métadonnées…",
+          "confirming": "Confirmation…",
+          "deployButton": "Déployer le contrat de billets",
+          "toasts": {
+            "errorTitle": "Erreur",
+            "decodeErrorMessage": "Impossible de lire l'adresse déployée depuis la transaction.",
+            "deployedTitle": "Module déployé",
+            "deployedMessage": "Votre contrat de billets est en ligne."
+          }
+        },
+        "deployTicketSaleStep": {
+          "title": "Étape 3 — Ouvrir la vente de billets",
+          "description": "Déploie le contrat de vente, puis lie les deux adresses à cet événement.",
+          "freeEventLabel": "Événement gratuit (pas de paiement en USDC)",
+          "deployButton": "Déployer la vente de billets",
+          "linkRetryButton": "Lier (réessayer)",
+          "toasts": {
+            "stillSyncingTitle": "Synchronisation en cours",
+            "stillSyncingMessage": "L'indexeur n'a pas encore détecté la vente de billets — cliquez à nouveau sur Lier dans quelques secondes.",
+            "deployedTitle": "Vente de billets déployée",
+            "deployedMessage": "Liaison à votre événement…"
+          }
+        },
+        "ticketTypesStep": {
+          "title": "Étape 4 — Types de billets",
+          "description": "Mintez des billets vers le contrat de vente et fixez leur prix (0 pour les événements gratuits).",
+          "tokenLabel": "Billet #{tokenId}",
+          "mintedSummary": "{minted} mintés · {price} USDC",
+          "tokenIdPlaceholder": "ID du billet",
+          "quantityPlaceholder": "Quantité",
+          "freePlaceholder": "Gratuit",
+          "priceUsdcPlaceholder": "Prix en USDC",
+          "addTicketType": "Ajouter un type de billet",
+          "publishEvent": "Publier l'événement",
+          "toasts": {
+            "missingFieldsTitle": "Champs manquants",
+            "missingFieldsMessage": "La quantité et le prix sont requis.",
+            "addedTitle": "Type de billet ajouté",
+            "addedMessage": "Le billet #{tokenId} est maintenant en vente."
+          }
+        }
+      },
+      "myBrandChart": {
+        "defaultBrandName": "Ma marque",
+        "noTokenSubtitle": "Créez votre NFT et fractionnez-le pour engager votre communauté",
+        "engagementSubtitle": "Suivez vos soutiens et l'engagement de votre communauté",
+        "likes": "Likes",
+        "holders": "Détenteurs",
+        "table": {
+          "badgeSymbol": "Symbole du badge",
+          "inCirculation": "En circulation",
+          "holders": "Détenteurs",
+          "basePrice": "Prix de base",
+          "actions": "Actions",
+          "moreDetails": "Plus de détails"
+        }
+      },
+      "saleManagement": {
+        "title": "Gestion de la vente",
+        "soldOf": "{sold} / {total} tokens vendus",
+        "endSaleButton": "Clôturer la vente",
+        "cancelButton": "Annuler la vente",
+        "claimButton": "Réclamer les fonds",
+        "cancelledHint": "Vente annulée — les détenteurs peuvent réclamer un remboursement.",
+        "toasts": {
+          "confirmedTitle": "Transaction confirmée",
+          "confirmedMessage": "La mise à jour peut prendre quelques instants à apparaître."
+        }
+      },
+      "tokenSetupWizard": {
+        "connectWallet": {
+          "title": "Connectez votre wallet",
+          "description": "Connectez le wallet lié à votre compte pour déployer votre module de token.",
+          "hint": "Utilisez le bouton wallet dans la barre de navigation ci-dessus."
+        },
+        "notWhitelisted": {
+          "title": "En attente de whitelist",
+          "description": "Un administrateur doit whitelister votre wallet on-chain avant que vous puissiez déployer votre module de token.",
+          "hint": "Cela se produit généralement peu après l'approbation de votre candidature de marque. Revenez bientôt."
+        },
+        "deployStep": {
+          "title": "Étape 1 — Déployer votre module de token",
+          "description": "Votre NFT genesis, votre coffre fractionné et votre token de soutien sont déployés ensemble, en une seule transaction.",
+          "nftNameLabel": "Nom du NFT genesis",
+          "nftNamePlaceholder": "Ma Marque Genesis",
+          "nftSymbolLabel": "Symbole du NFT genesis",
+          "nftSymbolPlaceholder": "MBG",
+          "tokenNameLabel": "Nom du token de soutien",
+          "tokenNamePlaceholder": "Mon Token de Marque",
+          "tokenSymbolLabel": "Symbole du token de soutien",
+          "tokenSymbolPlaceholder": "MBT",
+          "totalSupplyCapLabel": "Plafond d'offre totale (optionnel)",
+          "totalSupplyCapPlaceholder": "Illimité",
+          "logoLabel": "Logo du token de soutien (optionnel)",
+          "confirming": "Confirmation…",
+          "uploadingLogo": "Envoi du logo…",
+          "deployButton": "Déployer le module de token",
+          "toasts": {
+            "deployedTitle": "Module déployé",
+            "deployedMessage": "Votre NFT genesis, votre coffre et votre token de soutien sont en ligne.",
+            "missingFieldsTitle": "Champs manquants",
+            "missingFieldsMessage": "Remplissez tous les champs avant de déployer."
+          }
+        },
+        "genesisStep": {
+          "title": "Étape 2 — Verrouiller votre NFT genesis",
+          "description": "Mintez le NFT genesis, approuvez le coffre, puis déposez-le — le coffre le fractionne en votre offre de token de soutien.",
+          "mintLabel": "Minter le NFT genesis",
+          "mintButton": "Minter",
+          "approveLabel": "Approuver le coffre pour le transfert",
+          "approveButton": "Approuver",
+          "depositLabel": "Déposer dans le coffre",
+          "depositButton": "Déposer",
+          "toasts": {
+            "lockedTitle": "Genesis verrouillé",
+            "lockedMessage": "Votre NFT genesis est maintenant verrouillé dans le coffre. Prêt à ouvrir votre vente."
+          }
+        },
+        "saleStep": {
+          "title": "Étape 3 — Ouvrir votre vente de token",
+          "description": "Une transaction : déploie l'escrow de vente, y mint les tokens à vendre, et le lie à votre coffre.",
+          "priceLabel": "Prix par token (USDC)",
+          "tokensForSaleLabel": "Tokens à vendre",
+          "startLabel": "Début",
+          "endLabel": "Fin",
+          "confirming": "Confirmation…",
+          "openSaleButton": "Ouvrir la vente",
+          "toasts": {
+            "openedTitle": "Vente ouverte",
+            "openedMessage": "Votre vente de token de soutien est maintenant en ligne.",
+            "missingFieldsTitle": "Champs manquants",
+            "missingFieldsMessage": "Remplissez tous les champs avant d'ouvrir la vente.",
+            "invalidWindowTitle": "Période invalide",
+            "invalidWindowMessage": "L'heure de fin doit être après l'heure de début."
+          }
+        }
+      }
+    },
+    "client": {
+      "dashboardPage": {
+        "title": "Mon tableau de bord",
+        "loggedOutTitle": "Déconnecté",
+        "loggedOutDescription": "À bientôt !"
+      },
+      "activityTimeline": {
+        "title": "Historique d'activité",
+        "subtitle": "Suivez votre engagement et vos interactions dans le temps",
+        "likes": "J'aime",
+        "supports": "Soutiens",
+        "eventsAttended": "Événements suivis"
+      },
+      "brandLikes": {
+        "totalLikesReceived": "Total de {count, plural, one {like reçu} other {likes reçus}}",
+        "noLikesTitle": "Pas encore de likes",
+        "noLikesSubtitle": "Votre marque apparaîtra bientôt dans la section découverte !",
+        "usersWhoLikedTitle": "Utilisateurs qui ont aimé votre marque"
+      },
+      "myTickets": {
+        "title": "Mes billets",
+        "noTicketsTitle": "Pas encore de billets",
+        "noTicketsSubtitle": "Achetez des billets depuis la page Événements pour les voir ici",
+        "columnEvent": "Événement",
+        "columnQuantity": "Quantité",
+        "columnPaid": "Payé",
+        "columnDate": "Date",
+        "free": "Gratuit",
+        "unknownEvent": "Événement inconnu"
+      },
+      "myTokens": {
+        "title": "Mes unités de badges",
+        "totalSupportValue": "Valeur totale de soutien (référence, pas un prix de marché) :",
+        "noBadgesTitle": "Pas encore de badges",
+        "noBadgesSubtitle": "Commencez à soutenir des marques pour voir vos badges ici",
+        "columnBadge": "Badge",
+        "columnHoldings": "Mes avoirs",
+        "columnValue": "Valeur (base)",
+        "columnActions": "Actions",
+        "unitsSuffix": "unités",
+        "ofTotalSupply": "{percent} de l'offre totale",
+        "perUnit": "{price} / unité",
+        "moreDetails": "Plus de détails",
+        "supportLevelHigh": "Élevé",
+        "supportLevelMedium": "Moyen",
+        "supportLevelLow": "Faible",
+        "supportLevelSuffix": "niveau de soutien"
+      },
+      "portfolioValueChart": {
+        "title": "Soutien communautaire dans le temps",
+        "subtitle": "Suivez l'évolution de votre soutien communautaire global, sans dimension financière ou spéculative",
+        "supportScoreTooltip": "Score de soutien"
+      },
+      "upcomingEvents": {
+        "title": "Événements",
+        "upcomingOption": "Événements à venir",
+        "pastOption": "Événements passés",
+        "noEventsUpcoming": "Aucun événement à venir",
+        "noEventsPast": "Aucun événement passé",
+        "columnEvent": "Événement",
+        "columnDate": "Date",
+        "columnLocation": "Lieu",
+        "columnType": "Type",
+        "columnActions": "Actions",
+        "viewDetails": "Voir les détails",
+        "onlineTba": "En ligne / À déterminer",
+        "today": "Aujourd'hui",
+        "tomorrow": "Demain",
+        "daysAgo": "Il y a {days, plural, one {# jour} other {# jours}}",
+        "inDays": "Dans {days, plural, one {# jour} other {# jours}}"
+      },
+      "userLikes": {
+        "title": "Mes marques aimées",
+        "brandsCount": "{count, plural, one {# marque} other {# marques}} qui ont retenu votre intérêt",
+        "noLikedTitle": "Aucune marque aimée pour l'instant",
+        "noLikedSubtitle": "Commencez à swiper pour découvrir des marques que vous allez adorer !",
+        "columnBrand": "Marque",
+        "columnLikedOn": "Aimée le",
+        "columnActions": "Actions",
+        "visitWebsite": "Visiter le site",
+        "moreDetails": "Plus de détails",
+        "dislike": "Ne plus aimer",
+        "removeAriaLabel": "Retirer des favoris"
+      }
+    }
+  },
+  "discover": {
+    "page": {
+      "likesFetchErrorTitle": "Erreur",
+      "likesFetchErrorMessage": "Impossible de récupérer vos marques likées.",
+      "brandsFetchErrorTitle": "Erreur",
+      "brandsFetchErrorMessage": "Impossible de charger les marques. Veuillez réessayer.",
+      "industryFallback": "Général",
+      "descriptionFallback": "Aucune description disponible.",
+      "brandLikedTitle": "Marque likée !",
+      "brandLikedMessage": "Vous avez liké cette marque avec succès.",
+      "likeErrorTitle": "Erreur",
+      "likeErrorFallback": "Impossible de liker cette marque. Veuillez réessayer.",
+      "noBrandsAvailable": "Aucune marque disponible pour le moment."
+    },
+    "header": {
+      "title": "Découvrir des marques",
+      "searchPlaceholder": "Rechercher des marques",
+      "closeSearchAria": "Fermer la recherche",
+      "searchAria": "Rechercher"
+    },
+    "instructions": {
+      "swipeLeft": "Glissez à gauche pour passer",
+      "swipeRight": "Glissez à droite pour liker"
+    },
+    "detailModal": {
+      "closeAria": "Fermer",
+      "dislikeAria": "Ne pas aimer",
+      "likeAria": "Aimer",
+      "noImageAvailable": "Aucune image disponible",
+      "viewImageAria": "Voir l'image {index}",
+      "previousImageAria": "Image précédente",
+      "nextImageAria": "Image suivante",
+      "about": "À propos",
+      "badgeInformation": "Informations sur le badge",
+      "tokenInformation": "Informations sur le token",
+      "symbol": "Symbole",
+      "currentPrice": "Prix actuel",
+      "holders": "Détenteurs",
+      "totalRaised": "Total collecté",
+      "noBadgeAvailable": "Aucun badge disponible",
+      "noBadgeAvailableHint": "Cette marque n'a pas encore émis de badges",
+      "visitWebsite": "Visiter le site web",
+      "gallery": "Galerie"
+    }
+  },
+  "events": {
+    "page": {
+      "title": "Événements",
+      "noEventsPublished": "Aucun événement publié pour le moment.",
+      "getTickets": "Obtenir des billets",
+      "ticketsComingSoon": "Billets bientôt disponibles",
+      "onlineOrTba": "En ligne / À confirmer",
+      "loggedOutTitle": "Déconnecté",
+      "loggedOutMessage": "À bientôt !"
+    },
+    "purchaseModal": {
+      "description": "Achetez vos billets pour cet événement, payables en USDC.",
+      "notOnSaleYet": "Les billets ne sont pas encore en vente pour cet événement.",
+      "yourUsdcBalance": "Votre solde USDC",
+      "ticketTypeLabel": "Type de billet",
+      "ticketOption": "Billet #{tokenId} — {price}",
+      "free": "Gratuit",
+      "quantityLabel": "Quantité",
+      "total": "Total : {amount}",
+      "selectTicketTitle": "Sélectionnez un billet",
+      "selectTicketMessage": "Choisissez un type de billet et une quantité.",
+      "syncingLabel": "Confirmé on-chain — synchronisation…",
+      "confirmingPurchase": "Confirmation de l'achat…",
+      "confirmingApproval": "Confirmation de l'approbation…",
+      "approveUsdc": "Approuver l'USDC",
+      "buyTickets": "Acheter les billets",
+      "notAvailableYet": "Pas encore disponible",
+      "close": "Fermer",
+      "ticketPurchasedTitle": "Billet acheté",
+      "ticketPurchasedMessage": "Vous allez à {eventTitle} !"
+    }
+  },
+  "investment": {
+    "title": "Soutenir {brandName}",
+    "description": "Vous avez liké cette marque ! Montrez votre soutien avec un badge communautaire — ceci n'est pas un investissement : aucun rendement financier n'est promis et les badges ne représentent pas une part du capital de la marque.",
+    "tokenSymbol": "Symbole du token",
+    "yourUsdcBalance": "Votre solde USDC",
+    "howManyTokens": "Combien de tokens ?",
+    "estimatedCost": "Coût estimé : {amount} USDC",
+    "needFaucet": "Besoin d'USDC de test ? Obtenez {amount} depuis le faucet",
+    "requestingFaucet": "Demande d'USDC de test en cours…",
+    "refundable": "Remboursable",
+    "saleCancelledMessage": "Cette vente a été annulée. Vous pouvez demander un remboursement pour les tokens que vous avez achetés.",
+    "howManyToRefund": "Combien de tokens rembourser ?",
+    "noSaleYet": "Cette marque n'a pas encore ouvert de vente de tokens",
+    "checkBackSoon": "Revenez bientôt !",
+    "syncingLabel": "Confirmé on-chain — synchronisation…",
+    "confirmingPurchase": "Confirmation de l'achat…",
+    "confirmingApproval": "Confirmation de l'approbation…",
+    "approveUsdc": "Approuver l'USDC",
+    "supportBrand": "Soutenir cette marque",
+    "confirmingRefund": "Confirmation du remboursement…",
+    "approveTokens": "Approuver les tokens",
+    "claimRefund": "Demander le remboursement",
+    "noBadgeAvailable": "Aucun badge disponible pour l'instant",
+    "later": "Plus tard",
+    "close": "Fermer",
+    "enterAmountTitle": "Saisissez un montant",
+    "enterAmountTokensMessage": "Combien de tokens souhaitez-vous ?",
+    "enterAmountRefundMessage": "Combien de tokens souhaitez-vous vous faire rembourser ?",
+    "amountTooHighTitle": "Montant trop élevé",
+    "amountTooHighMessage": "Vous ne pouvez pas rembourser plus que ce que vous avez acheté à l'origine.",
+    "supportConfirmedTitle": "Soutien confirmé",
+    "supportConfirmedMessage": "Vous détenez désormais des {symbol} de {brandName}.",
+    "refundSubmittedTitle": "Remboursement envoyé",
+    "refundSubmittedMessage": "Votre remboursement a été confirmé on-chain — votre solde sera mis à jour sous peu.",
+    "tokensFallback": "tokens"
+  },
+  "brandApplication": {
+    "toasts": {
+      "emailTakenTitle": "Email déjà utilisé",
+      "emailTakenDescription": "Cet email est déjà utilisé par un compte existant. Merci d'utiliser un email différent pour le contact de la marque."
+    }
+  },
+  "navbar": {
+    "home": "Accueil",
+    "discover": "Découvrir",
+    "dashboard": "Tableau de bord",
+    "feed": "Fil d'actualité",
+    "events": "Événements",
+    "browseBrands": "Parcourir les marques",
+    "login": "Connexion",
+    "signUp": "S'inscrire",
+    "userMenu": {
+      "title": "Menu utilisateur",
+      "userAccount": "Compte utilisateur",
+      "profile": "Mon profil",
+      "createBrand": "Créer votre marque",
+      "wallet": "Portefeuille",
+      "logout": "Déconnexion"
+    },
+    "notificationBell": {
+      "ariaLabel": "Notifications",
+      "title": "Notifications",
+      "empty": "Aucune notification pour le moment",
+      "justNow": "à l'instant",
+      "minutesAgo": "il y a {minutes} min",
+      "hoursAgo": "il y a {hours} h",
+      "daysAgo": "il y a {days} j"
     }
   }
 }

@@ -1,8 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Token } from '../domain/token';
 import { TokenHolder } from '../domain/token-holder';
 import { TokenTransaction } from '../domain/token-transaction';
 import { PortfolioEntry } from '../domain/token-holder.repository';
+import { TokenChainInfo } from '../../chain-sync/application/get-token-chain-info.use-case';
+
+export class TokenSaleResponse {
+  @ApiProperty() escrowAddress: string;
+  @ApiProperty() pricePerToken: string;
+  @ApiProperty() totalForSale: string;
+  @ApiProperty() soldAmount: string;
+  @ApiProperty() status: string;
+  @ApiProperty({ format: 'date-time' }) startTime: string;
+  @ApiProperty({ format: 'date-time' }) endTime: string;
+}
 
 export class TokenResponse {
   @ApiProperty({ format: 'uuid' }) id: string;
@@ -14,6 +26,11 @@ export class TokenResponse {
   @ApiProperty({ type: String, nullable: true }) nftName: string | null;
   @ApiProperty({ type: String, nullable: true }) nftSymbol: string | null;
   @ApiProperty({ format: 'date-time' }) createdAt: string;
+  @ApiProperty({ type: String, nullable: true }) supportTokenAddress:
+    string | null;
+  @ApiProperty({ type: String, nullable: true }) vaultAddress: string | null;
+  @ApiProperty({ type: TokenSaleResponse, nullable: true })
+  sale: TokenSaleResponse | null;
 }
 
 export class TokenHolderResponse {
@@ -26,7 +43,7 @@ export class TokenTransactionResponse {
   @ApiProperty({ format: 'uuid' }) id: string;
   @ApiProperty({ format: 'uuid' }) tokenId: string;
   @ApiProperty({ type: String, nullable: true }) fromUserId: string | null;
-  @ApiProperty({ format: 'uuid' }) toUserId: string;
+  @ApiProperty({ type: String, nullable: true }) toUserId: string | null;
   @ApiProperty() amount: number;
   @ApiProperty() transactionType: string;
   @ApiProperty({ type: Number, nullable: true }) pricePerToken: number | null;
@@ -38,7 +55,26 @@ export class PortfolioEntryResponse {
   @ApiProperty({ type: TokenResponse }) token: TokenResponse;
 }
 
-export const toTokenResponse = (t: Token): TokenResponse => ({
+export class PaginatedTokenTransactionsResponse {
+  @ApiProperty({ type: TokenTransactionResponse, isArray: true })
+  transactions: TokenTransactionResponse[];
+  @ApiProperty() total: number;
+}
+
+export class PaginatedTokenHoldersResponse {
+  @ApiProperty({ type: TokenHolderResponse, isArray: true })
+  holders: TokenHolderResponse[];
+  @ApiProperty() total: number;
+}
+
+export class TokenBalanceResponse {
+  @ApiProperty() balance: number;
+}
+
+export const toTokenResponse = (
+  t: Token,
+  chainInfo?: TokenChainInfo,
+): TokenResponse => ({
   id: t.id,
   brandId: t.brandId,
   symbol: t.symbol,
@@ -47,7 +83,20 @@ export const toTokenResponse = (t: Token): TokenResponse => ({
   nftTokenId: t.nftTokenId,
   nftName: t.nftName,
   nftSymbol: t.nftSymbol,
-  createdAt: t.createdAt.toISOString(),
+  createdAt: toIso(t.createdAt),
+  supportTokenAddress: chainInfo?.supportTokenAddress ?? null,
+  vaultAddress: chainInfo?.vaultAddress ?? null,
+  sale: chainInfo?.sale
+    ? {
+        escrowAddress: chainInfo.sale.escrowAddress,
+        pricePerToken: chainInfo.sale.pricePerToken,
+        totalForSale: chainInfo.sale.totalForSale,
+        soldAmount: chainInfo.sale.soldAmount,
+        status: chainInfo.sale.status,
+        startTime: toIso(chainInfo.sale.startTime),
+        endTime: toIso(chainInfo.sale.endTime),
+      }
+    : null,
 });
 
 export const toHolderResponse = (h: TokenHolder): TokenHolderResponse => ({
@@ -66,7 +115,7 @@ export const toTransactionResponse = (
   amount: t.amount,
   transactionType: t.transactionType,
   pricePerToken: t.pricePerToken,
-  createdAt: t.createdAt.toISOString(),
+  createdAt: toIso(t.createdAt),
 });
 
 export const toPortfolioEntryResponse = (

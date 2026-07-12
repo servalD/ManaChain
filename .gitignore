@@ -5,6 +5,7 @@
 /contracts/out
 **/dist
 **/next-env.d.ts
+**/tsconfig.tsbuildinfo
 /contracts/broadcast
 **/.pnpm-*
 ARCHITECTURE.md
@@ -28,3 +29,10 @@ contracts/manachain_audit_report.md
 /infra/terraform/terraform.tfvars
 /infra/ansible/inventory/
 /infra/ansible/vault.yml
+
+courses
+temp-plan
+SECURITY_AUDIT.md
+
+# Demo seed — état généré par demo/seed-api.ts + contracts/script/SeedDemo.s.sol
+/contracts/config/demo-seed.output.json

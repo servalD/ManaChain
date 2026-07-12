@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { User, LogOut, UserCircle, ChevronDown, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { User, LogOut, UserCircle, ChevronDown, Wallet, Rocket } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import PinataService from "@/services/pinata.service";
 
 interface UserMenuProps {
   userName: string;
   userAvatarUrl?: string | null;
+  userRole?: 'CLIENT' | 'BRANDUSER' | 'ADMIN';
   onLogout: () => void;
   onProfile?: () => void;
   onWalletConnected?: (address: string) => void;
@@ -16,15 +19,18 @@ interface UserMenuProps {
   shouldDisconnectWallet?: boolean;
 }
 
-export function UserMenu({ 
-  userName, 
+export function UserMenu({
+  userName,
   userAvatarUrl,
-  onLogout, 
+  userRole,
+  onLogout,
   onProfile,
   onWalletConnected,
   onWalletDisconnected,
   shouldDisconnectWallet,
 }: UserMenuProps) {
+  const t = useTranslations("navbar.userMenu");
+  const router = useRouter();
   const displayAvatarUrl = userAvatarUrl ? PinataService.normalizeIpfsUrl(userAvatarUrl) : null;
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -58,13 +64,18 @@ export function UserMenu({
     onLogout();
   };
 
+  const handleCreateBrandClick = () => {
+    setIsOpen(false);
+    router.push("/brand-application");
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 p-2 rounded-xl bg-accent/50 border border-border hover:bg-accent transition-all group"
-        title="User Menu"
+        title={t("title")}
       >
         <User className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition-colors shrink-0" />
         <ChevronDown
@@ -105,7 +116,7 @@ export function UserMenu({
               )}
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{userName}</p>
-                <p className="text-xs text-muted-foreground">User Account</p>
+                <p className="text-xs text-muted-foreground">{t("userAccount")}</p>
               </div>
             </div>
           </div>
@@ -116,7 +127,7 @@ export function UserMenu({
             <div className="lg:hidden px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Wallet className="w-4 h-4 text-violet-400" />
-                <span className="text-xs font-medium text-muted-foreground">Wallet</span>
+                <span className="text-xs font-medium text-muted-foreground">{t("wallet")}</span>
               </div>
               <WalletConnectButton 
                 onConnected={onWalletConnected}
@@ -131,8 +142,19 @@ export function UserMenu({
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
             >
               <UserCircle className="w-4 h-4 text-violet-400" />
-              <span>My Profile</span>
+              <span>{t("profile")}</span>
             </button>
+
+            {/* Create Brand Button - CLIENT only (BRANDUSER already owns a brand) */}
+            {userRole === "CLIENT" && (
+              <button
+                onClick={handleCreateBrandClick}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all"
+              >
+                <Rocket className="w-4 h-4 text-violet-400" />
+                <span>{t("createBrand")}</span>
+              </button>
+            )}
 
             {/* Logout Button */}
             <button
@@ -140,7 +162,7 @@ export function UserMenu({
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all"
             >
               <LogOut className="w-4 h-4" />
-              <span>Logout</span>
+              <span>{t("logout")}</span>
             </button>
           </div>
         </div>

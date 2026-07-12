@@ -5,14 +5,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {BrandGenesisNFT} from "../brand/BrandGenesisNFT.sol";
 import {FractionalVault} from "../brand/FractionalVault.sol";
 import {BrandSupportToken} from "../brand/BrandSupportToken.sol";
-
-/**
- * @title IManaAdmin
- * @notice Minimal interface for ManaAdmin used by BrandFactory (whitelist check).
- */
-interface IManaAdmin {
-    function isBrandAllowed(address brand) external view returns (bool);
-}
+import {IManaAdmin} from "../interfaces/IManaAdmin.sol";
 
 /**
  * @title BrandFactory
@@ -28,6 +21,12 @@ contract BrandFactory {
 
     /// @dev brand => true if deployBrandModule was already called for this brand.
     mapping(address => bool) private _hasDeployed;
+
+    /// @dev On-chain registry of deployed modules, consumed by SaleFactory and the indexer.
+    mapping(address => address) private _genesisNFTOf; // brand => genesis NFT proxy
+    mapping(address => address) private _vaultOf; // brand => vault proxy
+    mapping(address => address) private _supportTokenOf; // brand => support token proxy
+    mapping(address => address) private _brandOfVault; // vault proxy => brand
 
     event BrandModuleDeployed(
         address indexed brand,
@@ -114,7 +113,33 @@ contract BrandFactory {
         // 5) Transfer vault ownership to brand
         FractionalVault(vault).transferOwnership(brand);
 
+        // 6) Register the module so SaleFactory can authenticate the brand's vault
+        _genesisNFTOf[brand] = genesisNFT;
+        _vaultOf[brand] = vault;
+        _supportTokenOf[brand] = supportToken;
+        _brandOfVault[vault] = brand;
+
         emit BrandModuleDeployed(brand, genesisNFT, vault, supportToken);
+    }
+
+    /// @notice Genesis NFT proxy deployed for `brand` (zero if none).
+    function genesisNFTOf(address brand) external view returns (address) {
+        return _genesisNFTOf[brand];
+    }
+
+    /// @notice Vault proxy deployed for `brand` (zero if none).
+    function vaultOf(address brand) external view returns (address) {
+        return _vaultOf[brand];
+    }
+
+    /// @notice Support token proxy deployed for `brand` (zero if none).
+    function supportTokenOf(address brand) external view returns (address) {
+        return _supportTokenOf[brand];
+    }
+
+    /// @notice Brand that owns `vault` (zero if the vault was not deployed by this factory).
+    function brandOfVault(address vault) external view returns (address) {
+        return _brandOfVault[vault];
     }
 
     /// @notice Returns true if the brand has already deployed its module (one per brand).

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getBrandApplicationsControllerCreateMutationOptions,
@@ -42,7 +43,7 @@ export function toCreateBrandApplicationRequest(
     headquartersCity: data.headquarters_city,
     headquartersZipCode: data.headquarters_zip_code,
     headquartersAddressComplement: data.headquarters_address_complement,
-    registrationProofUrl: data.registration_proof_url,
+    registrationProofUploadId: data.registration_proof_upload_id,
     motivation: data.motivation,
     estimatedCommunitySize: data.estimated_community_size,
     socialMediaLinks: data.social_media_links,
@@ -52,6 +53,8 @@ export function toCreateBrandApplicationRequest(
 
 /** Déposer une candidature de marque (remplace `BrandApplicationService.createApplication`). */
 export function useCreateBrandApplication() {
+  const t = useTranslations("brandApplication.toasts");
+
   return useToastMutation({
     ...getBrandApplicationsControllerCreateMutationOptions(),
     successToast: () => ({
@@ -64,6 +67,13 @@ export function useCreateBrandApplication() {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
         const message = axiosErr.response.data?.message;
+        if (axiosErr.response.data?.error === "ApplicationContactEmailAlreadyRegisteredError") {
+          return {
+            title: t("emailTakenTitle"),
+            description: t("emailTakenDescription"),
+            variant: "error",
+          };
+        }
         switch (axiosErr.response.status) {
           case 400:
             return { title: "Validation error", description: message || "Please check your information", variant: "error" };
@@ -151,11 +161,23 @@ export function useApproveBrandApplication() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandApplicationsControllerApproveMutationOptions(),
-    successToast: () => ({
-      title: "Application approved",
-      description: "The brand application has been approved successfully. A user account has been created.",
-      variant: "success",
-    }),
+    successToast: (data) => {
+      // temporaryPassword is only ever present in dev/démo (SKIP_EMAIL_VERIFICATION) —
+      // in prod it's always undefined, sent by email instead, never shown here.
+      if (data.temporaryPassword) {
+        return {
+          title: "Application approved (dev)",
+          description: `Account created — ${data.username} / ${data.temporaryPassword}`,
+          variant: "success",
+          duration: 15000,
+        };
+      }
+      return {
+        title: "Application approved",
+        description: "The brand application has been approved successfully. A user account has been created.",
+        variant: "success",
+      };
+    },
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {

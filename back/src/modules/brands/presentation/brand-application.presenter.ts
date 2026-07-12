@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { BrandApplication } from '../domain/brand-application';
 
 export class BrandApplicationResponse {
@@ -16,12 +17,27 @@ export class BrandApplicationResponse {
   @ApiProperty() emailVerified: boolean;
   @ApiProperty({ type: String, nullable: true }) rejectionReason: string | null;
   @ApiProperty({ format: 'date-time' }) createdAt: string;
+  @ApiProperty({ type: String, nullable: true })
+  registrationProofFileName: string | null;
 }
 
 export class PaginatedApplicationsResponse {
   @ApiProperty({ type: BrandApplicationResponse, isArray: true })
   applications: BrandApplicationResponse[];
   @ApiProperty() total: number;
+}
+
+export class RegistrationProofUploadResponse {
+  @ApiProperty({ format: 'uuid' }) uploadId: string;
+}
+
+export class ApproveApplicationResponse {
+  @ApiProperty({ format: 'uuid' }) userId: string;
+  @ApiProperty({ format: 'uuid' }) brandId: string;
+  @ApiProperty() username: string;
+  /** Uniquement en dev/démo (SKIP_EMAIL_VERIFICATION) — jamais renvoyé en prod, le mot de passe part par email. */
+  @ApiProperty({ type: String, required: false })
+  temporaryPassword?: string;
 }
 
 export const toApplicationResponse = (
@@ -40,5 +56,6 @@ export const toApplicationResponse = (
   status: a.status,
   emailVerified: a.emailVerified,
   rejectionReason: a.rejectionReason,
-  createdAt: a.createdAt.toISOString(),
+  createdAt: toIso(a.createdAt),
+  registrationProofFileName: a.registrationProofFileName,
 });

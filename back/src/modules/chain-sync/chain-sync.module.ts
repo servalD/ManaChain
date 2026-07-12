@@ -1,0 +1,279 @@
+import { Module, Provider } from '@nestjs/common';
+import { makeGaugeProvider } from '@willsoto/nestjs-prometheus';
+import { UsersModule } from '../users/users.module';
+import { BrandsModule } from '../brands/brands.module';
+import { TokensModule } from '../tokens/tokens.module';
+import { EventsModule } from '../events/events.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { ChainRegistryModule } from './infrastructure/chain-registry.module';
+import { TokenSaleRepository } from './domain/token-sale.repository';
+import { BrandContractsRepository } from './domain/brand-contracts.repository';
+import { UserRepository } from '../users/domain/user.repository';
+import { TokenHolderRepository } from '../tokens/domain/token-holder.repository';
+import { NotificationRepository } from '../notifications/domain/notification.repository';
+import { ChainEventHandler } from './domain/chain-event-handler';
+import {
+  CHAIN_EVENT_HANDLERS,
+  TICKET_EVENT_HANDLERS,
+} from './application/chain-event-handlers.token';
+import { BrandModuleDeployedHandler } from './application/handlers/brand-module-deployed.handler';
+import { TokenSaleDeployedHandler } from './application/handlers/token-sale-deployed.handler';
+import { BoughtHandler } from './application/handlers/bought.handler';
+import { RefundClaimedHandler } from './application/handlers/refund-claimed.handler';
+import { Erc20TransferHandler } from './application/handlers/erc20-transfer.handler';
+import { SaleStatusHandler } from './application/handlers/sale-status.handler';
+import { BrandFlagHandler } from './application/handlers/brand-flag.handler';
+import { EventModuleDeployedHandler } from './application/handlers/event-module-deployed.handler';
+import { TicketSaleDeployedHandler } from './application/handlers/ticket-sale-deployed.handler';
+import { PriceSetHandler } from './application/handlers/price-set.handler';
+import { TicketsMintedHandler } from './application/handlers/tickets-minted.handler';
+import { TicketBoughtHandler } from './application/handlers/ticket-bought.handler';
+import { ChainSyncService } from './application/chain-sync.service';
+import { ReconcileUserChainDataUseCase } from './application/reconcile-user-chain-data.use-case';
+import { UnlinkUserChainDataUseCase } from './application/unlink-user-chain-data.use-case';
+import { UserBlockchainAddressLinkedListener } from './application/user-blockchain-address-linked.listener';
+import { ChainSyncController } from './presentation/chain-sync.controller';
+import { TransactionRunner } from '../../shared/application/transaction-runner';
+
+const SALE_CLOSED = 'SaleClosedHandler';
+const SALE_CANCELLED_BY_ADMIN = 'SaleCancelledByAdminHandler';
+const SALE_CANCELLED_BY_BRAND = 'SaleCancelledByBrandHandler';
+const BRAND_WHITELISTED = 'BrandWhitelistedHandler';
+const BRAND_BLACKLISTED = 'BrandBlacklistedHandler';
+
+const saleStatusHandlerProviders: Provider[] = [
+  {
+    provide: SALE_CLOSED,
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
+      new SaleStatusHandler(
+        'SaleClosed',
+        'closed',
+        tokenSales,
+        tokenHolders,
+        notifications,
+        tx,
+      ),
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
+  },
+  {
+    provide: SALE_CANCELLED_BY_ADMIN,
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
+      new SaleStatusHandler(
+        'SaleCancelledByAdmin',
+        'cancelled_by_admin',
+        tokenSales,
+        tokenHolders,
+        notifications,
+        tx,
+      ),
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
+  },
+  {
+    provide: SALE_CANCELLED_BY_BRAND,
+    useFactory: (
+      tokenSales: TokenSaleRepository,
+      tokenHolders: TokenHolderRepository,
+      notifications: NotificationRepository,
+      tx: TransactionRunner,
+    ) =>
+      new SaleStatusHandler(
+        'SaleCancelledByBrand',
+        'cancelled_by_brand',
+        tokenSales,
+        tokenHolders,
+        notifications,
+        tx,
+      ),
+    inject: [
+      TokenSaleRepository,
+      TokenHolderRepository,
+      NotificationRepository,
+      TransactionRunner,
+    ],
+  },
+];
+
+const brandFlagHandlerProviders: Provider[] = [
+  {
+    provide: BRAND_WHITELISTED,
+    useFactory: (
+      brandContracts: BrandContractsRepository,
+      tx: TransactionRunner,
+      users: UserRepository,
+      notifications: NotificationRepository,
+    ) =>
+      new BrandFlagHandler(
+        'BrandWhitelisted',
+        'allowed',
+        'setWhitelisted',
+        brandContracts,
+        tx,
+        users,
+        notifications,
+      ),
+    inject: [
+      BrandContractsRepository,
+      TransactionRunner,
+      UserRepository,
+      NotificationRepository,
+    ],
+  },
+  {
+    provide: BRAND_BLACKLISTED,
+    useFactory: (
+      brandContracts: BrandContractsRepository,
+      tx: TransactionRunner,
+      users: UserRepository,
+      notifications: NotificationRepository,
+    ) =>
+      new BrandFlagHandler(
+        'BrandBlacklisted',
+        'banned',
+        'setBlacklisted',
+        brandContracts,
+        tx,
+        users,
+        notifications,
+      ),
+    inject: [
+      BrandContractsRepository,
+      TransactionRunner,
+      UserRepository,
+      NotificationRepository,
+    ],
+  },
+];
+
+const chainEventHandlersProvider: Provider = {
+  provide: CHAIN_EVENT_HANDLERS,
+  useFactory: (
+    brandModuleDeployed: BrandModuleDeployedHandler,
+    tokenSaleDeployed: TokenSaleDeployedHandler,
+    bought: BoughtHandler,
+    refundClaimed: RefundClaimedHandler,
+    erc20Transfer: Erc20TransferHandler,
+    saleClosed: SaleStatusHandler,
+    saleCancelledByAdmin: SaleStatusHandler,
+    saleCancelledByBrand: SaleStatusHandler,
+    brandWhitelisted: BrandFlagHandler,
+    brandBlacklisted: BrandFlagHandler,
+    eventModuleDeployed: EventModuleDeployedHandler,
+    ticketSaleDeployed: TicketSaleDeployedHandler,
+  ): ChainEventHandler[] => [
+    brandModuleDeployed,
+    tokenSaleDeployed,
+    bought,
+    refundClaimed,
+    erc20Transfer,
+    saleClosed,
+    saleCancelledByAdmin,
+    saleCancelledByBrand,
+    brandWhitelisted,
+    brandBlacklisted,
+    eventModuleDeployed,
+    ticketSaleDeployed,
+  ],
+  inject: [
+    BrandModuleDeployedHandler,
+    TokenSaleDeployedHandler,
+    BoughtHandler,
+    RefundClaimedHandler,
+    Erc20TransferHandler,
+    SALE_CLOSED,
+    SALE_CANCELLED_BY_ADMIN,
+    SALE_CANCELLED_BY_BRAND,
+    BRAND_WHITELISTED,
+    BRAND_BLACKLISTED,
+    EventModuleDeployedHandler,
+    TicketSaleDeployedHandler,
+  ],
+};
+
+/**
+ * Groupe séparé : `TicketSale.Bought` partage son nom avec
+ * `TokenSaleEscrow.Bought` (dispatché via `CHAIN_EVENT_HANDLERS` ci-dessus) —
+ * les deux ne peuvent pas cohabiter dans une seule map de dispatch (voir
+ * `chain-sync.service.ts`).
+ */
+const ticketEventHandlersProvider: Provider = {
+  provide: TICKET_EVENT_HANDLERS,
+  useFactory: (
+    priceSet: PriceSetHandler,
+    ticketsMinted: TicketsMintedHandler,
+    ticketBought: TicketBoughtHandler,
+  ): ChainEventHandler[] => [priceSet, ticketsMinted, ticketBought],
+  inject: [PriceSetHandler, TicketsMintedHandler, TicketBoughtHandler],
+};
+
+/**
+ * Miroir SQL de la chaîne (voir `temp-plan/phase-2-back-chain-sync.md`,
+ * `phase-4-events-tickets.md` et `phase-5-admin-notifs-bans.md`). Lit Fuji en
+ * lecture seule via `ChainReader` (viem) ; n'écrit jamais on-chain.
+ *
+ * Dépend de `UsersModule`/`BrandsModule`/`TokensModule`/`EventsModule`/
+ * `NotificationsModule` (un seul sens : ces modules n'importent pas
+ * `ChainSyncModule` en retour) — les
+ * ports purs de chain-sync dont ils ont besoin (`BrandContractsRepository`/
+ * `TokenSaleRepository`/`EventContractsRepository`/`EventTicketTypeRepository`
+ * /`EventTicketPurchaseRepository`/`ChainReader`) viennent de
+ * `ChainRegistryModule` (`@Global()`), et le rattrapage déclenché par
+ * `PUT /users/me/blockchain-address` passe par un event
+ * (`UserBlockchainAddressLinkedListener`), pas par une injection directe.
+ */
+@Module({
+  imports: [
+    ChainRegistryModule,
+    UsersModule,
+    BrandsModule,
+    TokensModule,
+    EventsModule,
+    NotificationsModule,
+  ],
+  controllers: [ChainSyncController],
+  providers: [
+    BrandModuleDeployedHandler,
+    TokenSaleDeployedHandler,
+    BoughtHandler,
+    RefundClaimedHandler,
+    Erc20TransferHandler,
+    EventModuleDeployedHandler,
+    TicketSaleDeployedHandler,
+    PriceSetHandler,
+    TicketsMintedHandler,
+    TicketBoughtHandler,
+    ...saleStatusHandlerProviders,
+    ...brandFlagHandlerProviders,
+    chainEventHandlersProvider,
+    ticketEventHandlersProvider,
+    makeGaugeProvider({
+      name: 'chain_sync_lag_blocks',
+      help: 'Blocks between the safe chain tip and the last block processed by chain-sync',
+    }),
+    ChainSyncService,
+    ReconcileUserChainDataUseCase,
+    UnlinkUserChainDataUseCase,
+    UserBlockchainAddressLinkedListener,
+  ],
+  exports: [UnlinkUserChainDataUseCase],
+})
+export class ChainSyncModule {}

@@ -12,6 +12,8 @@ export interface FormData {
   contact_first_name: string;
   contact_last_name: string;
   contact_phone: string;
+  /** Country selected in the phone dropdown — the dial code isn't part of `contact_phone` itself. */
+  contact_phone_country_code: string;
   // Brand Information
   brand_name: string;
   industry_type: string;
@@ -36,7 +38,7 @@ export interface FormData {
   };
   how_did_you_hear_about_us: string;
   // Documents
-  registration_proof_url: string;
+  registration_proof_upload_id: string;
 }
 
 export interface FileMetadata {

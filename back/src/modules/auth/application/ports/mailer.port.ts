@@ -1,7 +1,7 @@
 /**
  * PORT : envoi des emails transactionnels d'authentification. Les méthodes sont
- * sémantiques (pas de HTML/SMTP ici) : l'adapter rend le template et envoie, et
- * construit les URLs (front) à partir du token + de la config.
+ * sémantiques (pas de HTML/transport ici) : l'adapter rend le template et
+ * envoie, et construit les URLs (front) à partir du token + de la config.
  */
 export abstract class Mailer {
   abstract sendEmailVerification(
@@ -19,4 +19,14 @@ export abstract class Mailer {
   ): Promise<void>;
 
   abstract sendPasswordChanged(to: string, username: string): Promise<void>;
+
+  abstract sendTwoFactorEnabled(to: string, username: string): Promise<void>;
+
+  abstract sendTwoFactorDisabled(to: string, username: string): Promise<void>;
+
+  /** Rappel de rotation du mot de passe (backlog sécu CNIL, 60 jours). */
+  abstract sendPasswordExpiryReminder(
+    to: string,
+    username: string,
+  ): Promise<void>;
 }

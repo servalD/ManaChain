@@ -9,7 +9,7 @@ import {ManaAdmin} from "../../src/access/ManaAdmin.sol";
 import {EventFactory} from "../../src/factory/EventFactory.sol";
 import {EventTickets} from "../../src/events/EventTickets.sol";
 import {TicketSale} from "../../src/events/TicketSale.sol";
-import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {MockUSDC} from "../../src/mocks/MockUSDC.sol";
 import {ManaRoles} from "../../src/constants/ManaRoles.sol";
 
 /**
@@ -47,13 +47,7 @@ contract EventFlowTest is Test {
     uint256 public endTime;
 
     function setUp() public {
-        vm.chainId(84532);
-
-        // Etch MockUSDC at canonical Base Sepolia USDC address
         usdc = new MockUSDC();
-        address usdcAddr = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-        vm.etch(usdcAddr, address(usdc).code);
-        usdc = MockUSDC(usdcAddr);
 
         // —— 1. Deploy ManaAdmin proxy ——
         ManaAdmin adminImpl = new ManaAdmin();
@@ -92,14 +86,7 @@ contract EventFlowTest is Test {
             endTime
         );
 
-        // —— 8. Manual mint to TicketSale ——
-        // Mock onERC1155Received to bypass ERC1155InvalidReceiver error
-        vm.mockCall(
-            address(sale),
-            abi.encodeWithSignature("onERC1155Received(address,address,uint256,uint256,bytes)"),
-            abi.encode(bytes4(0xf23a6e61))
-        );
-
+        // —— 8. Mint tickets to TicketSale (an ERC1155Holder) ——
         vm.startPrank(brand);
         tickets.mint(address(sale), VIP, 50);
         tickets.mint(address(sale), STANDARD, 200);

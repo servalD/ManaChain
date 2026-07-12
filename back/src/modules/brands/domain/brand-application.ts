@@ -26,7 +26,8 @@ export class BrandApplication {
     public readonly estimatedCommunitySize: number | null,
     public readonly socialMediaLinks: Record<string, string> | null,
     public readonly howDidYouHearAboutUs: string | null,
-    public readonly registrationProofUrl: string | null,
+    /** Nom du fichier justificatif, s'il en existe un (stocké en base, jamais exposé tel quel). */
+    public readonly registrationProofFileName: string | null,
     public readonly status: BrandApplicationStatus,
     public readonly emailVerified: boolean,
     public readonly rejectionReason: string | null,

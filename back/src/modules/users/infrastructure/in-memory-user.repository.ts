@@ -30,10 +30,17 @@ export class InMemoryUserRepository extends UserRepository {
   private readonly emailVerify = new Map<string, TokenEntry>();
   private readonly passwordReset = new Map<string, TokenEntry>();
   private readonly interests = new Map<string, string[]>();
+  private readonly twoFactorSecrets = new Map<string, string>();
+  private readonly passwordChangedAt = new Map<string, Date>();
+  private readonly passwordReminderSentAt = new Map<string, Date | null>();
 
   /** Helper de test : précharge un user (champs optionnels par défaut). */
   seed(
-    partial: Partial<User> & { id?: string; passwordHash?: string } = {},
+    partial: Partial<User> & {
+      id?: string;
+      passwordHash?: string;
+      passwordChangedAt?: Date;
+    } = {},
   ): User {
     const now = new Date();
     const user = new User(
@@ -52,18 +59,22 @@ export class InMemoryUserRepository extends UserRepository {
       partial.lastLogin ?? null,
       partial.createdAt ?? now,
       partial.updatedAt ?? now,
+      partial.deletedAt ?? null,
+      partial.twoFactorEnabled ?? false,
     );
     this.users.set(user.id, user);
     if (partial.passwordHash !== undefined) {
       this.passwordHashes.set(user.id, partial.passwordHash);
     }
+    this.passwordChangedAt.set(user.id, partial.passwordChangedAt ?? now);
     return user;
   }
 
   // --- Profil ---
 
   findById(id: string): Promise<User | null> {
-    return Promise.resolve(this.users.get(id) ?? null);
+    const user = this.users.get(id);
+    return Promise.resolve(user && !user.deletedAt ? user : null);
   }
 
   list(params: ListUsersParams): Promise<{ users: User[]; total: number }> {
@@ -87,14 +98,24 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve({ users, total });
   }
 
+  listIds(role?: Role): Promise<string[]> {
+    let all = [...this.users.values()];
+    if (role) {
+      all = all.filter((u) => u.role === role);
+    }
+    return Promise.resolve(all.map((u) => u.id));
+  }
+
   findByUsername(username: string): Promise<User | null> {
-    const found = [...this.users.values()].find((u) => u.username === username);
+    const found = [...this.users.values()].find(
+      (u) => u.username === username && !u.deletedAt,
+    );
     return Promise.resolve(found ?? null);
   }
 
   findByBlockchainAddress(address: string): Promise<User | null> {
     const found = [...this.users.values()].find(
-      (u) => u.blockchainAddress === address,
+      (u) => u.blockchainAddress === address && !u.deletedAt,
     );
     return Promise.resolve(found ?? null);
   }
@@ -115,15 +136,56 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve(this.cloneWith(id, { blockchainAddress: address }));
   }
 
+  clearBlockchainAddress(id: string): Promise<void> {
+    this.cloneWith(id, { blockchainAddress: null });
+    return Promise.resolve();
+  }
+
+  anonymize(id: string): Promise<void> {
+    const e = this.users.get(id);
+    if (!e) {
+      throw new UserNotFoundError(id);
+    }
+    const anonymized = new User(
+      e.id,
+      `deleted-${id}@deleted.manachain.local`,
+      `deleted-${id}`,
+      'Compte',
+      'supprimé',
+      e.ageRange,
+      null,
+      null,
+      false,
+      false,
+      e.role,
+      e.passwordChanged,
+      e.lastLogin,
+      e.createdAt,
+      new Date(),
+      new Date(),
+      false,
+    );
+    this.users.set(id, anonymized);
+    this.passwordHashes.set(id, `deleted:${randomUUID()}`);
+    this.emailVerify.delete(id);
+    this.passwordReset.delete(id);
+    this.twoFactorSecrets.delete(id);
+    return Promise.resolve();
+  }
+
   // --- Auth ---
 
   findByEmail(email: string): Promise<User | null> {
-    const found = [...this.users.values()].find((u) => u.email === email);
+    const found = [...this.users.values()].find(
+      (u) => u.email === email && !u.deletedAt,
+    );
     return Promise.resolve(found ?? null);
   }
 
   findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
-    const user = [...this.users.values()].find((u) => u.email === email);
+    const user = [...this.users.values()].find(
+      (u) => u.email === email && !u.deletedAt,
+    );
     if (!user) return Promise.resolve(null);
     return Promise.resolve({
       user,
@@ -138,8 +200,8 @@ export class InMemoryUserRepository extends UserRepository {
       firstName: params.firstName,
       lastName: params.lastName,
       ageRange: params.ageRange,
-      verified: false,
-      role: Role.CLIENT,
+      verified: params.verified ?? false,
+      role: params.role ?? Role.CLIENT,
       passwordHash: params.passwordHash,
     });
     this.emailVerify.set(user.id, {
@@ -202,7 +264,32 @@ export class InMemoryUserRepository extends UserRepository {
     }
     this.passwordHashes.set(id, passwordHash);
     this.passwordReset.delete(id);
+    this.passwordChangedAt.set(id, new Date());
+    this.passwordReminderSentAt.set(id, null);
     return Promise.resolve(this.cloneWith(id, { passwordChanged: true }));
+  }
+
+  listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]> {
+    const due = [...this.users.values()].filter((u) => {
+      if (u.deletedAt) return false;
+      if (this.passwordHashes.get(u.id) === OAUTH_GOOGLE_PASSWORD_SENTINEL) {
+        return false;
+      }
+      const changedAt = this.passwordChangedAt.get(u.id);
+      if (!changedAt || changedAt > cutoff) return false;
+      const reminderAt = this.passwordReminderSentAt.get(u.id);
+      return !reminderAt || reminderAt <= cutoff;
+    });
+    return Promise.resolve(
+      due.map((u) => ({ id: u.id, email: u.email, username: u.username })),
+    );
+  }
+
+  markPasswordReminderSent(id: string): Promise<void> {
+    this.passwordReminderSentAt.set(id, new Date());
+    return Promise.resolve();
   }
 
   // --- Brands ---
@@ -246,6 +333,28 @@ export class InMemoryUserRepository extends UserRepository {
     return Promise.resolve();
   }
 
+  // --- 2FA TOTP ---
+
+  getTwoFactorSecret(userId: string): Promise<string | null> {
+    return Promise.resolve(this.twoFactorSecrets.get(userId) ?? null);
+  }
+
+  setTwoFactorSecret(userId: string, encryptedSecret: string): Promise<void> {
+    this.twoFactorSecrets.set(userId, encryptedSecret);
+    return Promise.resolve();
+  }
+
+  enableTwoFactor(userId: string): Promise<void> {
+    this.cloneWith(userId, { twoFactorEnabled: true });
+    return Promise.resolve();
+  }
+
+  disableTwoFactor(userId: string): Promise<void> {
+    this.cloneWith(userId, { twoFactorEnabled: false });
+    this.twoFactorSecrets.delete(userId);
+    return Promise.resolve();
+  }
+
   // --- Helpers ---
 
   private findByToken(
@@ -274,6 +383,7 @@ export class InMemoryUserRepository extends UserRepository {
         | 'verified'
         | 'passwordChanged'
         | 'ageRange'
+        | 'twoFactorEnabled'
       >
     >,
   ): User {
@@ -299,6 +409,8 @@ export class InMemoryUserRepository extends UserRepository {
       e.lastLogin,
       e.createdAt,
       new Date(),
+      undefined,
+      changes.twoFactorEnabled ?? e.twoFactorEnabled,
     );
     this.users.set(id, updated);
     return updated;

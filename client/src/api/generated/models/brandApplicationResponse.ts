@@ -25,4 +25,6 @@ export interface BrandApplicationResponse {
   /** @nullable */
   rejectionReason: string | null;
   createdAt: string;
+  /** @nullable */
+  registrationProofFileName: string | null;
 }

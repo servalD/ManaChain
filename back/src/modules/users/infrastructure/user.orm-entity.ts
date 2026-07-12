@@ -56,6 +56,14 @@ export class UserOrmEntity {
   @Column({ type: 'boolean', default: true })
   passwordChanged: boolean;
 
+  /** Remis à `NOW()` à chaque changement/reset réussi — base du rappel de rotation CNIL (60j). */
+  @Column({ type: 'timestamptz', default: () => 'NOW()' })
+  passwordChangedAt: Date;
+
+  /** Dernier envoi de l'email de rappel de rotation ; NULL = jamais envoyé pour ce mot de passe. */
+  @Column({ type: 'timestamptz', nullable: true })
+  passwordReminderSentAt: Date | null;
+
   @Column({ type: 'text', nullable: true })
   emailVerificationToken: string | null;
 
@@ -70,6 +78,18 @@ export class UserOrmEntity {
 
   @Column({ type: 'timestamptz', nullable: true })
   lastLogin: Date | null;
+
+  /** RGPD : compte anonymisé (suppression de compte). NULL = actif. */
+  @Column({ type: 'timestamptz', nullable: true })
+  deletedAt: Date | null;
+
+  @Column({ type: 'boolean', default: false })
+  twoFactorEnabled: boolean;
+
+  // Secret TOTP chiffré (AES-256-GCM, cf. AesTwoFactorSecretCipher). Confiné
+  // à l'infra ; jamais exposé au domaine. Non sélectionné par défaut.
+  @Column({ type: 'text', nullable: true, select: false })
+  twoFactorSecret: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

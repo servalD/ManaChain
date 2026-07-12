@@ -61,3 +61,47 @@ export class OAuthEmailUsesPasswordError extends ConflictDomainException {
     );
   }
 }
+
+// --- 2FA TOTP ---
+
+/** Code TOTP (ou code de récupération) incorrect. */
+export class InvalidTwoFactorCodeError extends UnauthorizedDomainException {
+  constructor() {
+    super('Invalid two-factor authentication code');
+  }
+}
+
+/** `setup` ou `enable` appelé alors que le 2FA est déjà actif. */
+export class TwoFactorAlreadyEnabledError extends ConflictDomainException {
+  constructor() {
+    super('Two-factor authentication is already enabled');
+  }
+}
+
+/** `enable` appelé sans `setup` préalable (aucun secret en attente). */
+export class TwoFactorSetupNotStartedError extends ConflictDomainException {
+  constructor() {
+    super('Start two-factor setup before enabling it');
+  }
+}
+
+/** `disable` appelé alors que le 2FA n'est pas actif. */
+export class TwoFactorNotEnabledError extends ConflictDomainException {
+  constructor() {
+    super('Two-factor authentication is not enabled');
+  }
+}
+
+/** Challenge de login absent, expiré, ou déjà consommé. */
+export class InvalidOrExpiredTwoFactorChallengeError extends UnauthorizedDomainException {
+  constructor() {
+    super('Invalid or expired two-factor challenge — please log in again');
+  }
+}
+
+/** Trop de tentatives ratées sur un même challenge : force un nouveau login. */
+export class TooManyTwoFactorAttemptsError extends UnauthorizedDomainException {
+  constructor() {
+    super('Too many attempts — please log in again');
+  }
+}

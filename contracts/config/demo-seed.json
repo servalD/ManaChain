@@ -1,0 +1,151 @@
+{
+  "admin": {
+    "operatorPrivateKeyEnv": "PK_ADMIN_OPERATOR",
+    "bootstrapEmail": "serval7391@gmail.com",
+    "bootstrapUsername": "demo_admin",
+    "bootstrapFirstName": "Demo",
+    "bootstrapLastName": "Admin",
+    "bootstrapPassword": "Demo-Admin-Pass1!",
+    "bootstrapAgeRange": "25-34"
+  },
+  "brandCount": 2,
+  "brands": [
+    {
+      "privateKeyEnv": "PK_BRAND_1",
+      "application": {
+        "brandName": "Eco Ware",
+        "description": "Equipment de qualité durable.",
+        "interestLabels": ["Mode"],
+        "contactEmail": "serval7391+brand1@gmail.com",
+        "contactFirstName": "Alice",
+        "contactLastName": "Martin",
+        "contactPhone": "+33600000001",
+        "websiteUrl": "https://ecoware.demo",
+        "businessRegistrationNumber": "ECOWARE-DEMO-0001",
+        "country": "France",
+        "headquartersStreet": "1 rue de la Mode",
+        "headquartersCity": "Paris",
+        "headquartersZipCode": "75001"
+      },
+      "logoImagePath": "demo/assets/brand1-logo.png",
+      "mediaImagePaths": ["demo/assets/brand1-1.png", "demo/assets/brand1-2.png"],
+      "nftName": "Eco Ware Genesis",
+      "nftSymbol": "AURG",
+      "tokenName": "Eco Ware Support Token",
+      "tokenSymbol": "AURT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand1",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "2000000",
+        "totalForSale": "500000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Eco Ware — Défilé Capsule",
+          "imagePath": "demo/assets/brand1-event1.png",
+          "uri": "https://api.example.com/event/ecoware-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": false,
+          "ticketTypeCount": 2,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 100, "price": "15000000" },
+            { "tokenId": 1, "supply": 20, "price": "50000000" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_2",
+      "application": {
+        "brandName": "Neo Tech",
+        "description": "High tech et gaming.",
+        "interestLabels": ["High Tech", "Gaming"],
+        "contactEmail": "serval7391+brand2@gmail.com",
+        "contactFirstName": "Bruno",
+        "contactLastName": "Petit",
+        "contactPhone": "+33600000002",
+        "websiteUrl": "https://neotech.demo",
+        "businessRegistrationNumber": "NEOTECH-DEMO-0002",
+        "country": "France",
+        "headquartersStreet": "2 rue de la High Tech",
+        "headquartersCity": "Paris",
+        "headquartersZipCode": "75001"
+      },
+      "logoImagePath": "demo/assets/brand2-logo.png",
+      "mediaImagePaths": ["demo/assets/brand2-1.png"],
+      "nftName": "Neo Tech Genesis",
+      "nftSymbol": "NTG",
+      "tokenName": "Neo Tech Support Token",
+      "tokenSymbol": "NTT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand2",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "1000000",
+        "totalForSale": "300000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Neo Tech — Conférence E-sport",
+          "imagePath": "demo/assets/brand2-event1.png",
+          "uri": "https://api.example.com/event/neotech-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": false,
+          "ticketTypeCount": 1,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 50, "price": "10000000" }
+          ]
+        }
+      ]
+    }
+  ],
+  "clientCount": 2,
+  "clients": [
+    {
+      "privateKeyEnv": "PK_CLIENT_1",
+      "email": "serval7391+client1@gmail.com",
+      "username": "demo_client1",
+      "firstName": "Chloé",
+      "lastName": "Durand",
+      "password": "Demo-Client1-Pass1!",
+      "ageRange": "25-34",
+      "usdcFaucetAmount": "1000000000",
+      "purchaseCount": 2,
+      "purchases": [
+        { "brandIndex": 0, "tokenAmount": "50000000000000000000" },
+        { "brandIndex": 1, "tokenAmount": "20000000000000000000" }
+      ],
+      "ticketPurchaseCount": 1,
+      "ticketPurchases": [
+        { "eventIndex": 0, "ticketTypeIndex": 0, "quantity": 2 }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_CLIENT_2",
+      "email": "serval7391+client2@gmail.com",
+      "username": "demo_client2",
+      "firstName": "David",
+      "lastName": "Girard",
+      "password": "Demo-Client2-Pass1!",
+      "ageRange": "35-44",
+      "usdcFaucetAmount": "1000000000",
+      "purchaseCount": 1,
+      "purchases": [
+        { "brandIndex": 0, "tokenAmount": "10000000000000000000" }
+      ],
+      "ticketPurchaseCount": 1,
+      "ticketPurchases": [
+        { "eventIndex": 1, "ticketTypeIndex": 0, "quantity": 1 }
+      ]
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import {
   getLikesControllerCreateMutationOptions,
   getLikesControllerRemoveMutationOptions,
 } from "@/api/generated/endpoints/likes/likes";
-import { asAxiosError } from "@/lib/api-error";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -46,12 +46,7 @@ export function useCreateLike() {
       description: "You have successfully liked this brand.",
       variant: "success",
     }),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to like brand. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to like brand. Please try again."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getLikesControllerMyLikesQueryKey() });
     },
@@ -68,12 +63,7 @@ export function useDeleteLike() {
       description: "You've removed this brand from your liked list.",
       variant: "success",
     }),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to remove like. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to remove like. Please try again."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getLikesControllerMyLikesQueryKey() });
     },

@@ -16,9 +16,10 @@ import { toast } from "sonner";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import FormCacheService from "@/services/form-cache.service";
 import { useMounted } from "@/hooks/useMounted";
+import { useAuth } from "@/hooks/useAuth";
+import { useThemedLogoSrc } from "@/hooks/useThemedLogoSrc";
 import { useCreateBrandApplication, toCreateBrandApplicationRequest } from "@/hooks/api/useBrandApplications";
 import { useInterests } from "@/hooks/api/useInterests";
-import { COUNTRY_PHONE_CODES } from "@/utils/constants";
 import {
   validateContactInfo,
   validateBrandInfo,
@@ -60,7 +61,7 @@ interface FormData {
   };
   how_did_you_hear_about_us: string;
   // Documents
-  registration_proof_url: string;
+  registration_proof_upload_id: string;
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -83,54 +84,33 @@ const DEFAULT_FORM_DATA: FormData = {
   estimated_community_size: '',
   social_media_links: {},
   how_did_you_hear_about_us: '',
-  registration_proof_url: '',
+  registration_proof_upload_id: '',
 };
-
-/** Extracts the dial code's matching country from a cached international phone number. */
-function countryCodeFromCachedPhone(phone: string | undefined): string | null {
-  if (!phone) return null;
-  const phoneMatch = phone.match(/^\+(\d{1,4})/);
-  if (!phoneMatch) return null;
-  const dialCode = `+${phoneMatch[1]}`;
-  return COUNTRY_PHONE_CODES.find(c => c.dialCode === dialCode)?.code ?? null;
-}
 
 export default function BrandApplicationPage() {
   const router = useRouter();
-  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const logoSrc = useThemedLogoSrc();
   const mounted = useMounted();
+  // Un compte est requis avant de candidater : l'upload d'image (étapes Brand/Documents)
+  // appelle un endpoint backend authentifié, il faut donc déjà un token en session.
+  const { isLoading: isAuthLoading, isAuthenticated } = useAuth("/login?redirect=/brand-application");
   const [cachedFormData] = useState(() => FormCacheService.loadFormData());
   const [formData, setFormData] = useState<FormData>(() =>
     cachedFormData ? { ...DEFAULT_FORM_DATA, ...cachedFormData } : DEFAULT_FORM_DATA
   );
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [currentStep, setCurrentStep] = useState(1);
   const { data: interests = [] } = useInterests();
   const createApplication = useCreateBrandApplication();
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>(
-    () => countryCodeFromCachedPhone(cachedFormData?.contact_phone) ?? 'US' // +1 par défaut
+    () => cachedFormData?.contact_phone_country_code || 'US' // +1 par défaut
   );
 
+  const handleCountryCodeChange = (code: string) => {
+    setSelectedCountryCode(code);
+    FormCacheService.saveFormData({ contact_phone_country_code: code });
+  };
+
   // Detect dark mode for logo
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-
   // Notify the user once if their form was restored from cache.
   useEffect(() => {
     if (cachedFormData) {
@@ -142,39 +122,14 @@ export default function BrandApplicationPage() {
 
   // L'état initial du formulaire dépend du cache localStorage (inexistant côté serveur) :
   // on ne rend le formulaire qu'après hydratation pour éviter un hydration mismatch.
-  if (!mounted) {
+  // Le spinner sert aussi pendant la vérification de session / la redirection vers /login.
+  if (!mounted || isAuthLoading || !isAuthenticated) {
     return (
       <div className="h-dvh flex items-center justify-center bg-background">
         <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
       </div>
     );
   }
-
-  const isNextDisabled = (() => {
-    switch (currentStep) {
-      case 1: {
-        const email = formData.contact_email?.trim();
-        const firstName = formData.contact_first_name?.trim();
-        const lastName = formData.contact_last_name?.trim();
-        return !email || !firstName || !lastName;
-      }
-      case 2: {
-        const brandName = formData.brand_name?.trim();
-        const interestsCount = formData.interest_ids?.length || 0;
-        return !brandName || interestsCount < 1;
-      }
-      case 3: {
-        const regNumber = formData.business_registration_number?.trim();
-        const country = formData.country?.trim();
-        const street = formData.headquarters_street?.trim();
-        const city = formData.headquarters_city?.trim();
-        const zip = formData.headquarters_zip_code?.trim();
-        return !regNumber || !country || !street || !city || !zip;
-      }
-      default:
-        return false;
-    }
-  })();
 
   const handleChange = (field: string, value: string | object) => {
     
@@ -254,7 +209,7 @@ export default function BrandApplicationPage() {
         break;
       case 5:
         validation = validateDocuments({
-          registration_proof_url: formData.registration_proof_url,
+          registration_proof_upload_id: formData.registration_proof_upload_id,
         });
         break;
       default:
@@ -277,71 +232,55 @@ export default function BrandApplicationPage() {
     return true;
   };
 
-  const handleStepChange = (step: number) => {
-    setCurrentStep(step);
-  };
-
+  // Throws on any failure (validation or API) so the Stepper — which awaits this —
+  // knows not to collapse to its "completed" view; it stays on the last step instead
+  // of going blank, letting the user fix the issue and retry (cache is kept either way).
   const handleFinalSubmit = async () => {
-    // Validate all steps
     const validation = validateAllSteps(formData);
-    
+
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
       toast.error("Validation failed", {
         description: "Please check all fields and try again.",
       });
-      return;
+      throw new Error("Brand application validation failed");
     }
 
-    try {
-      // Prepare data for API
-      const applicationData = {
-        contact_email: formData.contact_email,
-        contact_first_name: formData.contact_first_name,
-        contact_last_name: formData.contact_last_name,
-        contact_phone: formData.contact_phone || undefined,
-        brand_name: formData.brand_name,
-        interest_ids: formData.interest_ids,
-        description: formData.description || undefined,
-        website_url: formData.website_url || undefined,
-        logo_url: formData.logo_url || undefined,
-        business_registration_number: formData.business_registration_number,
-        country: formData.country,
-        headquarters_street: formData.headquarters_street,
-        headquarters_city: formData.headquarters_city,
-        headquarters_zip_code: formData.headquarters_zip_code,
-        headquarters_address_complement: formData.headquarters_address_complement || undefined,
-        motivation: formData.motivation || undefined,
-        estimated_community_size: formData.estimated_community_size 
-          ? parseInt(formData.estimated_community_size, 10) 
-          : undefined,
-        social_media_links: Object.keys(formData.social_media_links).length > 0 
-          ? formData.social_media_links 
-          : undefined,
-        how_did_you_hear_about_us: formData.how_did_you_hear_about_us || undefined,
-        registration_proof_url: formData.registration_proof_url || undefined,
-      };
+    const applicationData = {
+      contact_email: formData.contact_email,
+      contact_first_name: formData.contact_first_name,
+      contact_last_name: formData.contact_last_name,
+      contact_phone: formData.contact_phone || undefined,
+      brand_name: formData.brand_name,
+      interest_ids: formData.interest_ids,
+      description: formData.description || undefined,
+      website_url: formData.website_url || undefined,
+      logo_url: formData.logo_url || undefined,
+      business_registration_number: formData.business_registration_number,
+      country: formData.country,
+      headquarters_street: formData.headquarters_street,
+      headquarters_city: formData.headquarters_city,
+      headquarters_zip_code: formData.headquarters_zip_code,
+      headquarters_address_complement: formData.headquarters_address_complement || undefined,
+      motivation: formData.motivation || undefined,
+      estimated_community_size: formData.estimated_community_size
+        ? parseInt(formData.estimated_community_size, 10)
+        : undefined,
+      social_media_links: Object.keys(formData.social_media_links).length > 0
+        ? formData.social_media_links
+        : undefined,
+      how_did_you_hear_about_us: formData.how_did_you_hear_about_us || undefined,
+      registration_proof_upload_id: formData.registration_proof_upload_id || undefined,
+    };
 
-      // Submit to API
-      createApplication.mutate(
-        { data: toCreateBrandApplicationRequest(applicationData) },
-        {
-          onSuccess: () => {
-            // Clear cache on success
-            FormCacheService.clearFormData();
+    // mutateAsync rejects on error (errorToast already shown by the hook) — propagates
+    // out of this function so the Stepper knows the final step did not complete.
+    await createApplication.mutateAsync({ data: toCreateBrandApplicationRequest(applicationData) });
 
-            // Redirect to home page
-            setTimeout(() => {
-              router.push('/');
-            }, 2000);
-          },
-          // Keep cache so user can retry on error (errorToast already shown by the hook)
-        }
-      );
-    } catch (error) {
-      console.error('Error submitting application:', error);
-      // Keep cache so user can retry
-    }
+    FormCacheService.clearFormData();
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
   };
 
   return (
@@ -390,7 +329,6 @@ export default function BrandApplicationPage() {
             <div className="w-full max-w-2xl mx-auto">
               <Stepper
                 initialStep={1}
-                onStepChange={handleStepChange}
                 onFinalStepCompleted={handleFinalSubmit}
                 backButtonText="Previous"
                 nextButtonText="Next"
@@ -399,7 +337,6 @@ export default function BrandApplicationPage() {
                 contentClassName="text-foreground"
                 footerClassName=""
                 disableStepIndicators
-                isNextDisabled={isNextDisabled}
                 canChangeStep={(targetStep, current) => {
                   // Only validate when moving forward
                   if (targetStep > current) {
@@ -419,7 +356,7 @@ export default function BrandApplicationPage() {
                   onChange={handleChange}
                   errors={validationErrors}
                   selectedCountryCode={selectedCountryCode}
-                  onCountryCodeChange={setSelectedCountryCode}
+                  onCountryCodeChange={handleCountryCodeChange}
                 />
               </Step>
 
@@ -467,9 +404,9 @@ export default function BrandApplicationPage() {
               </Step>
 
               <Step>
-                <Documents 
+                <Documents
                   formData={{
-                    registration_proof_url: formData.registration_proof_url,
+                    registration_proof_upload_id: formData.registration_proof_upload_id,
                   }}
                   onChange={handleChange}
                   errors={validationErrors}

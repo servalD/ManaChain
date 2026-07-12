@@ -29,9 +29,17 @@ import type {
   ChangePasswordRequest,
   EmailRequest,
   LoginRequest,
+  LoginResponse,
+  LogoutRequest,
   MessageResponse,
+  RefreshRequest,
   RegisterRequest,
   ResetPasswordRequest,
+  TwoFactorDisableRequest,
+  TwoFactorEnableRequest,
+  TwoFactorEnableResponse,
+  TwoFactorSetupResponse,
+  TwoFactorVerifyRequest,
   VerifyEmailRequest
 } from '../../models';
 
@@ -129,7 +137,7 @@ export const authControllerLogin = (
 ) => {
 
 
-      return customInstance<AuthResponse>(
+      return customInstance<LoginResponse>(
       {url: `/api/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginRequest, signal
@@ -688,3 +696,385 @@ export function useAuthControllerGoogleCallback<TData = Awaited<ReturnType<typeo
 
 
 
+/**
+ * @summary Démarrer la configuration du 2FA (génère un secret TOTP)
+ */
+export const authControllerSetupTwoFactor = (
+
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<TwoFactorSetupResponse>(
+      {url: `/api/auth/2fa/setup`, method: 'POST', signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerSetupTwoFactorMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerSetupTwoFactor>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerSetupTwoFactor>>, TError,void, TContext> => {
+
+const mutationKey = ['authControllerSetupTwoFactor'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerSetupTwoFactor>>, void> = () => {
+
+
+          return  authControllerSetupTwoFactor()
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerSetupTwoFactorMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerSetupTwoFactor>>>
+
+    export type AuthControllerSetupTwoFactorMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Démarrer la configuration du 2FA (génère un secret TOTP)
+ */
+export const useAuthControllerSetupTwoFactor = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerSetupTwoFactor>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerSetupTwoFactor>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getAuthControllerSetupTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Activer le 2FA (confirme le secret avec un code live)
+ */
+export const authControllerEnableTwoFactor = (
+    twoFactorEnableRequest: TwoFactorEnableRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<TwoFactorEnableResponse>(
+      {url: `/api/auth/2fa/enable`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: twoFactorEnableRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerEnableTwoFactorMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerEnableTwoFactor>>, TError,{data: TwoFactorEnableRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerEnableTwoFactor>>, TError,{data: TwoFactorEnableRequest}, TContext> => {
+
+const mutationKey = ['authControllerEnableTwoFactor'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerEnableTwoFactor>>, {data: TwoFactorEnableRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerEnableTwoFactor(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerEnableTwoFactorMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerEnableTwoFactor>>>
+    export type AuthControllerEnableTwoFactorMutationBody = TwoFactorEnableRequest
+    export type AuthControllerEnableTwoFactorMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Activer le 2FA (confirme le secret avec un code live)
+ */
+export const useAuthControllerEnableTwoFactor = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerEnableTwoFactor>>, TError,{data: TwoFactorEnableRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerEnableTwoFactor>>,
+        TError,
+        {data: TwoFactorEnableRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerEnableTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Désactiver le 2FA (confirmation par mot de passe)
+ */
+export const authControllerDisableTwoFactor = (
+    twoFactorDisableRequest: TwoFactorDisableRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<MessageResponse>(
+      {url: `/api/auth/2fa/disable`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: twoFactorDisableRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerDisableTwoFactorMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerDisableTwoFactor>>, TError,{data: TwoFactorDisableRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerDisableTwoFactor>>, TError,{data: TwoFactorDisableRequest}, TContext> => {
+
+const mutationKey = ['authControllerDisableTwoFactor'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerDisableTwoFactor>>, {data: TwoFactorDisableRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerDisableTwoFactor(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerDisableTwoFactorMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerDisableTwoFactor>>>
+    export type AuthControllerDisableTwoFactorMutationBody = TwoFactorDisableRequest
+    export type AuthControllerDisableTwoFactorMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Désactiver le 2FA (confirmation par mot de passe)
+ */
+export const useAuthControllerDisableTwoFactor = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerDisableTwoFactor>>, TError,{data: TwoFactorDisableRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerDisableTwoFactor>>,
+        TError,
+        {data: TwoFactorDisableRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerDisableTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Résoudre le challenge 2FA posé par /auth/login ou /auth/google/callback
+ */
+export const authControllerVerifyTwoFactor = (
+    twoFactorVerifyRequest: TwoFactorVerifyRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoginResponse>(
+      {url: `/api/auth/2fa/verify`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: twoFactorVerifyRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerVerifyTwoFactorMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>, TError,{data: TwoFactorVerifyRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>, TError,{data: TwoFactorVerifyRequest}, TContext> => {
+
+const mutationKey = ['authControllerVerifyTwoFactor'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>, {data: TwoFactorVerifyRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerVerifyTwoFactor(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerVerifyTwoFactorMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>>
+    export type AuthControllerVerifyTwoFactorMutationBody = TwoFactorVerifyRequest
+    export type AuthControllerVerifyTwoFactorMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Résoudre le challenge 2FA posé par /auth/login ou /auth/google/callback
+ */
+export const useAuthControllerVerifyTwoFactor = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>, TError,{data: TwoFactorVerifyRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerVerifyTwoFactor>>,
+        TError,
+        {data: TwoFactorVerifyRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerVerifyTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Échanger un refresh token contre une nouvelle session
+ */
+export const authControllerRefresh = (
+    refreshRequest: RefreshRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoginResponse>(
+      {url: `/api/auth/refresh`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: refreshRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerRefreshMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext> => {
+
+const mutationKey = ['authControllerRefresh'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerRefresh>>, {data: RefreshRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerRefresh(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerRefresh>>>
+    export type AuthControllerRefreshMutationBody = RefreshRequest
+    export type AuthControllerRefreshMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Échanger un refresh token contre une nouvelle session
+ */
+export const useAuthControllerRefresh = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerRefresh>>, TError,{data: RefreshRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerRefresh>>,
+        TError,
+        {data: RefreshRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerRefreshMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Révoquer un refresh token
+ */
+export const authControllerLogout = (
+    logoutRequest: LogoutRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<MessageResponse>(
+      {url: `/api/auth/logout`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: logoutRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext> => {
+
+const mutationKey = ['authControllerLogout'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerLogout>>, {data: LogoutRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerLogout(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerLogout>>>
+    export type AuthControllerLogoutMutationBody = LogoutRequest
+    export type AuthControllerLogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Révoquer un refresh token
+ */
+export const useAuthControllerLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerLogout>>, TError,{data: LogoutRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerLogout>>,
+        TError,
+        {data: LogoutRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerLogoutMutationOptions(options), queryClient);
+    }

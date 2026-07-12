@@ -1,35 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import PinataService from "@/services/pinata.service";
 import { useAdminActiveBrands } from "@/hooks/api/useAdminUsers";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function ActiveBrandsTable() {
+  const t = useTranslations("dashboard.admin.activeBrandsTable");
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   const { data, isLoading } = useAdminActiveBrands({
     limit,
@@ -47,9 +32,9 @@ export function ActiveBrandsTable() {
   return (
     <div className="space-y-4 pt-8">
       <div>
-        <h2 className="text-xl font-bold">Active Brands</h2>
+        <h2 className="text-xl font-bold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          {isLoading ? "Loading..." : `${total} ${total === 1 ? "brand" : "brands"} found`}
+          {isLoading ? t("loading") : t("resultsCount", { count: total })}
         </p>
       </div>
 
@@ -59,7 +44,7 @@ export function ActiveBrandsTable() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by name or ID..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -82,24 +67,24 @@ export function ActiveBrandsTable() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Brand</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">ID</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Country</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Created</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.brand")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.id")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.country")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    Loading...
+                    {t("loading")}
                   </td>
                 </tr>
               ) : brands.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    No brands found
+                    {t("empty")}
                   </td>
                 </tr>
               ) : (
@@ -170,7 +155,7 @@ export function ActiveBrandsTable() {
                           onClick={() => handleBan(brand.id)}
                         >
                           <Ban className="h-3 w-3 mr-1" />
-                          Ban
+                          {t("banAction")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -178,7 +163,7 @@ export function ActiveBrandsTable() {
                           className="h-8 text-xs"
                         >
                           <MoreHorizontal className="h-3 w-3 mr-1" />
-                          Details
+                          {t("detailsAction")}
                         </Button>
                       </div>
                     </td>

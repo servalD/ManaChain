@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Role } from '../../../../shared/enums/role.enum';
 import { User } from '../../../users/domain/user';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { UsernameAlreadyTakenError } from '../../../users/domain/user.errors';
@@ -15,6 +16,18 @@ export interface RegisterInput {
   password: string;
   ageRange: string;
   interests?: string[];
+  /**
+   * Rôle forcé à la création. N'est JAMAIS lu depuis le body HTTP — le
+   * contrôleur le calcule à partir de `BOOTSTRAP_ADMIN_EMAIL` (bootstrap du
+   * tout premier compte admin d'un environnement). Absent → CLIENT.
+   */
+  role?: Role;
+  /**
+   * Vérifie le compte dès la création, sans email. N'est JAMAIS lu depuis le
+   * body HTTP — le contrôleur le calcule à partir de `SKIP_EMAIL_VERIFICATION`
+   * (dev/démo uniquement). Absent → false (flux normal).
+   */
+  verified?: boolean;
 }
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
@@ -54,16 +67,20 @@ export class RegisterUseCase {
       emailVerificationToken: verificationToken,
       emailVerificationExpires: expiresAt,
       interests: input.interests,
+      role: input.role,
+      verified: input.verified,
     });
 
-    // Best-effort : l'inscription réussit même si l'email ne part pas (l'adapter logue).
-    await this.safeSend(() =>
-      this.mailer.sendEmailVerification(
-        user.email,
-        user.username,
-        verificationToken,
-      ),
-    );
+    if (!input.verified) {
+      // Best-effort : l'inscription réussit même si l'email ne part pas (l'adapter logue).
+      await this.safeSend(() =>
+        this.mailer.sendEmailVerification(
+          user.email,
+          user.username,
+          verificationToken,
+        ),
+      );
+    }
 
     return user;
   }

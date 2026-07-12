@@ -5,13 +5,13 @@ import { Camera } from "lucide-react";
 import PinataService from "@/services/pinata.service";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
-import { IUser } from "@/types/user.types";
+import type { UserResponse } from "@/api/generated/models";
 
 const ALLOWED_AVATAR_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 const MAX_AVATAR_SIZE_MB = 2;
 
 interface ProfileAvatarProps {
-  user: IUser | null;
+  user: UserResponse | null;
   isUploading: boolean;
   onUploadStart: () => void;
   onUploadComplete: (avatarUrl: string) => void;

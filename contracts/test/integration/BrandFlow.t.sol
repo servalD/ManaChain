@@ -11,7 +11,7 @@ import {BrandGenesisNFT} from "../../src/brand/BrandGenesisNFT.sol";
 import {FractionalVault} from "../../src/brand/FractionalVault.sol";
 import {BrandSupportToken} from "../../src/brand/BrandSupportToken.sol";
 import {TokenSaleEscrow} from "../../src/brand/TokenSaleEscrow.sol";
-import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {MockUSDC} from "../../src/mocks/MockUSDC.sol";
 import {ManaRoles} from "../../src/constants/ManaRoles.sol";
 
 /**
@@ -41,17 +41,11 @@ contract BrandFlowTest is Test {
 
     // ─── Constants ────────────────────────────────────────────────
     uint256 public constant PRICE = 5e6;           // 5 USDC per support token
-    uint256 public constant TOTAL_FOR_SALE = 1000;
+    uint256 public constant TOTAL_FOR_SALE = 1000e18;
     uint256 public constant FEE_BPS = 500;          // 5%
 
     function setUp() public {
-        vm.chainId(84532);
-
-        // Etch MockUSDC at canonical Base Sepolia USDC address
         usdc = new MockUSDC();
-        address usdcAddr = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-        vm.etch(usdcAddr, address(usdc).code);
-        usdc = MockUSDC(usdcAddr);
 
         // —— 1. Deploy ManaAdmin proxy ——
         ManaAdmin adminImpl = new ManaAdmin();
@@ -189,18 +183,18 @@ contract BrandFlowTest is Test {
         // Alice buys 200 tokens = 1000 USDC
         vm.startPrank(alice);
         usdc.approve(address(escrow), 1000e6);
-        escrow.buy(200);
+        escrow.buy(200e18);
         vm.stopPrank();
 
         // Bob buys 300 tokens = 1500 USDC
         vm.startPrank(bob);
         usdc.approve(address(escrow), 1500e6);
-        escrow.buy(300);
+        escrow.buy(300e18);
         vm.stopPrank();
 
-        assertEq(supportToken.balanceOf(alice), 200);
-        assertEq(supportToken.balanceOf(bob), 300);
-        assertEq(escrow.getSoldAmount(), 500);
+        assertEq(supportToken.balanceOf(alice), 200e18);
+        assertEq(supportToken.balanceOf(bob), 300e18);
+        assertEq(escrow.getSoldAmount(), 500e18);
 
         // Brand closes the sale
         vm.prank(brand);
@@ -233,7 +227,7 @@ contract BrandFlowTest is Test {
         // Alice buys 100 tokens = 500 USDC
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
         uint256 aliceUSDCBefore = usdc.balanceOf(alice);
@@ -245,8 +239,8 @@ contract BrandFlowTest is Test {
 
         // Alice refunds her tokens
         vm.startPrank(alice);
-        supportToken.approve(address(escrow), 100);
-        escrow.claimRefund(100);
+        supportToken.approve(address(escrow), 100e18);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
 
         // Alice got her 500 USDC back
@@ -272,7 +266,7 @@ contract BrandFlowTest is Test {
 
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
         vm.prank(brand);
@@ -280,8 +274,8 @@ contract BrandFlowTest is Test {
 
         uint256 aliceBefore = usdc.balanceOf(alice);
         vm.startPrank(alice);
-        supportToken.approve(address(escrow), 100);
-        escrow.claimRefund(100);
+        supportToken.approve(address(escrow), 100e18);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(alice) - aliceBefore, 500e6);

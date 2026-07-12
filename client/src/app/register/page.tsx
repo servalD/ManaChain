@@ -1,23 +1,35 @@
  "use client";
- 
-import React, { useRef, useState, useEffect, useMemo } from "react";
+
+import React, { Suspense, useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { SignUpPage, Interest, SignUpFormData } from "@/components/ui/sign-up";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
 import { useRegister } from "@/hooks/api/useAuth";
 import type { RegisterRequestAgeRange } from "@/api/generated/models";
 import { ApiService } from "@/services/api.service";
 import { useInterests } from "@/hooks/api/useInterests";
 import { toast } from "@/lib/toast";
-import { isValidEmail, isValidPassword } from "@/utils/validation";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { useThemedLogoSrc } from "@/hooks/useThemedLogoSrc";
+import { isSafeInternalPath } from "@/utils/validation";
+import { savePostAuthRedirect } from "@/utils/post-auth-redirect";
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const safeRedirect = isSafeInternalPath(redirectParam) ? redirectParam : null;
+  const loginPath = safeRedirect ? `/login?redirect=${encodeURIComponent(safeRedirect)}` : "/login";
+
+  // Persisted so it survives the "check your email, click the verification link" gap,
+  // where `/verify-email` is opened fresh with no `redirect` param of its own.
+  useEffect(() => {
+    if (safeRedirect) savePostAuthRedirect(safeRedirect);
+  }, [safeRedirect]);
   const toasterRef = useRef<ToasterRef>(null);
-  const [logoSrc, setLogoSrc] = useState("/Logo_ManaChain_Noir.svg");
+  const logoSrc = useThemedLogoSrc();
   const { data: interestsData, isLoading } = useInterests();
   const register = useRegister();
   const t = useTranslations("auth.register");
@@ -31,25 +43,6 @@ export default function RegisterPage() {
       })),
     [interestsData]
   );
-
-  useEffect(() => {
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setLogoSrc(isDark ? "/Logo_ManaChain_Blanc.svg" : "/Logo_ManaChain_Noir.svg");
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>, formData: SignUpFormData) => {
     event.preventDefault();
@@ -98,7 +91,7 @@ export default function RegisterPage() {
       {
         onSuccess: () => {
           setTimeout(() => {
-            router.push("/login");
+            router.push(loginPath);
           }, 1500);
         },
       }
@@ -111,7 +104,7 @@ export default function RegisterPage() {
   };
 
   const handleSignIn = () => {
-    router.push("/login");
+    router.push(loginPath);
   };
 
   if (isLoading) {
@@ -153,5 +146,19 @@ export default function RegisterPage() {
         onSignIn={handleSignIn}
       />
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-background min-h-screen flex items-center justify-center">
+          <div className="text-foreground text-xl">Loading...</div>
+        </div>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
   );
 }

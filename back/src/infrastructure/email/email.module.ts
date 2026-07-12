@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { EmailSender } from './email-sender';
-import { NodemailerEmailSender } from './nodemailer-email-sender';
+import { ResendEmailSender } from './resend-email-sender';
 
 /**
  * Fournit le transport email partagé ({@link EmailSender}). Importé par les
@@ -8,7 +8,7 @@ import { NodemailerEmailSender } from './nodemailer-email-sender';
  * templates et son mailer métier.
  */
 @Module({
-  providers: [{ provide: EmailSender, useClass: NodemailerEmailSender }],
+  providers: [{ provide: EmailSender, useClass: ResendEmailSender }],
   exports: [EmailSender],
 })
 export class EmailModule {}

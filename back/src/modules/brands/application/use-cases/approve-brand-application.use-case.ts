@@ -15,6 +15,9 @@ import {
 export interface ApproveResult {
   userId: string;
   brandId: string;
+  username: string;
+  /** Mot de passe temporaire en clair, envoyé par email. N'exposer en HTTP qu'en dev/démo. */
+  temporaryPassword: string;
 }
 
 /**
@@ -88,7 +91,7 @@ export class ApproveBrandApplicationUseCase {
       });
 
       await this.applicationRepository.approve(applicationId, adminUserId);
-      return { userId: user.id, brandId: brand.id };
+      return { userId: user.id, brandId: brand.id, username };
     });
 
     try {
@@ -102,7 +105,7 @@ export class ApproveBrandApplicationUseCase {
       /* email non bloquant */
     }
 
-    return result;
+    return { ...result, temporaryPassword };
   }
 
   /** Normalise le nom de marque en username unique (suffixe incrémental si pris). */

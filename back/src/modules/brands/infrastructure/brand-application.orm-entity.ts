@@ -67,8 +67,17 @@ export class BrandApplicationOrmEntity {
   @Column({ type: 'text', nullable: true })
   howDidYouHearAboutUs: string | null;
 
+  // `select: false` : ne jamais charger le fichier (potentiellement gros) sur
+  // un simple `findById`/`list` — seul `findRegistrationProofFile` (admin,
+  // téléchargement) le sélectionne explicitement.
+  @Column({ type: 'bytea', nullable: true, select: false })
+  registrationProofData: Buffer | null;
+
   @Column({ type: 'text', nullable: true })
-  registrationProofUrl: string | null;
+  registrationProofMimeType: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  registrationProofFileName: string | null;
 
   @Column({ type: 'text', default: 'pending' })
   status: BrandApplicationStatus;

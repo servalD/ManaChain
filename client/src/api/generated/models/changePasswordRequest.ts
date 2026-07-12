@@ -7,6 +7,8 @@
  */
 
 export interface ChangePasswordRequest {
-  /** @minLength 8 */
+  /** Mot de passe courant, requis pour confirmer l’identité */
+  currentPassword: string;
+  /** @minLength 12 */
   newPassword: string;
 }

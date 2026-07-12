@@ -6,7 +6,6 @@
 #
 # Les variables NEXT_PUBLIC_* sont inlinées dans le bundle AU BUILD : elles
 # doivent être passées en build-args (voir .github/workflows/client.yml).
-# PINATA_JWT reste une variable de runtime (côté serveur uniquement).
 # ---------------------------------------------------------------------------
 
 FROM node:22-alpine AS builder
@@ -52,8 +51,7 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 
-# Entrypoint qui résout les secrets Docker (variables *_FILE → variable nue),
-# ex. PINATA_JWT_FILE=/run/secrets/pinata_jwt.
+# Entrypoint qui résout les secrets Docker (variables *_FILE → variable nue).
 COPY --chown=node:node docker-entrypoint.sh ./docker-entrypoint.sh
 
 EXPOSE 3000

@@ -1,4 +1,4 @@
-import axios from "axios";
+import { axiosInstance } from "@/lib/api/mutator";
 import { toast } from "@/lib/toast";
 import { asAxiosError } from "@/lib/api-error";
 
@@ -7,7 +7,7 @@ export default class PinataService {
   private static readonly MAX_RETRIES = 2;
 
   /**
-   * Upload a file to Pinata IPFS via Next.js API route
+   * Upload a file to IPFS via the authenticated backend media endpoint.
    * @param file - The file to upload
    * @returns The IPFS URL of the uploaded file
    */
@@ -30,8 +30,8 @@ export default class PinataService {
         const formData = new FormData();
         formData.append("file", file);
 
-        const response = await axios.post(
-          '/api/pinata/upload',
+        const response = await axiosInstance.post(
+          '/api/media/upload',
           formData,
           {
             timeout: this.UPLOAD_TIMEOUT,
@@ -60,7 +60,7 @@ export default class PinataService {
         if (axiosErr?.response?.status === 401 || axiosErr?.response?.status === 403) {
           toast({
             title: "Authentication error",
-            description: "Invalid Pinata credentials",
+            description: "Your session has expired, please log in again",
             variant: "error",
           });
           throw error;
@@ -69,7 +69,7 @@ export default class PinataService {
         if (axiosErr?.response?.status === 400) {
           toast({
             title: "Invalid file",
-            description: axiosErr.response?.data?.error || "File validation failed",
+            description: axiosErr.response?.data?.message || "File validation failed",
             variant: "error",
           });
           throw error;
@@ -101,7 +101,7 @@ export default class PinataService {
     } else {
       toast({
         title: "Upload failed",
-        description: lastAxiosErr?.response?.data?.error || "An unexpected error occurred",
+        description: lastAxiosErr?.response?.data?.message || "An unexpected error occurred",
         variant: "error",
       });
     }
@@ -110,20 +110,20 @@ export default class PinataService {
   }
 
   /**
-   * Delete (unpin) a file from Pinata via Next.js API route
+   * Delete (unpin) a file from IPFS via the authenticated backend media endpoint.
    * @param ipfsHashOrUrl - The IPFS hash or full URL
    * @returns true if successful, false otherwise
    */
   static async deleteFile(ipfsHashOrUrl: string): Promise<boolean> {
     try {
       const ipfsHash = this.extractIpfsHash(ipfsHashOrUrl);
-      
+
       if (!ipfsHash) {
         console.error("Invalid IPFS hash or URL:", ipfsHashOrUrl);
         return false;
       }
 
-      await axios.delete(`/api/pinata/delete?hash=${ipfsHash}`, {
+      await axiosInstance.delete(`/api/media/${ipfsHash}`, {
         timeout: 10000,
       });
 
@@ -133,7 +133,7 @@ export default class PinataService {
       if (asAxiosError(error)?.response?.status === 404) {
         return true;
       }
-      
+
       // Don't show error toast for delete failures (could be already deleted)
       console.error("Error deleting file from Pinata:", error);
       return false;
@@ -185,7 +185,7 @@ export default class PinataService {
    */
   static normalizeIpfsUrl(url: string | null | undefined): string {
     if (!url) return '';
-    
+
     // Helper to get proxy URL
     const getProxyUrl = (hash: string): string => {
       // Use absolute URL if we're in the browser, relative otherwise (for SSR)
@@ -195,7 +195,7 @@ export default class PinataService {
       // For SSR, use relative URL (Next.js will handle it)
       return `/api/pinata/proxy?hash=${hash}`;
     };
-    
+
     // If it's already a proxy route, ensure it's absolute if in browser
     if (url.startsWith('/api/pinata/proxy')) {
       if (typeof window !== 'undefined' && !url.startsWith('http')) {
@@ -203,7 +203,7 @@ export default class PinataService {
       }
       return url;
     }
-    
+
     // Extract IPFS hash from URL if it's a full Pinata gateway URL
     const ipfsHashMatch = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
     if (ipfsHashMatch && ipfsHashMatch[1]) {
@@ -211,7 +211,7 @@ export default class PinataService {
       // Use proxy route for authenticated access
       return getProxyUrl(ipfsHash);
     }
-    
+
     // If it's already a full URL with protocol and not a Pinata gateway, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) {
       // Check if it's a Pinata gateway URL that we should proxy
@@ -223,17 +223,17 @@ export default class PinataService {
       }
       return url;
     }
-    
+
     // If it starts with //, add https:
     if (url.startsWith('//')) {
       return `https:${url}`;
     }
-    
+
     // If it's just a hash, use proxy route
     if (!url.includes('/') && url.length > 10) {
       return getProxyUrl(url);
     }
-    
+
     // Otherwise, add https://
     return `https://${url}`;
   }

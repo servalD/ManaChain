@@ -10,10 +10,19 @@ import { UserOrmEntity } from '../../modules/users/infrastructure/user.orm-entit
 import { BrandLikeOrmEntity } from '../../modules/likes/infrastructure/brand-like.orm-entity';
 import { BrandOrmEntity } from '../../modules/brands/infrastructure/brand.orm-entity';
 import { BrandApplicationOrmEntity } from '../../modules/brands/infrastructure/brand-application.orm-entity';
+import { BrandApplicationProofUploadOrmEntity } from '../../modules/brands/infrastructure/brand-application-proof-upload.orm-entity';
 import { BrandMediaOrmEntity } from '../../modules/brands/infrastructure/brand-media.orm-entity';
 import { BrandTokenOrmEntity } from '../../modules/tokens/infrastructure/brand-token.orm-entity';
 import { TokenHolderOrmEntity } from '../../modules/tokens/infrastructure/token-holder.orm-entity';
 import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/token-transaction.orm-entity';
+import { ChainSyncCursorOrmEntity } from '../../modules/chain-sync/infrastructure/chain-sync-cursor.orm-entity';
+import { BrandContractsOrmEntity } from '../../modules/chain-sync/infrastructure/brand-contracts.orm-entity';
+import { TokenSaleOrmEntity } from '../../modules/chain-sync/infrastructure/token-sale.orm-entity';
+import { EventContractsOrmEntity } from '../../modules/chain-sync/infrastructure/event-contracts.orm-entity';
+import { EventTicketTypeOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-type.orm-entity';
+import { EventTicketPurchaseOrmEntity } from '../../modules/chain-sync/infrastructure/event-ticket-purchase.orm-entity';
+import { EventOrmEntity } from '../../modules/events/infrastructure/event.orm-entity';
+import { NotificationOrmEntity } from '../../modules/notifications/infrastructure/notification.orm-entity';
 
 /**
  * Connexion TypeORM unique de l'application. `SnakeNamingStrategy` colle au
@@ -50,10 +59,19 @@ import { TokenTransactionOrmEntity } from '../../modules/tokens/infrastructure/t
           BrandLikeOrmEntity,
           BrandOrmEntity,
           BrandApplicationOrmEntity,
+          BrandApplicationProofUploadOrmEntity,
           BrandMediaOrmEntity,
           BrandTokenOrmEntity,
           TokenHolderOrmEntity,
           TokenTransactionOrmEntity,
+          ChainSyncCursorOrmEntity,
+          BrandContractsOrmEntity,
+          TokenSaleOrmEntity,
+          EventContractsOrmEntity,
+          EventTicketTypeOrmEntity,
+          EventTicketPurchaseOrmEntity,
+          EventOrmEntity,
+          NotificationOrmEntity,
         ],
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         namingStrategy: new SnakeNamingStrategy(),

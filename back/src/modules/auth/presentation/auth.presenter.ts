@@ -30,3 +30,76 @@ export const toAuthResponse = (
   user: toUserResponse(user),
   token,
 });
+
+/**
+ * Réponse de `/auth/login`, `/auth/google/callback` (implicitement, via
+ * redirection) et `/auth/2fa/verify` : soit une session complète, soit un
+ * challenge 2FA à résoudre. Champs à plat (plutôt qu'un union type côté
+ * Swagger/orval) pour rester simple à générer/consommer côté client.
+ */
+export class LoginResponse {
+  @ApiProperty()
+  message: string;
+
+  @ApiProperty()
+  twoFactorRequired: boolean;
+
+  @ApiProperty({ type: String, nullable: true })
+  challengeToken: string | null;
+
+  @ApiProperty({ type: UserResponse, nullable: true })
+  user: UserResponse | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  token: string | null;
+
+  @ApiProperty({ type: String, nullable: true })
+  refreshToken: string | null;
+}
+
+export const toLoginSuccessResponse = (
+  user: User,
+  token: string,
+  refreshToken: string,
+  message: string,
+): LoginResponse => ({
+  message,
+  twoFactorRequired: false,
+  challengeToken: null,
+  user: toUserResponse(user),
+  token,
+  refreshToken,
+});
+
+export const toTwoFactorRequiredResponse = (
+  challengeToken: string,
+): LoginResponse => ({
+  message: 'Two-factor authentication code required',
+  twoFactorRequired: true,
+  challengeToken,
+  user: null,
+  token: null,
+  refreshToken: null,
+});
+
+export class TwoFactorSetupResponse {
+  @ApiProperty({
+    description:
+      'Secret Base32, pour saisie manuelle si le QR ne peut pas être scanné',
+  })
+  secret: string;
+
+  @ApiProperty({
+    description: 'URI otpauth://totp/... pour générer le QR code côté client',
+  })
+  otpauthUri: string;
+}
+
+export class TwoFactorEnableResponse {
+  @ApiProperty({
+    type: [String],
+    description:
+      'Codes de récupération à usage unique, affichés une seule fois',
+  })
+  recoveryCodes: string[];
+}

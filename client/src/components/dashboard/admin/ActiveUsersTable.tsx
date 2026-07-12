@@ -1,34 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, Ban, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { useAdminUsersList } from "@/hooks/api/useAdminUsers";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function ActiveUsersTable() {
+  const t = useTranslations("dashboard.admin.activeUsersTable");
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [limit, setLimit] = useState<number>(10);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
 
   const { data, isLoading } = useAdminUsersList({
     limit,
@@ -57,9 +42,9 @@ export function ActiveUsersTable() {
   return (
     <div className="space-y-4 pt-8">
       <div>
-        <h2 className="text-xl font-bold">Active Users</h2>
+        <h2 className="text-xl font-bold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          {isLoading ? "Loading..." : `${total} ${total === 1 ? "user" : "users"} found`}
+          {isLoading ? t("loading") : t("resultsCount", { count: total })}
         </p>
       </div>
 
@@ -69,7 +54,7 @@ export function ActiveUsersTable() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by name, email, or ID..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -92,24 +77,24 @@ export function ActiveUsersTable() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">User</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">ID</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Role</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Created</th>
-                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.user")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.id")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.role")}</th>
+                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
+                <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    Loading...
+                    {t("loading")}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                    No users found
+                    {t("empty")}
                   </td>
                 </tr>
               ) : (
@@ -145,7 +130,7 @@ export function ActiveUsersTable() {
                           <div className="font-semibold text-sm">{user.username}</div>
                           <div className="text-xs text-muted-foreground">{user.email}</div>
                           {!user.verified && (
-                            <div className="text-xs text-yellow-500 mt-0.5">Unverified</div>
+                            <div className="text-xs text-yellow-500 mt-0.5">{t("unverified")}</div>
                           )}
                         </div>
                       </div>
@@ -178,7 +163,7 @@ export function ActiveUsersTable() {
                           onClick={() => handleBan(user.id)}
                         >
                           <Ban className="h-3 w-3 mr-1" />
-                          Ban
+                          {t("banAction")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -186,7 +171,7 @@ export function ActiveUsersTable() {
                           className="h-8 text-xs"
                         >
                           <MoreHorizontal className="h-3 w-3 mr-1" />
-                          Details
+                          {t("detailsAction")}
                         </Button>
                       </div>
                     </td>

@@ -280,30 +280,14 @@ export function validateAdditionalInfo(data: {
 }
 
 /**
- * Validate documents (Step 5)
+ * Validate documents (Step 5). Registration proof is optional; its value is
+ * an opaque upload ID set by `FileUpload` after a successful backend upload,
+ * never user-typed, so there's nothing to format-validate here.
  */
-export function validateDocuments(data: {
-  registration_proof_url: string;
+export function validateDocuments(_data: {
+  registration_proof_upload_id: string;
 }): ValidationResult {
-  const errors: Record<string, string> = {};
-
-  // Registration proof is now OPTIONAL
-  // No validation needed unless we want to validate the URL format if provided
-  
-  if (data.registration_proof_url && data.registration_proof_url.trim()) {
-    // If provided, it should be either a valid URL or an IPFS URL
-    const isValidUrl = URL_REGEX.test(data.registration_proof_url);
-    const isIpfsUrl = data.registration_proof_url.includes('/ipfs/');
-    
-    if (!isValidUrl && !isIpfsUrl) {
-      errors.registration_proof_url = "Please provide a valid document URL";
-    }
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-  };
+  return { isValid: true, errors: {} };
 }
 
 type AllStepsData = Parameters<typeof validateContactInfo>[0] &
@@ -348,7 +332,7 @@ export function validateAllSteps(data: AllStepsData): ValidationResult {
   });
 
   const step5 = validateDocuments({
-    registration_proof_url: data.registration_proof_url,
+    registration_proof_upload_id: data.registration_proof_upload_id,
   });
 
   const allErrors = {

@@ -37,6 +37,10 @@ export interface CreateLocalUserParams {
   emailVerificationToken: string;
   emailVerificationExpires: Date;
   interests?: string[];
+  /** Rôle à l'inscription. Absent → CLIENT (défaut colonne). Réservé au bootstrap admin. */
+  role?: Role;
+  /** Vérifié dès la création. Absent → false. Réservé à SKIP_EMAIL_VERIFICATION (dev/démo). */
+  verified?: boolean;
 }
 
 /** Données nécessaires au provisionnement d'un compte depuis Google OAuth. */
@@ -86,10 +90,21 @@ export abstract class UserRepository {
   abstract list(
     params: ListUsersParams,
   ): Promise<{ users: User[]; total: number }>;
+  /** Tous les ids d'utilisateurs (filtrés par rôle si fourni) — fan-out notifications. */
+  abstract listIds(role?: Role): Promise<string[]>;
   abstract findByUsername(username: string): Promise<User | null>;
   abstract findByBlockchainAddress(address: string): Promise<User | null>;
   abstract updateProfile(id: string, fields: UpdateUserFields): Promise<User>;
   abstract updateBlockchainAddress(id: string, address: string): Promise<User>;
+  /** RGPD (D9) : efface le lien blockchain de l'utilisateur (suppression de compte). */
+  abstract clearBlockchainAddress(id: string): Promise<void>;
+  /**
+   * RGPD : anonymise le compte en place (email/username/nom/mot de passe
+   * remplacés par des valeurs non identifiantes, `deleted_at` renseigné).
+   * N'efface PAS la ligne — évite les CASCADE/RESTRICT sur `brand`/`*_ban`.
+   * Les lookups (`findById`, `findByEmail`, ...) excluent ensuite ce compte.
+   */
+  abstract anonymize(id: string): Promise<void>;
 
   // --- Auth (jalon 2) ---
   abstract findByEmail(email: string): Promise<User | null>;
@@ -117,8 +132,24 @@ export abstract class UserRepository {
     token: string,
     expiresAt: Date,
   ): Promise<void>;
-  /** Remplace le hash, force `password_changed=true` et purge le token de reset. */
+  /**
+   * Remplace le hash, force `password_changed=true`, purge le token de reset
+   * et relance le compteur de rotation CNIL (`password_changed_at=NOW()`,
+   * `password_reminder_sent_at=NULL`).
+   */
   abstract updatePassword(id: string, passwordHash: string): Promise<User>;
+
+  /**
+   * Comptes avec mot de passe local (hors Google) dont le mot de passe date
+   * d'avant `cutoff` ET dont le rappel n'a jamais été envoyé depuis, ou a été
+   * envoyé avant `cutoff` (rappel récurrent tous les N jours). Backlog sécu
+   * CNIL : rotation conseillée à 60 jours (email seul, pas de blocage).
+   */
+  abstract listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]>;
+  /** Marque le rappel de rotation comme envoyé (relance le délai de 60j). */
+  abstract markPasswordReminderSent(id: string): Promise<void>;
 
   // --- Brands (jalon 3) ---
   /** Positionne le flag `is_brand` (création/suppression d'une marque). */
@@ -132,4 +163,17 @@ export abstract class UserRepository {
   abstract getInterestIds(userId: string): Promise<string[]>;
   /** Remplace intégralement les centres d'intérêt de l'utilisateur. */
   abstract setInterestIds(userId: string, interestIds: string[]): Promise<void>;
+
+  // --- 2FA TOTP ---
+  /** Secret TOTP chiffré (cf. `TwoFactorSecretCipher`), ou `null` si jamais configuré. */
+  abstract getTwoFactorSecret(userId: string): Promise<string | null>;
+  /** Étape "setup" : enregistre le secret chiffré, `two_factor_enabled` reste `false`. */
+  abstract setTwoFactorSecret(
+    userId: string,
+    encryptedSecret: string,
+  ): Promise<void>;
+  /** Étape "enable" : active le 2FA (le secret a déjà été vérifié par le use-case). */
+  abstract enableTwoFactor(userId: string): Promise<void>;
+  /** Désactive le 2FA et efface le secret. */
+  abstract disableTwoFactor(userId: string): Promise<void>;
 }

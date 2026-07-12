@@ -1,10 +1,10 @@
 "use client";
 
 import { Calendar, Mail } from "lucide-react";
-import { IUser } from "@/types/user.types";
+import type { UserResponse } from "@/api/generated/models";
 
 interface ProfileAccountInfoProps {
-  user: IUser | null;
+  user: UserResponse | null;
 }
 
 export function ProfileAccountInfo({ user }: ProfileAccountInfoProps) {

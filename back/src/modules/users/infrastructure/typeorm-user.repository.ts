@@ -1,5 +1,6 @@
+import { createHash, randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
@@ -34,7 +35,9 @@ export class TypeOrmUserRepository extends UserRepository {
   // --- Profil ---
 
   async findById(id: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { id } });
+    const entity = await this.repository.findOne({
+      where: { id, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
@@ -59,14 +62,25 @@ export class TypeOrmUserRepository extends UserRepository {
     return { users: entities.map((entity) => this.toDomain(entity)), total };
   }
 
+  async listIds(role?: Role): Promise<string[]> {
+    const qb = this.repository.createQueryBuilder('u').select('u.id');
+    if (role) {
+      qb.where('u.role = :role', { role });
+    }
+    const entities = await qb.getMany();
+    return entities.map((e) => e.id);
+  }
+
   async findByUsername(username: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { username } });
+    const entity = await this.repository.findOne({
+      where: { username, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
   async findByBlockchainAddress(address: string): Promise<User | null> {
     const entity = await this.repository.findOne({
-      where: { blockchainAddress: address },
+      where: { blockchainAddress: address, deletedAt: IsNull() },
     });
     return entity ? this.toDomain(entity) : null;
   }
@@ -81,10 +95,40 @@ export class TypeOrmUserRepository extends UserRepository {
     return this.getOrThrow(id);
   }
 
+  async clearBlockchainAddress(id: string): Promise<void> {
+    await this.repository.update({ id }, { blockchainAddress: null });
+  }
+
+  async anonymize(id: string): Promise<void> {
+    await this.repository.update(
+      { id },
+      {
+        email: `deleted-${id}@deleted.manachain.local`,
+        username: `deleted-${id}`,
+        firstName: 'Compte',
+        lastName: 'supprimé',
+        passwordHash: `deleted:${randomUUID()}`,
+        avatarUrl: null,
+        blockchainAddress: null,
+        verified: false,
+        isBrand: false,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+        deletedAt: new Date(),
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+      },
+    );
+  }
+
   // --- Auth ---
 
   async findByEmail(email: string): Promise<User | null> {
-    const entity = await this.repository.findOne({ where: { email } });
+    const entity = await this.repository.findOne({
+      where: { email, deletedAt: IsNull() },
+    });
     return entity ? this.toDomain(entity) : null;
   }
 
@@ -93,7 +137,7 @@ export class TypeOrmUserRepository extends UserRepository {
     const entity = await this.repository
       .createQueryBuilder('u')
       .addSelect('u.passwordHash')
-      .where('u.email = :email', { email })
+      .where('u.email = :email AND u.deletedAt IS NULL', { email })
       .getOne();
     if (!entity) return null;
     return { user: this.toDomain(entity), passwordHash: entity.passwordHash };
@@ -107,11 +151,11 @@ export class TypeOrmUserRepository extends UserRepository {
       lastName: params.lastName,
       passwordHash: params.passwordHash,
       ageRange: params.ageRange,
-      verified: false,
+      verified: params.verified ?? false,
       isBrand: false,
-      role: Role.CLIENT,
+      role: params.role ?? Role.CLIENT,
       passwordChanged: true,
-      emailVerificationToken: params.emailVerificationToken,
+      emailVerificationToken: this.hash(params.emailVerificationToken),
       emailVerificationExpires: params.emailVerificationExpires,
     });
     const saved = await this.repository.save(created);
@@ -140,7 +184,7 @@ export class TypeOrmUserRepository extends UserRepository {
     token: string,
   ): Promise<UserWithTokenExpiry | null> {
     const entity = await this.repository.findOne({
-      where: { emailVerificationToken: token },
+      where: { emailVerificationToken: this.hash(token) },
     });
     if (!entity) return null;
     return {
@@ -157,7 +201,7 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.repository.update(
       { id },
       {
-        emailVerificationToken: token,
+        emailVerificationToken: this.hash(token),
         emailVerificationExpires: expiresAt,
       },
     );
@@ -179,7 +223,7 @@ export class TypeOrmUserRepository extends UserRepository {
     token: string,
   ): Promise<UserWithTokenExpiry | null> {
     const entity = await this.repository.findOne({
-      where: { passwordResetToken: token },
+      where: { passwordResetToken: this.hash(token) },
     });
     if (!entity) return null;
     return {
@@ -196,7 +240,7 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.repository.update(
       { id },
       {
-        passwordResetToken: token,
+        passwordResetToken: this.hash(token),
         passwordResetExpires: expiresAt,
       },
     );
@@ -210,9 +254,41 @@ export class TypeOrmUserRepository extends UserRepository {
         passwordChanged: true,
         passwordResetToken: null,
         passwordResetExpires: null,
+        passwordChangedAt: new Date(),
+        passwordReminderSentAt: null,
       },
     );
     return this.getOrThrow(id);
+  }
+
+  async listUsersWithExpiredPassword(
+    cutoff: Date,
+  ): Promise<{ id: string; email: string; username: string }[]> {
+    const entities = await this.repository
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.email', 'u.username'])
+      .where('u.deletedAt IS NULL')
+      .andWhere('u.passwordHash != :sentinel', {
+        sentinel: OAUTH_GOOGLE_PASSWORD_SENTINEL,
+      })
+      .andWhere('u.passwordChangedAt <= :cutoff', { cutoff })
+      .andWhere(
+        '(u.passwordReminderSentAt IS NULL OR u.passwordReminderSentAt <= :cutoff)',
+        { cutoff },
+      )
+      .getMany();
+    return entities.map((e) => ({
+      id: e.id,
+      email: e.email,
+      username: e.username,
+    }));
+  }
+
+  async markPasswordReminderSent(id: string): Promise<void> {
+    await this.repository.update(
+      { id },
+      { passwordReminderSentAt: new Date() },
+    );
   }
 
   // --- Brands ---
@@ -264,6 +340,39 @@ export class TypeOrmUserRepository extends UserRepository {
     await this.linkInterests(userId, interestIds);
   }
 
+  // --- 2FA TOTP ---
+
+  async getTwoFactorSecret(userId: string): Promise<string | null> {
+    // twoFactorSecret est `select: false` → addSelect explicite.
+    const entity = await this.repository
+      .createQueryBuilder('u')
+      .addSelect('u.twoFactorSecret')
+      .where('u.id = :userId', { userId })
+      .getOne();
+    return entity?.twoFactorSecret ?? null;
+  }
+
+  async setTwoFactorSecret(
+    userId: string,
+    encryptedSecret: string,
+  ): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { twoFactorSecret: encryptedSecret },
+    );
+  }
+
+  async enableTwoFactor(userId: string): Promise<void> {
+    await this.repository.update({ id: userId }, { twoFactorEnabled: true });
+  }
+
+  async disableTwoFactor(userId: string): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { twoFactorEnabled: false, twoFactorSecret: null },
+    );
+  }
+
   // --- Helpers ---
 
   private async linkInterests(
@@ -278,6 +387,11 @@ export class TypeOrmUserRepository extends UserRepository {
         [userId, interestId],
       );
     }
+  }
+
+  /** Même approche que `TypeOrmRefreshTokenRepository` : on ne stocke jamais le token en clair. */
+  private hash(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private async getOrThrow(id: string): Promise<User> {
@@ -305,6 +419,8 @@ export class TypeOrmUserRepository extends UserRepository {
       entity.lastLogin,
       entity.createdAt,
       entity.updatedAt,
+      entity.deletedAt,
+      entity.twoFactorEnabled,
     );
   }
 }

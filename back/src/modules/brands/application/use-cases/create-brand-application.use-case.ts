@@ -6,19 +6,28 @@ import {
   BrandApplicationRepository,
   CreateBrandApplicationParams,
 } from '../../domain/brand-application.repository';
+import { BrandApplicationProofUploadStore } from '../../domain/brand-application-proof-upload.store';
 import { BrandRepository } from '../../domain/brand.repository';
 import { InterestChecker } from '../../domain/interest-checker';
 import { BrandApplicationMailer } from '../../domain/brand-application-mailer.port';
 import {
   ApplicationBrandNameTakenError,
+  ApplicationContactEmailAlreadyRegisteredError,
   InvalidInterestSelectionError,
   RegistrationNumberTakenError,
 } from '../../domain/brand.errors';
 
 export type CreateBrandApplicationInput = Omit<
   CreateBrandApplicationParams,
-  'emailVerificationToken' | 'emailVerificationExpires'
->;
+  | 'emailVerificationToken'
+  | 'emailVerificationExpires'
+  | 'registrationProofData'
+  | 'registrationProofMimeType'
+  | 'registrationProofFileName'
+> & {
+  /** Référence retournée par `UploadBrandApplicationProofUseCase`. */
+  registrationProofUploadId?: string | null;
+};
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -36,9 +45,13 @@ export class CreateBrandApplicationUseCase {
     private readonly tokenGenerator: SecureTokenGenerator,
     private readonly userRepository: UserRepository,
     private readonly mailer: BrandApplicationMailer,
+    private readonly proofUploadStore: BrandApplicationProofUploadStore,
   ) {}
 
-  async execute(input: CreateBrandApplicationInput): Promise<BrandApplication> {
+  async execute(
+    input: CreateBrandApplicationInput,
+    options?: { skipEmailVerification?: boolean },
+  ): Promise<BrandApplication> {
     if (input.interestIds.length < 1 || input.interestIds.length > 2) {
       throw new InvalidInterestSelectionError(
         'Select between 1 and 2 interests',
@@ -62,15 +75,42 @@ export class CreateBrandApplicationUseCase {
     ) {
       throw new ApplicationBrandNameTakenError();
     }
+    if (await this.userRepository.findByEmail(input.contactEmail)) {
+      throw new ApplicationContactEmailAlreadyRegisteredError();
+    }
+
+    const { registrationProofUploadId, ...rest } = input;
+    let registrationProofData: Buffer | null = null;
+    let registrationProofMimeType: string | null = null;
+    let registrationProofFileName: string | null = null;
+    if (registrationProofUploadId) {
+      const proof = await this.proofUploadStore.consume(
+        registrationProofUploadId,
+      );
+      if (proof) {
+        registrationProofData = proof.data;
+        registrationProofMimeType = proof.mimeType;
+        registrationProofFileName = proof.fileName;
+      }
+    }
 
     const token = this.tokenGenerator.generate();
-    const application = await this.applicationRepository.create({
-      ...input,
+    let application = await this.applicationRepository.create({
+      ...rest,
+      registrationProofData,
+      registrationProofMimeType,
+      registrationProofFileName,
       emailVerificationToken: token,
       emailVerificationExpires: new Date(Date.now() + VERIFICATION_TTL_MS),
     });
 
-    await this.notify(application, token);
+    if (options?.skipEmailVerification) {
+      application = await this.applicationRepository.markEmailVerified(
+        application.id,
+      );
+    } else {
+      await this.notify(application, token);
+    }
     return application;
   }
 

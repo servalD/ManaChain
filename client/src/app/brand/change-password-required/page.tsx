@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RoleProtectedRoute } from "@/components/RoleProtectedRoute";
 import { Navbar } from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +9,7 @@ import { logout } from "@/hooks/api/useAuth";
 import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
 
 export default function BrandChangePasswordRequiredPage() {
+  const t = useTranslations("dashboard.brand.changePasswordRequiredPage");
   const router = useRouter();
   const { user } = useAuth();
 
@@ -26,8 +28,8 @@ export default function BrandChangePasswordRequiredPage() {
         <ChangePasswordForm
           resetToken={null}
           redirectTo="/brand/dashboard"
-          title="Set your password"
-          description="Welcome! For security reasons, please set your own password before accessing your dashboard."
+          title={t("title")}
+          description={t("description")}
           hideBackLink={true}
         />
       </div>

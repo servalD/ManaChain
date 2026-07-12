@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Image as ImageIcon, Upload, Trash2, Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
@@ -22,6 +23,9 @@ interface BrandContentMediaProps {
 }
 
 export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
+  const t = useTranslations("dashboard.brand.brandContentMedia");
+  const locale = useLocale();
+  const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const { user } = useAuth();
   const { data: confirmedMedia = [], isLoading } = useBrandMedia(brandId);
   const [pendingMedia, setPendingMedia] = useState<PendingMedia[]>([]);
@@ -38,8 +42,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
-        title: "Invalid file type",
-        description: "Please upload an image file",
+        title: t("toasts.invalidFileTypeTitle"),
+        description: t("toasts.invalidFileTypeMessage"),
         variant: "error",
       });
       return;
@@ -48,8 +52,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "File too large",
-        description: "Maximum file size is 5MB",
+        title: t("toasts.fileTooLargeTitle"),
+        description: t("toasts.fileTooLargeMessage"),
         variant: "error",
       });
       return;
@@ -79,15 +83,15 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
       setPendingMedia((prev) => [...prev, newPendingMedia]);
       
       toast({
-        title: "Upload successful",
-        description: "Image uploaded to IPFS. Please confirm to save it.",
+        title: t("toasts.uploadSuccessTitle"),
+        description: t("toasts.uploadSuccessMessage"),
         variant: "success",
       });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "An error occurred while uploading the image",
+        title: t("toasts.uploadFailedTitle"),
+        description: error instanceof Error ? error.message : t("toasts.uploadFailedFallback"),
         variant: "error",
       });
     } finally {
@@ -100,8 +104,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
   const handleConfirmMedia = (pendingItem: PendingMedia) => {
     if (!brandId) {
       toast({
-        title: "Error",
-        description: "Brand ID is required",
+        title: t("toasts.errorTitle"),
+        description: t("toasts.brandIdRequired"),
         variant: "error",
       });
       return;
@@ -120,8 +124,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
           URL.revokeObjectURL(pendingItem.previewUrl);
 
           toast({
-            title: "Media confirmed",
-            description: "Your image has been saved",
+            title: t("toasts.mediaConfirmedTitle"),
+            description: t("toasts.mediaConfirmedMessage"),
             variant: "success",
           });
         },
@@ -148,8 +152,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
       URL.revokeObjectURL(pendingItem.previewUrl);
 
       toast({
-        title: "Upload cancelled",
-        description: "The image has been removed from IPFS",
+        title: t("toasts.uploadCancelledTitle"),
+        description: t("toasts.uploadCancelledMessage"),
         variant: "success",
       });
     } catch (error) {
@@ -167,8 +171,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     const media = confirmedMedia.find((m) => m.id === mediaId);
     if (!media) {
       toast({
-        title: "Error",
-        description: "Media not found",
+        title: t("toasts.errorTitle"),
+        description: t("toasts.mediaNotFound"),
         variant: "error",
       });
       return;
@@ -182,8 +186,8 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
         {
           onSuccess: () => {
             toast({
-              title: "Media deleted",
-              description: "The media item has been removed",
+              title: t("toasts.mediaDeletedTitle"),
+              description: t("toasts.mediaDeletedMessage"),
               variant: "success",
             });
           },
@@ -212,7 +216,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(dateLocale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -226,7 +230,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
     <div className="space-y-4 pt-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl font-bold">Content & Media</h2>
+        <h2 className="text-xl font-bold">{t("heading")}</h2>
       </div>
 
       {/* Upload Area */}
@@ -243,13 +247,13 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
-                <p className="text-sm text-muted-foreground">Uploading...</p>
+                <p className="text-sm text-muted-foreground">{t("uploading")}</p>
               </div>
             ) : (
               <>
                 <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">Click to upload or drag and drop</p>
-                <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
+                <p className="text-sm font-medium mb-1">{t("dropzoneHint")}</p>
+                <p className="text-xs text-muted-foreground">{t("dropzoneFormats")}</p>
               </>
             )}
           </div>
@@ -267,7 +271,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
       {!isLoading && !hasMedia && (
         <div className="border border-border rounded-lg p-12 text-center">
           <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <p className="text-muted-foreground text-sm">No media uploaded yet</p>
+          <p className="text-muted-foreground text-sm">{t("noMediaYet")}</p>
         </div>
       )}
 
@@ -286,7 +290,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-2 left-2 bg-yellow-500 text-yellow-950 text-xs font-semibold px-2 py-1 rounded">
-                  Pending
+                  {t("pending")}
                 </div>
               </div>
               <div className="p-3 bg-background">
@@ -341,7 +345,7 @@ export function BrandContentMedia({ brandId }: BrandContentMediaProps) {
                 />
               </div>
               <div className="p-3 bg-background">
-                <p className="text-xs font-medium truncate mb-1">Media {item.id.slice(0, 8)}</p>
+                <p className="text-xs font-medium truncate mb-1">{t("mediaLabel", { id: item.id.slice(0, 8) })}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{formatDate(item.createdAt)}</span>
                 </div>

@@ -1,157 +1,88 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Users, Calendar, Shield, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslations } from "next-intl";
+import {
+  Bell,
+  Megaphone,
+  ShieldCheck,
+  ShieldAlert,
+  Coins,
+  Ticket,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useMyNotifications, useMarkNotificationRead } from "@/hooks/api/useNotifications";
+import type { NotificationResponse } from "@/api/generated/models";
 
-interface Notification {
-  id: string;
-  type: "new_holder" | "upcoming_event" | "admin_notification";
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  priority: "low" | "medium" | "high";
-}
-
-// Mock notifications data
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "new_holder",
-    title: "New Token Holder",
-    message: "John Doe has purchased 50 tokens",
-    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    read: false,
-    priority: "high",
-  },
-  {
-    id: "2",
-    type: "upcoming_event",
-    title: "Event Starting Soon",
-    message: "Product Launch Event starts in 2 hours",
-    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    read: false,
-    priority: "high",
-  },
-  {
-    id: "3",
-    type: "admin_notification",
-    title: "Admin Notification",
-    message: "Your brand application has been reviewed and approved",
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    read: false,
-    priority: "medium",
-  },
-  {
-    id: "4",
-    type: "new_holder",
-    title: "New Token Holder",
-    message: "Jane Smith has purchased 25 tokens",
-    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    read: true,
-    priority: "medium",
-  },
-  {
-    id: "5",
-    type: "upcoming_event",
-    title: "Event Reminder",
-    message: "Community Meetup is scheduled for tomorrow at 2 PM",
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-    read: true,
-    priority: "low",
-  },
-  {
-    id: "6",
-    type: "admin_notification",
-    title: "System Update",
-    message: "New features are now available in your dashboard",
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    read: true,
-    priority: "low",
-  },
-];
-
-const getNotificationIcon = (type: Notification["type"]) => {
+const getNotificationIcon = (type: NotificationResponse["type"]) => {
   switch (type) {
-    case "new_holder":
-      return <Users className="h-5 w-5" />;
-    case "upcoming_event":
-      return <Calendar className="h-5 w-5" />;
-    case "admin_notification":
-      return <Shield className="h-5 w-5" />;
+    case "brand_whitelisted":
+      return <ShieldCheck className="h-5 w-5" />;
+    case "brand_banned":
+      return <ShieldAlert className="h-5 w-5" />;
+    case "token_purchased":
+      return <Coins className="h-5 w-5" />;
+    case "ticket_purchased":
+      return <Ticket className="h-5 w-5" />;
+    case "sale_cancelled_by_brand":
+      return <XCircle className="h-5 w-5" />;
+    case "admin_message":
+    default:
+      return <Megaphone className="h-5 w-5" />;
   }
 };
 
-const getNotificationColor = (type: Notification["type"]) => {
+const getNotificationColor = (type: NotificationResponse["type"]) => {
   switch (type) {
-    case "new_holder":
+    case "brand_whitelisted":
       return "bg-violet-500/10 text-violet-500 border-violet-500/20";
-    case "upcoming_event":
-      return "bg-fuchsia-500/10 text-fuchsia-500 border-fuchsia-500/20";
-    case "admin_notification":
+    case "brand_banned":
+      return "bg-red-500/10 text-red-500 border-red-500/20";
+    case "token_purchased":
+      return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+    case "ticket_purchased":
+      return "bg-sky-500/10 text-sky-500 border-sky-500/20";
+    case "sale_cancelled_by_brand":
+      return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+    case "admin_message":
+    default:
       return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
   }
 };
 
-const getPriorityColor = (priority: Notification["priority"]) => {
-  switch (priority) {
-    case "high":
-      return "bg-red-500";
-    case "medium":
-      return "bg-yellow-500";
-    case "low":
-      return "bg-green-500";
-  }
-};
-
-const formatTimestamp = (date: Date) => {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const minutes = Math.floor(diff / (1000 * 60));
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  if (minutes < 1) {
-    return "Just now";
-  } else if (minutes < 60) {
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  } else if (hours < 24) {
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  } else {
-    return `${days} day${days > 1 ? "s" : ""} ago`;
-  }
-};
-
 export function BrandNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const t = useTranslations("dashboard.brand.brandNotifications");
+  const { data, isLoading } = useMyNotifications({ limit: 20, offset: 0 });
+  const markRead = useMarkNotificationRead();
+  const notifications = data?.notifications ?? [];
+  const [now] = useState(() => Date.now());
+
+  const formatTimestamp = (iso: string) => {
+    const diff = now - new Date(iso).getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (minutes < 1) return t("justNow");
+    if (minutes < 60) return t("minutesAgo", { count: minutes });
+    if (hours < 24) return t("hoursAgo", { count: hours });
+    return t("daysAgo", { count: days });
+  };
+
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [showAll, setShowAll] = useState(false);
 
-  const filteredNotifications = notifications.filter((notif) => {
-    if (filter === "unread") {
-      return !notif.read;
-    }
-    return true;
-  });
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const filteredNotifications = notifications.filter((notif) => (filter === "unread" ? !notif.readAt : true));
+  const unreadCount = data?.unreadCount ?? 0;
   const displayedNotifications = showAll ? filteredNotifications : filteredNotifications.slice(0, 3);
   const hasMore = filteredNotifications.length > 3;
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
-    );
-  };
-
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    notifications.filter((n) => !n.readAt).forEach((n) => void markRead.mutateAsync({ id: n.id }));
   };
 
   return (
@@ -167,7 +98,7 @@ export function BrandNotifications() {
               </span>
             )}
           </div>
-          <h2 className="text-xl font-bold">Notifications</h2>
+          <h2 className="text-xl font-bold">{t("heading")}</h2>
         </div>
 
         <div className="flex items-center gap-2">
@@ -185,7 +116,7 @@ export function BrandNotifications() {
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               )}
             >
-              All
+              {t("all")}
             </button>
             <button
               onClick={() => {
@@ -199,30 +130,29 @@ export function BrandNotifications() {
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               )}
             >
-              Unread ({unreadCount})
+              {t("unreadCount", { count: unreadCount })}
             </button>
           </div>
 
           {/* Mark all as read */}
           {unreadCount > 0 && (
-            <Button
-              onClick={markAllAsRead}
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs"
-            >
-              Mark all as read
+            <Button onClick={markAllAsRead} variant="outline" size="sm" className="h-9 text-xs">
+              {t("markAllAsRead")}
             </Button>
           )}
         </div>
       </div>
 
       {/* Notifications List */}
-      {filteredNotifications.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-6 h-6 border-3 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+        </div>
+      ) : filteredNotifications.length === 0 ? (
         <div className="border border-border rounded-lg p-12 text-center">
           <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
           <p className="text-muted-foreground text-sm">
-            No {filter === "unread" ? "unread" : ""} notifications
+            {filter === "unread" ? t("noUnreadNotifications") : t("noNotifications")}
           </p>
         </div>
       ) : (
@@ -232,17 +162,12 @@ export function BrandNotifications() {
               key={notification.id}
               className={cn(
                 "border border-border rounded-lg p-4 transition-all",
-                !notification.read && "bg-muted/30 border-violet-500/30"
+                !notification.readAt && "bg-muted/30 border-violet-500/30"
               )}
             >
               <div className="flex items-start gap-4">
                 {/* Icon */}
-                <div
-                  className={cn(
-                    "p-2 rounded-lg border shrink-0",
-                    getNotificationColor(notification.type)
-                  )}
-                >
+                <div className={cn("p-2 rounded-lg border shrink-0", getNotificationColor(notification.type))}>
                   {getNotificationIcon(notification.type)}
                 </div>
 
@@ -252,39 +177,25 @@ export function BrandNotifications() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-sm">{notification.title}</h3>
-                        {!notification.read && (
-                          <div className={cn("h-2 w-2 rounded-full", getPriorityColor(notification.priority))} />
-                        )}
+                        {!notification.readAt && <div className="h-2 w-2 rounded-full bg-violet-500" />}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTimestamp(notification.timestamp)}
-                      </p>
+                      <p className="text-sm text-muted-foreground mb-2">{notification.body}</p>
+                      <p className="text-xs text-muted-foreground">{formatTimestamp(notification.createdAt)}</p>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {!notification.read && (
+                    {!notification.readAt && (
+                      <div className="flex items-center gap-2 shrink-0">
                         <Button
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={() => void markRead.mutateAsync({ id: notification.id })}
                           variant="ghost"
                           size="sm"
                           className="h-8 text-xs"
                         >
-                          Mark as read
+                          {t("markAsRead")}
                         </Button>
-                      )}
-                      <Button
-                        onClick={() => deleteNotification(notification.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -294,21 +205,16 @@ export function BrandNotifications() {
           {/* Show More/Less Button */}
           {hasMore && (
             <div className="flex justify-center pt-2">
-              <Button
-                onClick={() => setShowAll(!showAll)}
-                variant="ghost"
-                size="sm"
-                className="h-9"
-              >
+              <Button onClick={() => setShowAll(!showAll)} variant="ghost" size="sm" className="h-9">
                 {showAll ? (
                   <>
                     <ChevronUp className="h-4 w-4 mr-2" />
-                    Show Less
+                    {t("showLess")}
                   </>
                 ) : (
                   <>
                     <ChevronDown className="h-4 w-4 mr-2" />
-                    Show All ({filteredNotifications.length})
+                    {t("showAll", { count: filteredNotifications.length })}
                   </>
                 )}
               </Button>

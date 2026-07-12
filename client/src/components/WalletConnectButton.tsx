@@ -3,7 +3,7 @@
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { Check } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 
 interface WalletConnectButtonProps {
   onConnected?: (address: string) => void;
@@ -11,24 +11,30 @@ interface WalletConnectButtonProps {
   shouldDisconnect?: boolean;
 }
 
+// Module-level (not a ref): a client-side page navigation remounts this component on
+// every page (each page renders its own <Navbar>), but Dynamic's session persists
+// across that navigation — a ref would reset to null on each mount and re-fire the
+// "connected" notification on every page change. This survives navigation, and only
+// resets on a full reload, so the notification fires once per browser session.
+let lastNotifiedAddress: string | null = null;
+
 export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconnect }: WalletConnectButtonProps) {
   const { primaryWallet, setShowAuthFlow, handleLogOut } = useDynamicContext();
-  const lastNotifiedAddress = useRef<string | null>(null);
 
-  // Handle wallet connection - only notify once per address
+  // Handle wallet connection - only notify once per address per session
   useEffect(() => {
-    if (primaryWallet?.address && onConnected && lastNotifiedAddress.current !== primaryWallet.address) {
-      lastNotifiedAddress.current = primaryWallet.address;
+    if (primaryWallet?.address && onConnected && lastNotifiedAddress !== primaryWallet.address) {
+      lastNotifiedAddress = primaryWallet.address;
       onConnected(primaryWallet.address);
     } else if (!primaryWallet?.address) {
-      lastNotifiedAddress.current = null;
+      lastNotifiedAddress = null;
     }
   }, [primaryWallet?.address, onConnected]);
 
   const handleDisconnect = useCallback(async () => {
     try {
       await handleLogOut();
-      lastNotifiedAddress.current = null;
+      lastNotifiedAddress = null;
       if (onDisconnected) {
         onDisconnected();
       }

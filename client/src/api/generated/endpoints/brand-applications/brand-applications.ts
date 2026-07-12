@@ -25,10 +25,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ApproveApplicationResponse,
   BrandApplicationResponse,
   BrandApplicationsControllerListParams,
+  BrandApplicationsControllerUploadRegistrationProofBody,
   CreateBrandApplicationRequest,
   PaginatedApplicationsResponse,
+  RegistrationProofUploadResponse,
   RejectApplicationRequest,
   VerifyApplicationEmailRequest
 } from '../../models';
@@ -212,6 +215,136 @@ export function useBrandApplicationsControllerList<TData = Awaited<ReturnType<ty
 
 
 /**
+ * @summary Uploader temporairement un justificatif d’immatriculation (avant dépôt de candidature)
+ */
+export const brandApplicationsControllerUploadRegistrationProof = (
+    brandApplicationsControllerUploadRegistrationProofBody: BrandApplicationsControllerUploadRegistrationProofBody,
+ signal?: AbortSignal
+) => {
+
+      const formData = new FormData();
+if(brandApplicationsControllerUploadRegistrationProofBody.file !== undefined) {
+ formData.append(`file`, brandApplicationsControllerUploadRegistrationProofBody.file);
+ }
+
+      return customInstance<RegistrationProofUploadResponse>(
+      {url: `/api/brands/applications/registration-proof`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandApplicationsControllerUploadRegistrationProofMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>, TError,{data: BrandApplicationsControllerUploadRegistrationProofBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>, TError,{data: BrandApplicationsControllerUploadRegistrationProofBody}, TContext> => {
+
+const mutationKey = ['brandApplicationsControllerUploadRegistrationProof'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>, {data: BrandApplicationsControllerUploadRegistrationProofBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  brandApplicationsControllerUploadRegistrationProof(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BrandApplicationsControllerUploadRegistrationProofMutationResult = NonNullable<Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>>
+    export type BrandApplicationsControllerUploadRegistrationProofMutationBody = BrandApplicationsControllerUploadRegistrationProofBody
+    export type BrandApplicationsControllerUploadRegistrationProofMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Uploader temporairement un justificatif d’immatriculation (avant dépôt de candidature)
+ */
+export const useBrandApplicationsControllerUploadRegistrationProof = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>, TError,{data: BrandApplicationsControllerUploadRegistrationProofBody}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof brandApplicationsControllerUploadRegistrationProof>>,
+        TError,
+        {data: BrandApplicationsControllerUploadRegistrationProofBody},
+        TContext
+      > => {
+      return useMutation(getBrandApplicationsControllerUploadRegistrationProofMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Annuler un justificatif temporairement uploadé
+ */
+export const brandApplicationsControllerDeleteRegistrationProofUpload = (
+    uploadId: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/brands/applications/registration-proof/${uploadId}`, method: 'DELETE', signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandApplicationsControllerDeleteRegistrationProofUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>, TError,{uploadId: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>, TError,{uploadId: string}, TContext> => {
+
+const mutationKey = ['brandApplicationsControllerDeleteRegistrationProofUpload'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>, {uploadId: string}> = (props) => {
+          const {uploadId} = props ?? {};
+
+          return  brandApplicationsControllerDeleteRegistrationProofUpload(uploadId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BrandApplicationsControllerDeleteRegistrationProofUploadMutationResult = NonNullable<Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>>
+
+    export type BrandApplicationsControllerDeleteRegistrationProofUploadMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Annuler un justificatif temporairement uploadé
+ */
+export const useBrandApplicationsControllerDeleteRegistrationProofUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>, TError,{uploadId: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof brandApplicationsControllerDeleteRegistrationProofUpload>>,
+        TError,
+        {uploadId: string},
+        TContext
+      > => {
+      return useMutation(getBrandApplicationsControllerDeleteRegistrationProofUploadMutationOptions(options), queryClient);
+    }
+    /**
  * @summary Vérifier l'email d'une candidature
  */
 export const brandApplicationsControllerVerify = (
@@ -368,6 +501,98 @@ export function useBrandApplicationsControllerGetOne<TData = Awaited<ReturnType<
 
 
 /**
+ * @summary Télécharger le justificatif d’immatriculation (admin)
+ */
+export const brandApplicationsControllerDownloadRegistrationProof = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<void>(
+      {url: `/api/brands/applications/${id}/registration-proof`, method: 'GET', signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandApplicationsControllerDownloadRegistrationProofQueryKey = (id: string,) => {
+    return [
+    `/api/brands/applications/${id}/registration-proof`
+    ] as const;
+    }
+
+
+export const getBrandApplicationsControllerDownloadRegistrationProofQueryOptions = <TData = Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBrandApplicationsControllerDownloadRegistrationProofQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>> = ({ signal }) => brandApplicationsControllerDownloadRegistrationProof(id, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BrandApplicationsControllerDownloadRegistrationProofQueryResult = NonNullable<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>>
+export type BrandApplicationsControllerDownloadRegistrationProofQueryError = ErrorType<unknown>
+
+
+export function useBrandApplicationsControllerDownloadRegistrationProof<TData = Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>,
+          TError,
+          Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandApplicationsControllerDownloadRegistrationProof<TData = Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>,
+          TError,
+          Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandApplicationsControllerDownloadRegistrationProof<TData = Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Télécharger le justificatif d’immatriculation (admin)
+ */
+
+export function useBrandApplicationsControllerDownloadRegistrationProof<TData = Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandApplicationsControllerDownloadRegistrationProof>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBrandApplicationsControllerDownloadRegistrationProofQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
  * @summary Approuver une candidature (admin)
  */
 export const brandApplicationsControllerApprove = (
@@ -376,7 +601,7 @@ export const brandApplicationsControllerApprove = (
 ) => {
 
 
-      return customInstance<void>(
+      return customInstance<ApproveApplicationResponse>(
       {url: `/api/brands/applications/${id}/approve`, method: 'PUT', signal
     },
       );

@@ -1,10 +1,11 @@
 "use client";
 
 import { FileUpload } from "./FileUpload";
+import BrandApplicationProofService from "@/services/brand-application-proof.service";
 
 interface DocumentsProps {
   formData: {
-    registration_proof_url: string;
+    registration_proof_upload_id: string;
   };
   onChange: (field: string, value: string) => void;
   errors?: Record<string, string>;
@@ -23,13 +24,15 @@ export function Documents({ formData, onChange, errors = {} }: DocumentsProps) {
       <div className="space-y-4">
         <div>
           <FileUpload
-            value={formData.registration_proof_url}
-            onChange={(url) => onChange('registration_proof_url', url)}
+            value={formData.registration_proof_upload_id}
+            onChange={(uploadId) => onChange('registration_proof_upload_id', uploadId)}
             accept=".pdf,application/pdf"
             label="Business Registration Proof"
-            description="Upload your business registration document (PDF only) - Optional but recommended"
-            fieldName="registration_proof_url"
-            error={errors.registration_proof_url}
+            description="Upload your business registration document (PDF only) - Optional but recommended. Only reviewed by our admin team, never made public."
+            error={errors.registration_proof_upload_id}
+            uploadOverride={(file) => BrandApplicationProofService.upload(file)}
+            removeOverride={(uploadId) => BrandApplicationProofService.remove(uploadId)}
+            forcePdfPreview
           />
         </div>
 

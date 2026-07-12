@@ -26,7 +26,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate:api": "orval --config orval.config.ts"
+    "generate:api": "orval --config orval.config.ts",
+    "generate:abi": "wagmi generate"
   },
   "dependencies": {
     "@dynamic-labs/ethereum": "^4.55.0",
@@ -40,7 +41,6 @@
     "axios": "^1.16.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "form-data": "^4.0.5",
     "framer-motion": "^12.26.2",
     "gsap": "^3.13.0",
     "lenis": "^1.3.13",
@@ -50,6 +50,7 @@
     "next": "16.2.6",
     "next-intl": "^4.13.1",
     "pinata": "^2.5.3",
+    "qrcode.react": "^4.2.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",
@@ -66,6 +67,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.181.0",
+    "@wagmi/cli": "^2.10.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",

@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Send, Users, Building2, Mail, AlertCircle, CheckCircle2, Edit, Eye } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Send, Users, Building2, Mail, CheckCircle2, Edit, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { useSendNotification } from "@/hooks/api/useNotifications";
+import { SendNotificationRequestRole } from "@/api/generated/models";
 import ReactMarkdown from "react-markdown";
 
 type RecipientType = 'all_users' | 'all_brands' | 'both';
@@ -14,66 +18,63 @@ interface NotificationForm {
   recipientType: RecipientType;
   title: string;
   message: string;
-  priority: 'normal' | 'high';
 }
 
 export function NotificationCenter() {
+  const t = useTranslations("dashboard.admin.notificationCenter");
   const [form, setForm] = useState<NotificationForm>({
     recipientType: 'all_users',
     title: '',
     message: '',
-    priority: 'normal',
   });
-  const [isSending, setIsSending] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
   const [messageViewMode, setMessageViewMode] = useState<'edit' | 'preview'>('edit');
+
+  const sendNotification = useSendNotification();
 
   const handleSend = async () => {
     if (!form.title.trim() || !form.message.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in both title and message.",
+        title: t("toasts.validationErrorTitle"),
+        description: t("toasts.validationErrorMessage"),
         variant: "error",
       });
       return;
     }
 
-    setIsSending(true);
-    
-    // TODO: Implement API call to send notifications
-    // Simulate API call
-    setTimeout(() => {
-      const recipientCount = form.recipientType === 'both' 
-        ? 'all users and brands'
-        : form.recipientType === 'all_users'
-        ? 'all users'
-        : 'all brands';
-      
-      toast({
-        title: "Notifications sent",
-        description: `Notification sent successfully to ${recipientCount}.`,
-        variant: "success",
-      });
-      
-      setForm({
-        recipientType: 'all_users',
-        title: '',
-        message: '',
-        priority: 'normal',
-      });
-      setIsSending(false);
-      setPreviewMode(false);
-    }, 1500);
+    const result = await sendNotification.mutateAsync({
+      data:
+        form.recipientType === "both"
+          ? { recipientType: "all", title: form.title.trim(), body: form.message.trim() }
+          : {
+              recipientType: "role",
+              role:
+                form.recipientType === "all_users"
+                  ? SendNotificationRequestRole.CLIENT
+                  : SendNotificationRequestRole.BRANDUSER,
+              title: form.title.trim(),
+              body: form.message.trim(),
+            },
+    });
+
+    toast({
+      title: t("toasts.sentTitle"),
+      description: t("toasts.sentMessage", { count: result.recipientCount }),
+      variant: "success",
+    });
+
+    setForm({ recipientType: 'all_users', title: '', message: '' });
+    setPreviewMode(false);
   };
 
-  const getRecipientCount = () => {
+  const getRecipientLabel = () => {
     switch (form.recipientType) {
       case 'all_users':
-        return '~150 users';
+        return t("recipients.allUsersLabel");
       case 'all_brands':
-        return '~25 brands';
+        return t("recipients.allBrandsLabel");
       case 'both':
-        return '~175 recipients';
+        return t("recipients.everyoneLabel");
       default:
         return '';
     }
@@ -82,9 +83,9 @@ export function NotificationCenter() {
   return (
     <div className="space-y-6 pt-8 w-full">
       <div>
-        <h2 className="text-xl font-bold">Notification Center</h2>
+        <h2 className="text-xl font-bold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground">
-          Send notifications to all users or brands on the platform
+          {t("subtitle")}
         </p>
       </div>
 
@@ -95,9 +96,9 @@ export function NotificationCenter() {
           <div className="border border-border rounded-lg p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="h-5 w-5 text-violet-500" />
-              <h3 className="text-lg font-semibold">Recipients</h3>
+              <h3 className="text-lg font-semibold">{t("recipients.heading")}</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 type="button"
@@ -114,9 +115,9 @@ export function NotificationCenter() {
                     "h-5 w-5",
                     form.recipientType === 'all_users' ? "text-violet-500" : "text-muted-foreground"
                   )} />
-                  <span className="font-semibold text-sm">All Users</span>
+                  <span className="font-semibold text-sm">{t("recipients.allUsersLabel")}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Send to all platform users</p>
+                <p className="text-xs text-muted-foreground">{t("recipients.allUsersDescription")}</p>
               </button>
 
               <button
@@ -134,9 +135,9 @@ export function NotificationCenter() {
                     "h-5 w-5",
                     form.recipientType === 'all_brands' ? "text-fuchsia-500" : "text-muted-foreground"
                   )} />
-                  <span className="font-semibold text-sm">All Brands</span>
+                  <span className="font-semibold text-sm">{t("recipients.allBrandsLabel")}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Send to all brand accounts</p>
+                <p className="text-xs text-muted-foreground">{t("recipients.allBrandsDescription")}</p>
               </button>
 
               <button
@@ -154,15 +155,15 @@ export function NotificationCenter() {
                     "h-5 w-5",
                     form.recipientType === 'both' ? "text-indigo-500" : "text-muted-foreground"
                   )} />
-                  <span className="font-semibold text-sm">Both</span>
+                  <span className="font-semibold text-sm">{t("recipients.everyoneLabel")}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">Send to everyone</p>
+                <p className="text-xs text-muted-foreground">{t("recipients.everyoneDescription")}</p>
               </button>
             </div>
 
             <div className="pt-2 border-t border-border">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Recipients:</span> {getRecipientCount()}
+                <span className="font-medium text-foreground">{t("recipients.recipientsColon")}</span> {getRecipientLabel()}
               </p>
             </div>
           </div>
@@ -171,30 +172,30 @@ export function NotificationCenter() {
           <div className="border border-border rounded-lg p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Send className="h-5 w-5 text-violet-500" />
-              <h3 className="text-lg font-semibold">Notification Details</h3>
+              <h3 className="text-lg font-semibold">{t("form.heading")}</h3>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="notification-title" className="text-sm font-medium">
-                Title <span className="text-red-500">*</span>
+                {t("form.titleLabel")} <span className="text-red-500">*</span>
               </label>
               <Input
                 id="notification-title"
-                placeholder="Enter notification title..."
+                placeholder={t("form.titlePlaceholder")}
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 maxLength={100}
               />
               <p className="text-xs text-muted-foreground">
-                {form.title.length}/100 characters
+                {t("form.characterCount", { count: form.title.length, max: 100 })}
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label htmlFor="notification-message" className="text-sm font-medium">
-                  Message <span className="text-red-500">*</span>
-                  <span className="text-xs text-muted-foreground ml-2">(Markdown supported)</span>
+                  {t("form.messageLabel")} <span className="text-red-500">*</span>
+                  <span className="text-xs text-muted-foreground ml-2">{t("form.markdownSupported")}</span>
                 </label>
                 <div className="flex gap-1 border border-border rounded-md overflow-hidden">
                   <button
@@ -208,7 +209,7 @@ export function NotificationCenter() {
                     )}
                   >
                     <Edit className="h-3 w-3" />
-                    Edit
+                    {t("form.editTab")}
                   </button>
                   <button
                     type="button"
@@ -221,18 +222,18 @@ export function NotificationCenter() {
                     )}
                   >
                     <Eye className="h-3 w-3" />
-                    Preview
+                    {t("form.previewTab")}
                   </button>
                 </div>
               </div>
-              
+
               {messageViewMode === 'edit' ? (
-                <textarea
+                <Textarea
                   id="notification-message"
-                  placeholder="Enter notification message... (Markdown supported: **bold**, *italic*, [links](url), etc.)"
+                  placeholder={t("form.messagePlaceholder")}
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                  className="min-h-[200px] font-mono resize-none"
                   maxLength={2000}
                 />
               ) : (
@@ -269,66 +270,15 @@ export function NotificationCenter() {
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground italic">Your markdown preview will appear here...</p>
+                    <p className="text-muted-foreground italic">{t("form.previewPlaceholder")}</p>
                   )}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {form.message.length}/2000 characters
+                {t("form.characterCount", { count: form.message.length, max: 2000 })}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Priority</label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, priority: 'normal' })}
-                  className={cn(
-                    "flex-1 p-3 rounded-lg border-2 transition-all",
-                    form.priority === 'normal'
-                      ? "border-violet-500 bg-violet-500/10"
-                      : "border-border hover:border-violet-500/50"
-                  )}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Mail className={cn(
-                      "h-4 w-4",
-                      form.priority === 'normal' ? "text-violet-500" : "text-muted-foreground"
-                    )} />
-                    <span className={cn(
-                      "text-sm font-medium",
-                      form.priority === 'normal' ? "text-violet-500" : "text-muted-foreground"
-                    )}>
-                      Normal
-                    </span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, priority: 'high' })}
-                  className={cn(
-                    "flex-1 p-3 rounded-lg border-2 transition-all",
-                    form.priority === 'high'
-                      ? "border-red-500 bg-red-500/10"
-                      : "border-border hover:border-red-500/50"
-                  )}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <AlertCircle className={cn(
-                      "h-4 w-4",
-                      form.priority === 'high' ? "text-red-500" : "text-muted-foreground"
-                    )} />
-                    <span className={cn(
-                      "text-sm font-medium",
-                      form.priority === 'high' ? "text-red-500" : "text-muted-foreground"
-                    )}>
-                      High Priority
-                    </span>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Actions */}
@@ -338,22 +288,22 @@ export function NotificationCenter() {
               onClick={() => setPreviewMode(!previewMode)}
               className="flex-1"
             >
-              {previewMode ? "Edit" : "Preview"}
+              {previewMode ? t("form.editTab") : t("form.previewTab")}
             </Button>
             <Button
-              onClick={handleSend}
-              disabled={isSending || !form.title.trim() || !form.message.trim()}
+              onClick={() => void handleSend()}
+              disabled={sendNotification.isPending || !form.title.trim() || !form.message.trim()}
               className="flex-1 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 text-white hover:from-violet-700 hover:via-fuchsia-700 hover:to-indigo-700"
             >
-              {isSending ? (
+              {sendNotification.isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Sending...
+                  {t("form.sending")}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Notification
+                  {t("form.sendButton")}
                 </>
               )}
             </Button>
@@ -365,7 +315,7 @@ export function NotificationCenter() {
           <div className="border border-border rounded-lg p-6 space-y-4 sticky top-4">
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle2 className="h-5 w-5 text-indigo-500" />
-              <h3 className="text-lg font-semibold">Preview</h3>
+              <h3 className="text-lg font-semibold">{t("preview.heading")}</h3>
             </div>
 
             <div className="space-y-3">
@@ -374,18 +324,13 @@ export function NotificationCenter() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-semibold text-sm break-words">
-                        {form.title || "Notification Title"}
+                        {form.title || t("preview.placeholderTitle")}
                       </h4>
-                      {form.priority === 'high' && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded-full shrink-0">
-                          High Priority
-                        </span>
-                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mb-2">
-                      {form.recipientType === 'all_users' && 'To: All Users'}
-                      {form.recipientType === 'all_brands' && 'To: All Brands'}
-                      {form.recipientType === 'both' && 'To: All Users & Brands'}
+                      {form.recipientType === 'all_users' && t("preview.toAllUsers")}
+                      {form.recipientType === 'all_brands' && t("preview.toAllBrands")}
+                      {form.recipientType === 'both' && t("preview.toEveryone")}
                     </p>
                     <div className="text-sm text-foreground max-h-[300px] overflow-y-auto pr-2 break-words" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       {form.message ? (
@@ -420,7 +365,7 @@ export function NotificationCenter() {
                           </ReactMarkdown>
                         </div>
                       ) : (
-                        <p className="text-muted-foreground">Your notification message will appear here...</p>
+                        <p className="text-muted-foreground">{t("preview.messagePlaceholder")}</p>
                       )}
                     </div>
                   </div>
@@ -441,20 +386,16 @@ export function NotificationCenter() {
               <div className="pt-4 border-t border-border">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Recipients:</span>
-                    <span className="font-medium">{getRecipientCount()}</span>
+                    <span className="text-muted-foreground">{t("preview.recipientsLabel")}</span>
+                    <span className="font-medium">{getRecipientLabel()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Priority:</span>
-                    <span className="font-medium capitalize">{form.priority}</span>
+                    <span className="text-muted-foreground">{t("preview.titleLengthLabel")}</span>
+                    <span className="font-medium">{t("preview.lengthRatio", { count: form.title.length, max: 100 })}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Title length:</span>
-                    <span className="font-medium">{form.title.length}/100</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Message length:</span>
-                    <span className="font-medium">{form.message.length}/2000</span>
+                    <span className="text-muted-foreground">{t("preview.messageLengthLabel")}</span>
+                    <span className="font-medium">{t("preview.lengthRatio", { count: form.message.length, max: 2000 })}</span>
                   </div>
                 </div>
               </div>

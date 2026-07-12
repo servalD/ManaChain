@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  authControllerLogout,
   getAuthControllerRegisterMutationOptions,
   getAuthControllerLoginMutationOptions,
   getAuthControllerVerifyEmailMutationOptions,
@@ -9,25 +10,39 @@ import {
   getAuthControllerForgotPasswordMutationOptions,
   getAuthControllerResetPasswordMutationOptions,
   getAuthControllerChangePasswordMutationOptions,
+  getAuthControllerSetupTwoFactorMutationOptions,
+  getAuthControllerEnableTwoFactorMutationOptions,
+  getAuthControllerDisableTwoFactorMutationOptions,
+  getAuthControllerVerifyTwoFactorMutationOptions,
 } from "@/api/generated/endpoints/auth/auth";
 import {
   usersControllerMe,
   getUsersControllerMeQueryKey,
   getUsersControllerUpdateMeMutationOptions,
   getUsersControllerUpdateMyBlockchainAddressMutationOptions,
+  getUsersControllerDeleteMeMutationOptions,
+  getUsersControllerMyActivityHistoryQueryOptions,
 } from "@/api/generated/endpoints/users/users";
 import type { UserResponse } from "@/api/generated/models";
-import { asAxiosError } from "@/lib/api-error";
+import { asAxiosError, apiErrorToast } from "@/lib/api-error";
 import { toast } from "@/lib/toast";
 import { useToastMutation } from "./useToastMutation";
+import { useToastQuery } from "./useToastQuery";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("Token");
 }
 
-function clearSession() {
+function storeSession(token: string, refreshToken: string) {
+  localStorage.setItem("Token", token);
+  localStorage.setItem("RefreshToken", refreshToken);
+}
+
+/** Nettoie la session locale sans effet de bord (toast/redirect) — cf. `logout()` pour la déconnexion complète. */
+export function clearSession() {
   localStorage.removeItem("Token");
+  localStorage.removeItem("RefreshToken");
 }
 
 /**
@@ -76,22 +91,36 @@ export async function checkSession(): Promise<UserResponse | null> {
   }
 }
 
-/** Déconnexion (remplace `AuthService.logout`). */
+/** Déconnexion (remplace `AuthService.logout`). Révoque le refresh token côté serveur, best-effort. */
 export function logout() {
+  const refreshToken = typeof window !== "undefined" ? localStorage.getItem("RefreshToken") : null;
+  if (refreshToken) {
+    void authControllerLogout({ refreshToken }).catch(() => {
+      /* la session locale est nettoyée dans tous les cas */
+    });
+  }
   clearSession();
   toast({ title: "Logout successful", description: "See you soon on Mana Chain", variant: "default" });
   if (typeof window !== "undefined") window.location.href = "/";
 }
 
-/** Connexion email + mot de passe (remplace `AuthService.login`). */
+/**
+ * Connexion email + mot de passe (remplace `AuthService.login`). Si le 2FA est
+ * actif sur le compte, `data.twoFactorRequired` est `true` et `data.user`/
+ * `data.token` sont `null` — pas de session tant que `/auth/2fa/verify`
+ * n'a pas résolu le challenge (cf. `useTwoFactorVerify`).
+ */
 export function useLogin() {
   return useToastMutation({
     ...getAuthControllerLoginMutationOptions(),
-    successToast: (data) => ({
-      title: "Login successful",
-      description: `Welcome ${data.user.username}`,
-      variant: "success",
-    }),
+    successToast: (data) => {
+      if (data.twoFactorRequired || !data.user) return;
+      return {
+        title: "Login successful",
+        description: `Welcome ${data.user.username}`,
+        variant: "success",
+      };
+    },
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
@@ -126,7 +155,40 @@ export function useLogin() {
       return { title: "Connection error", description: "An unexpected error occurred", variant: "error" };
     },
     onSuccess: (data) => {
-      if (data.token) localStorage.setItem("Token", data.token);
+      if (data.token && data.refreshToken) storeSession(data.token, data.refreshToken);
+    },
+  });
+}
+
+/**
+ * Résout le challenge 2FA posé par `useLogin`/le callback Google
+ * (`?twoFactorRequired=true&challengeToken=...`) avec un code TOTP ou un code
+ * de récupération. Renvoie une session complète comme `useLogin`.
+ */
+export function useTwoFactorVerify() {
+  return useToastMutation({
+    ...getAuthControllerVerifyTwoFactorMutationOptions(),
+    errorToast: (error) => {
+      const axiosErr = asAxiosError(error);
+      const data = axiosErr?.response?.data;
+      switch (data?.error) {
+        case "TooManyTwoFactorAttemptsError":
+        case "InvalidOrExpiredTwoFactorChallengeError":
+          return {
+            title: "Session expired",
+            description: "Please log in again.",
+            variant: "error",
+          };
+        default:
+          return {
+            title: "Incorrect code",
+            description: data?.message || "Invalid two-factor authentication code",
+            variant: "error",
+          };
+      }
+    },
+    onSuccess: (data) => {
+      if (data.token && data.refreshToken) storeSession(data.token, data.refreshToken);
     },
   });
 }
@@ -277,6 +339,9 @@ export function useChangePassword() {
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
+        if (axiosErr.response.data?.error === "InvalidCredentialsError") {
+          return { title: "Incorrect password", description: "Your current password is incorrect", variant: "error" };
+        }
         return {
           title: "Modification error",
           description: axiosErr.response.data?.message || "Unable to change password",
@@ -288,19 +353,96 @@ export function useChangePassword() {
   });
 }
 
+/** Démarre la configuration du 2FA : génère un secret TOTP + l'URI du QR code. */
+export function useTwoFactorSetup() {
+  return useToastMutation({
+    ...getAuthControllerSetupTwoFactorMutationOptions(),
+  });
+}
+
+/** Confirme la configuration du 2FA avec un code live et l'active. */
+export function useTwoFactorEnable() {
+  const queryClient = useQueryClient();
+  return useToastMutation({
+    ...getAuthControllerEnableTwoFactorMutationOptions(),
+    errorToast: apiErrorToast("Invalid two-factor authentication code", "Incorrect code"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
+    },
+  });
+}
+
+/** Désactive le 2FA (confirmation par mot de passe courant). */
+export function useTwoFactorDisable() {
+  const queryClient = useQueryClient();
+  return useToastMutation({
+    ...getAuthControllerDisableTwoFactorMutationOptions(),
+    successToast: () => ({
+      title: "Two-factor authentication disabled",
+      description: "Your account no longer requires a 2FA code to sign in.",
+      variant: "success",
+    }),
+    errorToast: apiErrorToast("Incorrect password"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
+    },
+  });
+}
+
+/** Historique d'activité (likes/supports/events par jour + score de support cumulé) pour les charts du dashboard. */
+export function useMyActivityHistory(days: 7 | 30 | 90) {
+  return useToastQuery({
+    ...getUsersControllerMyActivityHistoryQueryOptions({ days }),
+  });
+}
+
 /** Mettre à jour son profil (remplace `AuthService.updateProfile`). */
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getUsersControllerUpdateMeMutationOptions(),
     successToast: () => ({ title: "Profile updated", description: "Your profile has been saved.", variant: "success" }),
-    errorToast: (error) => ({
-      title: "Error",
-      description: asAxiosError(error)?.response?.data?.message || "Failed to update profile. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to update profile. Please try again."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
+    },
+  });
+}
+
+/**
+ * Supprimer son compte (anonymisation RGPD, cf. `DeleteAccountUseCase` côté back).
+ * Redirige vers l'accueil comme `logout()` : le compte n'existe plus pour les
+ * lookups suivants, la session locale n'a plus d'utilité.
+ */
+export function useDeleteAccount() {
+  return useToastMutation({
+    ...getUsersControllerDeleteMeMutationOptions(),
+    successToast: () => ({
+      title: "Account deleted",
+      description: "Your account has been deleted. Goodbye!",
+      variant: "success",
+    }),
+    errorToast: (error) => {
+      const axiosErr = asAxiosError(error);
+      if (axiosErr?.response) {
+        if (axiosErr.response.data?.error === "BrandOwnerCannotDeleteAccountError") {
+          return {
+            title: "Cannot delete account",
+            description: "You own a brand — delete or transfer it before deleting your account.",
+            variant: "error",
+          };
+        }
+        return {
+          title: "Error",
+          description: axiosErr.response.data?.message || "Failed to delete account. Please try again.",
+          variant: "error",
+        };
+      }
+      return { title: "Connection error", description: "Unable to reach the server", variant: "error" };
+    },
+    onSuccess: () => {
+      clearSession();
+      if (typeof window !== "undefined") window.location.href = "/";
     },
   });
 }

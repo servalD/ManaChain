@@ -80,12 +80,12 @@ ansible-playbook provision.yml     # Docker, ufw, fail2ban, swarm init/join
 
 ```bash
 cd infra/ansible
-cp vault.yml.example vault.yml     # JWT, SMTP, Google OAuth, Pinata, rclone offsite
+cp vault.yml.example vault.yml     # JWT, Resend, Google OAuth, Pinata, rclone offsite
 ansible-vault encrypt vault.yml
 ```
 
 > 💡 **Où obtenir chaque valeur :** les secrets applicatifs (`vault_app_jwt_secret`,
-> `vault_smtp_pass`, `vault_google_client_secret`) sont les mêmes qu'en dev
+> `vault_resend_api_key`, `vault_google_client_secret`) sont les mêmes qu'en dev
 > (voir le tableau de la section « Configuration des variables d'environnement »
 > du [README du back](../../back/README.md).) Deux spécificités prod : la
 > **redirect URI Google** devient `https://<domaine>/api/auth/google/callback`,
@@ -94,7 +94,7 @@ ansible-vault encrypt vault.yml
 >
 > | Secret                           | Source                                                                                                                                                                                                                                                                                 |
 > | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | `vault_pinata_jwt`             | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key. Même valeur que le `PINATA_JWT` du dev local (cf. `client/.env.example`)                                                                                                                  |
+> | `vault_pinata_jwt`             | [dashboard Pinata](https://app.pinata.cloud/developers/api-keys) → API Keys → New Key. Même valeur que le `PINATA_JWT` du dev local (cf. `back/.env.example`)                                                                                                                  |
 > | `vault_rclone_offsite_conf`    | Cloudflare R2 : dashboard → R2 →[Manage R2 API Tokens](https://dash.cloudflare.com/?to=/:account/r2/api-tokens) (access key + secret + endpoint du compte), puis créer le bucket `manachain-backups`. Format des remotes : [doc rclone S3/R2](https://rclone.org/s3/#cloudflare-r2) |
 > | `vault_grafana_admin_password` | Choisie librement — login admin Grafana natif (pas de double auth, cf.[infra/MONITORING.md](MONITORING.md))                                                                                                                                                                            |
 > | `vault_telegram_bot_token`     | Bot Telegram de l'alerting Grafana — création et détails dans[infra/MONITORING.md](MONITORING.md)                                                                                                                                                                                    |
@@ -145,6 +145,10 @@ ansible-playbook deploy.yml --ask-vault-pass
 Le playbook : login ACR → secrets Swarm → migrations TypeORM (one-shot) →
 `docker stack deploy` → backup post-déploiement.
 
+Ordre de démarrage applicatif détaillé (migrations avant back, chain-sync
+avant trafic, etc.) et variables d'env par app : voir
+[`deploy/RUNBOOK.md`](../../deploy/RUNBOOK.md).
+
 Les déploiements suivants passent par le workflow GitHub **Deploy**
 (workflow_dispatch, tag d'image en entrée — secrets additionnels :
 `MANAGER_HOST`, `MANAGER_SSH_PRIVATE_KEY`, `DB_HOST`, `DB_NAME`, `DB_USER`,
@@ -192,5 +196,6 @@ ansible-playbook cluster-stop.yml    # backup puis deallocate (0 € compute)
 | `infra/ansible/cluster-*.yml`  | allumage / extinction (deallocate) des VMs                                                                  |
 | `deploy/stack.yml.j2`          | définition de la stack Swarm (traefik, back, client, prometheus, grafana, node-exporter, cadvisor, backup) |
 | `deploy/backup.sh.j2`          | script de sauvegarde 3-2-1                                                                                  |
+| `deploy/RUNBOOK.md`            | ordre de démarrage applicatif, variables d'env par app, procédure de redéploiement des contrats             |
 | `deploy/monitoring/`           | configs Prometheus/Grafana (prod + profil dev) — détail dans[infra/MONITORING.md](MONITORING.md)           |
 | `.github/workflows/`           | CI back/client + déploiement                                                                               |

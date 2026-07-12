@@ -9,6 +9,6 @@
 export interface ResetPasswordRequest {
   /** Token de reset reçu par email */
   token: string;
-  /** @minLength 8 */
+  /** @minLength 12 */
   newPassword: string;
 }

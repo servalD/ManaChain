@@ -1,22 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../../../users/domain/user';
 import { UserRepository } from '../../../users/domain/user.repository';
+import { UserBanRepository } from '../../../users/domain/user-ban.repository';
+import { UserBannedError } from '../../../users/domain/user.errors';
 import { InvalidTokenError } from '../../domain/auth.errors';
 import { AppTokenService } from '../ports/app-token.service';
 
 /**
  * Vérifie un JWT applicatif (via {@link AppTokenService}) puis RECHARGE
  * l'utilisateur depuis la base — comme l'ancien `requireAuth` : le rôle vient de
- * la DB, jamais des claims, donc un changement de rôle est pris en compte
- * immédiatement. Alimente le {@link AuthGuard} global.
+ * la DB, jamais des claims, donc un changement de rôle (ou un ban) est pris en
+ * compte immédiatement, pas seulement au prochain login. Alimente le
+ * {@link AuthGuard} global.
  *
- * Ne lève que des exceptions de DOMAINE ({@link InvalidTokenError}).
+ * Ne lève que des exceptions de DOMAINE ({@link InvalidTokenError},
+ * {@link UserBannedError}).
  */
 @Injectable()
 export class AuthenticateBearerUseCase {
   constructor(
     private readonly tokenService: AppTokenService,
     private readonly userRepository: UserRepository,
+    private readonly userBanRepository: UserBanRepository,
   ) {}
 
   async execute(token: string): Promise<User> {
@@ -35,6 +40,12 @@ export class AuthenticateBearerUseCase {
     if (!user) {
       throw new InvalidTokenError('Token references a non-existing user');
     }
+
+    const activeBan = await this.userBanRepository.findActive(userId);
+    if (activeBan) {
+      throw new UserBannedError(activeBan.reason);
+    }
+
     return user;
   }
 }

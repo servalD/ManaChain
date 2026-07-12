@@ -78,23 +78,24 @@ services:
       DATABASE_NAME: "{{ database_name }}"
       DATABASE_USER: "{{ database_user }}"
       DATABASE_SSL: "true"
-      APP_JWT_EXPIRES_IN: 7d
-      # Vides ("") → mode simulation des emails, comme en dev.
-      SMTP_HOST: "{{ smtp_host | default('') }}"
-      SMTP_PORT: "{{ smtp_port | default('587') }}"
-      SMTP_USER: "{{ smtp_user | default('') }}"
+      APP_JWT_EXPIRES_IN: 15m
+      # Vide ("") → mode simulation des emails, comme en dev.
       EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
       SENTRY_DSN: "{{ sentry_dsn_back | default('') }}"
       DATABASE_PASSWORD_FILE: /run/secrets/database_password
       APP_JWT_SECRET_FILE: /run/secrets/app_jwt_secret
-      SMTP_PASS_FILE: /run/secrets/smtp_pass
+      TWO_FACTOR_ENCRYPTION_KEY_FILE: /run/secrets/two_factor_encryption_key
+      RESEND_API_KEY_FILE: /run/secrets/resend_api_key
       GOOGLE_CLIENT_SECRET_FILE: /run/secrets/google_client_secret
+      PINATA_JWT_FILE: /run/secrets/pinata_jwt
     secrets:
       - database_password
       - app_jwt_secret
-      - smtp_pass
+      - two_factor_encryption_key
+      - resend_api_key
       - google_client_secret
+      - pinata_jwt
     networks:
       - edge
     deploy:
@@ -121,10 +122,6 @@ services:
 
   client:
     image: "{{ acr_login_server }}/manachain-client:{{ client_image_tag }}"
-    environment:
-      PINATA_JWT_FILE: /run/secrets/pinata_jwt
-    secrets:
-      - pinata_jwt
     networks:
       - edge
     deploy:
@@ -346,7 +343,9 @@ secrets:
     external: true
   app_jwt_secret:
     external: true
-  smtp_pass:
+  two_factor_encryption_key:
+    external: true
+  resend_api_key:
     external: true
   google_client_secret:
     external: true

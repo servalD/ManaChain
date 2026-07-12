@@ -1,0 +1,17 @@
+{
+  "name": "manachain-demo-seed",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:pre": "tsx seed-api.ts pre",
+    "seed:post": "tsx seed-api.ts post"
+  },
+  "dependencies": {
+    "viem": "^2.44.4"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}

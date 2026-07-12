@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Search, Check, X as XIcon, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -15,11 +17,13 @@ import PinataService from "@/services/pinata.service";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export function BrandApplicationsTable() {
+  const t = useTranslations("dashboard.admin.brandApplicationsTable");
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [limit, setLimit] = useState<number>(10);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -27,24 +31,6 @@ export function BrandApplicationsTable() {
   const [selectedApplicationSummary, setSelectedApplicationSummary] = useState<{ brandName: string; contactEmail: string; logoUrl: string | null } | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionNotes, setRejectionNotes] = useState("");
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Debounce search query
-  useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500);
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
 
   const { data, isLoading } = useBrandApplicationsList({
     limit,
@@ -77,8 +63,8 @@ export function BrandApplicationsTable() {
   const handleRejectConfirm = () => {
     if (!selectedApplicationId || !rejectionReason.trim()) {
       toast({
-        title: "Error",
-        description: "Rejection reason is required.",
+        title: t("toasts.errorTitle"),
+        description: t("toasts.reasonRequiredMessage"),
         variant: "error",
       });
       return;
@@ -113,13 +99,28 @@ export function BrandApplicationsTable() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return t("statuses.pending");
+      case 'approved':
+        return t("statuses.approved");
+      case 'rejected':
+        return t("statuses.rejected");
+      case 'needs_review':
+        return t("statuses.needsReview");
+      default:
+        return status;
+    }
+  };
+
   return (
     <>
       <div className="space-y-4 pt-8 w-full">
         <div>
-          <h2 className="text-xl font-bold">Brand Applications</h2>
+          <h2 className="text-xl font-bold">{t("title")}</h2>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading..." : `${total} ${total === 1 ? "application" : "applications"} found`}
+            {isLoading ? t("loading") : t("resultsCount", { count: total })}
           </p>
         </div>
 
@@ -129,7 +130,7 @@ export function BrandApplicationsTable() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by brand name, email, or ID..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -141,11 +142,11 @@ export function BrandApplicationsTable() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="min-w-[150px]"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="needs_review">Needs Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              <option value="all">{t("statuses.all")}</option>
+              <option value="pending">{t("statuses.pending")}</option>
+              <option value="needs_review">{t("statuses.needsReview")}</option>
+              <option value="approved">{t("statuses.approved")}</option>
+              <option value="rejected">{t("statuses.rejected")}</option>
             </Select>
             <Select
               value={limit.toString()}
@@ -166,11 +167,11 @@ export function BrandApplicationsTable() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Brand</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Contact</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Status</th>
-                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Created</th>
-                  <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Actions</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.brand")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.contact")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.status")}</th>
+                  <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
+                  <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -185,7 +186,7 @@ export function BrandApplicationsTable() {
                 ) : applications.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-muted-foreground">
-                      No applications found
+                      {t("empty")}
                     </td>
                   </tr>
                 ) : (
@@ -240,7 +241,7 @@ export function BrandApplicationsTable() {
                       </td>
                       <td className="p-4">
                         <span className={cn("px-2 py-1 rounded text-xs font-medium", getStatusBadgeColor(app.status))}>
-                          {app.status.charAt(0).toUpperCase() + app.status.slice(1).replace('_', ' ')}
+                          {getStatusLabel(app.status)}
                         </span>
                       </td>
                       <td className="p-4">
@@ -263,7 +264,7 @@ export function BrandApplicationsTable() {
                                 onClick={() => handleApprove(app.id)}
                               >
                                 <Check className="h-3 w-3 mr-1" />
-                                Approve
+                                {t("approveAction")}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -272,7 +273,7 @@ export function BrandApplicationsTable() {
                                 onClick={() => handleRejectClick(app)}
                               >
                                 <XIcon className="h-3 w-3 mr-1" />
-                                Reject
+                                {t("rejectAction")}
                               </Button>
                             </>
                           ) : null}
@@ -283,7 +284,7 @@ export function BrandApplicationsTable() {
                             onClick={() => router.push(`/admin/brand-applications/${app.id}`)}
                           >
                             <MoreHorizontal className="h-3 w-3 mr-1" />
-                            Details
+                            {t("detailsAction")}
                           </Button>
                         </div>
                       </td>
@@ -300,10 +301,8 @@ export function BrandApplicationsTable() {
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Reject Brand Application</DialogTitle>
-            <DialogDescription>
-              Please provide a reason for rejecting this application. This reason will be sent to the applicant.
-            </DialogDescription>
+            <DialogTitle>{t("rejectModal.title")}</DialogTitle>
+            <DialogDescription>{t("rejectModal.description")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -338,28 +337,28 @@ export function BrandApplicationsTable() {
 
             <div className="space-y-2">
               <label htmlFor="rejection-reason" className="text-sm font-medium">
-                Rejection Reason <span className="text-red-500">*</span>
+                {t("rejectModal.reasonLabel")} <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <Textarea
                 id="rejection-reason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter the reason for rejection..."
-                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder={t("rejectModal.reasonPlaceholder")}
+                className="min-h-[100px]"
                 required
               />
             </div>
 
             <div className="space-y-2">
               <label htmlFor="rejection-notes" className="text-sm font-medium">
-                Internal Notes (Optional)
+                {t("rejectModal.notesLabel")}
               </label>
-              <textarea
+              <Textarea
                 id="rejection-notes"
                 value={rejectionNotes}
                 onChange={(e) => setRejectionNotes(e.target.value)}
-                placeholder="Add internal notes (not visible to applicant)..."
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder={t("rejectModal.notesPlaceholder")}
+                className="min-h-[80px]"
               />
             </div>
           </div>
@@ -373,14 +372,14 @@ export function BrandApplicationsTable() {
                 setRejectionNotes("");
               }}
             >
-              Cancel
+              {t("rejectModal.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleRejectConfirm}
               disabled={!rejectionReason.trim()}
             >
-              Reject Application
+              {t("rejectModal.confirm")}
             </Button>
           </div>
         </DialogContent>

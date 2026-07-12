@@ -8,8 +8,11 @@ import {
   getBrandsControllerMediaQueryKey,
   getBrandsControllerConfirmBrandMediaMutationOptions,
   getBrandsControllerRemoveMediaMutationOptions,
+  getBrandsControllerListForWhitelistQueryOptions,
+  getBrandsControllerEngagementHistoryQueryOptions,
 } from "@/api/generated/endpoints/brands/brands";
-import { asAxiosError } from "@/lib/api-error";
+import type { BrandsControllerListForWhitelistParams } from "@/api/generated/models";
+import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
 import { useToastMutation } from "./useToastMutation";
 
@@ -21,11 +24,27 @@ export function useMyBrand(options?: { enabled?: boolean }) {
   });
 }
 
+/** Marques + adresse blockchain du propriétaire, admin only (whitelist on-chain). */
+export function useBrandsForWhitelist(params?: BrandsControllerListForWhitelistParams) {
+  return useToastQuery({
+    ...getBrandsControllerListForWhitelistQueryOptions(params),
+    errorToast: apiErrorToast("Failed to load brands."),
+  });
+}
+
 /** Détail d'une marque par ID (remplace `BrandService.getBrandById`). */
 export function useBrandById(brandId: string | undefined, options?: { enabled?: boolean }) {
   return useToastQuery({
     ...getBrandsControllerGetOneQueryOptions(brandId ?? ""),
     enabled: !!brandId && (options?.enabled ?? true),
+  });
+}
+
+/** Historique d'engagement (holders + likes cumulés, jour par jour) pour le chart du dashboard marque. */
+export function useBrandEngagementHistory(brandId: string | undefined, days: 7 | 30 | 90) {
+  return useToastQuery({
+    ...getBrandsControllerEngagementHistoryQueryOptions(brandId ?? "", { days }),
+    enabled: !!brandId,
   });
 }
 
@@ -42,12 +61,7 @@ export function useConfirmBrandMedia() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerConfirmBrandMediaMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to confirm media. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to confirm media. Please try again."),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerMediaQueryKey(variables.id) });
     },
@@ -59,12 +73,7 @@ export function useRemoveBrandMedia() {
   const queryClient = useQueryClient();
   return useToastMutation({
     ...getBrandsControllerRemoveMediaMutationOptions(),
-    errorToast: (error) => ({
-      title: "Error",
-      description:
-        asAxiosError(error)?.response?.data?.message || "Failed to delete media. Please try again.",
-      variant: "error",
-    }),
+    errorToast: apiErrorToast("Failed to delete media. Please try again."),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: getBrandsControllerMediaQueryKey(variables.id) });
     },

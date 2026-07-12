@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { toIso } from '../../../shared/presentation/date';
 import { Role } from '../../../shared/enums/role.enum';
 import { User } from '../domain/user';
+import { UserBanEntry } from '../application/use-cases/list-user-bans.use-case';
 
 export class UserResponse {
   @ApiProperty({ format: 'uuid' })
@@ -44,6 +46,19 @@ export class UserResponse {
 
   @ApiProperty({ format: 'date-time' })
   createdAt: string;
+
+  @ApiProperty({
+    description: 'Authentification à deux facteurs (TOTP) active.',
+  })
+  twoFactorEnabled: boolean;
+}
+
+export class ActivityPointResponse {
+  @ApiProperty() date: string;
+  @ApiProperty() likesGiven: number;
+  @ApiProperty() tokenPurchases: number;
+  @ApiProperty() eventsAttended: number;
+  @ApiProperty() supportScore: number;
 }
 
 export class PaginatedUsersResponse {
@@ -65,5 +80,61 @@ export const toUserResponse = (user: User): UserResponse => ({
   isBrand: user.isBrand,
   role: user.role,
   passwordChanged: user.passwordChanged,
-  createdAt: user.createdAt.toISOString(),
+  createdAt: toIso(user.createdAt),
+  twoFactorEnabled: user.twoFactorEnabled,
+});
+
+export class UserBanResponse {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ format: 'uuid' })
+  userId: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  username: string | null;
+
+  @ApiProperty()
+  reason: string;
+
+  @ApiProperty({ format: 'uuid' })
+  bannedBy: string;
+
+  @ApiProperty({ type: String, nullable: true })
+  bannedByUsername: string | null;
+
+  @ApiProperty({ format: 'date-time' })
+  bannedAt: string;
+
+  @ApiProperty({ type: String, nullable: true, format: 'date-time' })
+  expiresAt: string | null;
+
+  @ApiProperty()
+  isPermanent: boolean;
+
+  @ApiProperty({ type: String, nullable: true })
+  notes: string | null;
+
+  @ApiProperty()
+  isActive: boolean;
+}
+
+export class PaginatedUserBansResponse {
+  @ApiProperty({ type: UserBanResponse, isArray: true })
+  bans: UserBanResponse[];
+  @ApiProperty() total: number;
+}
+
+export const toUserBanResponse = (entry: UserBanEntry): UserBanResponse => ({
+  id: entry.ban.id,
+  userId: entry.ban.userId,
+  username: entry.username,
+  reason: entry.ban.reason,
+  bannedBy: entry.ban.bannedBy,
+  bannedByUsername: entry.bannedByUsername,
+  bannedAt: toIso(entry.ban.bannedAt),
+  expiresAt: toIso(entry.ban.expiresAt),
+  isPermanent: entry.ban.isPermanent,
+  notes: entry.ban.notes,
+  isActive: entry.ban.isActive(),
 });

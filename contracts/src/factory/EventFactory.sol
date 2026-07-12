@@ -3,14 +3,7 @@ pragma solidity ^0.8.33;
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {EventTickets} from "../events/EventTickets.sol";
-
-/**
- * @title IManaAdmin
- * @notice Minimal interface for ManaAdmin used by EventFactory (whitelist check).
- */
-interface IManaAdmin {
-    function isBrandAllowed(address brand) external view returns (bool);
-}
+import {IManaAdmin} from "../interfaces/IManaAdmin.sol";
 
 /**
  * @title EventFactory
@@ -20,6 +13,9 @@ interface IManaAdmin {
 contract EventFactory {
     IManaAdmin public immutable manaAdmin;
     address public immutable eventTicketsImplementation;
+
+    /// @dev eventTickets proxy => brand that deployed it, consumed by SaleFactory and the indexer.
+    mapping(address => address) private _brandOfEventTickets;
 
     event EventModuleDeployed(address indexed brand, address indexed eventTickets);
 
@@ -50,6 +46,13 @@ contract EventFactory {
         ERC1967Proxy proxy = new ERC1967Proxy(eventTicketsImplementation, data);
         eventTickets = address(proxy);
 
+        _brandOfEventTickets[eventTickets] = brand;
+
         emit EventModuleDeployed(brand, eventTickets);
+    }
+
+    /// @notice Brand that deployed `eventTickets` (zero if not deployed by this factory).
+    function brandOfEventTickets(address eventTickets) external view returns (address) {
+        return _brandOfEventTickets[eventTickets];
     }
 }

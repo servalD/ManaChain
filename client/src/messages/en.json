@@ -14,7 +14,6 @@
       "faq": "FAQ",
       "signIn": "Sign in",
       "signUp": "Sign up",
-      "applyAsBrand": "Apply as a Brand",
       "userMenuAriaLabel": "User menu",
       "menuAriaLabel": "Menu"
     },
@@ -33,7 +32,6 @@
       "descriptionMiddle": "to show your support and take part in a new form of",
       "descriptionAuthenticEngagement": "authentic engagement",
       "descriptionSuffix": "with the brands you care about.",
-      "ctaCreateCommunity": "Create My Community",
       "ctaDiscoverProjects": "Discover Projects"
     },
     "stats": {
@@ -202,7 +200,7 @@
       "emailPlaceholder": "Enter your email address",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Create a password",
-      "passwordCriteriaLength": "At least 8 characters",
+      "passwordCriteriaLength": "At least 12 characters",
       "passwordCriteriaDigit": "At least one digit",
       "passwordCriteriaSpecial": "At least one special character",
       "interestsLabel": "Interests",
@@ -212,6 +210,791 @@
       "createAccountButton": "Create Account",
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign In"
+    }
+  },
+  "dashboard": {
+    "admin": {
+      "brandsPage": {
+        "title": "Browse Brands",
+        "description": "Whitelist a brand on-chain to let it deploy its token module. Connect your operator wallet above — the transaction reverts if it doesn't hold the operator role on ManaAdmin.",
+        "toasts": {
+          "loggedOutTitle": "Logged out",
+          "loggedOutMessage": "See you soon!"
+        }
+      },
+      "dashboardPage": {
+        "title": "Admin Dashboard",
+        "toasts": {
+          "loggedOutTitle": "Logged out",
+          "loggedOutMessage": "See you soon!"
+        }
+      },
+      "activeBrandsTable": {
+        "title": "Active Brands",
+        "loading": "Loading...",
+        "resultsCount": "{count, plural, one {# brand found} other {# brands found}}",
+        "searchPlaceholder": "Search by name or ID...",
+        "empty": "No brands found",
+        "banAction": "Ban",
+        "detailsAction": "Details",
+        "columns": {
+          "brand": "Brand",
+          "id": "ID",
+          "country": "Country",
+          "created": "Created",
+          "actions": "Actions"
+        }
+      },
+      "activeUsersTable": {
+        "title": "Active Users",
+        "loading": "Loading...",
+        "resultsCount": "{count, plural, one {# user found} other {# users found}}",
+        "searchPlaceholder": "Search by name, email, or ID...",
+        "empty": "No users found",
+        "unverified": "Unverified",
+        "banAction": "Ban",
+        "detailsAction": "Details",
+        "columns": {
+          "user": "User",
+          "id": "ID",
+          "role": "Role",
+          "created": "Created",
+          "actions": "Actions"
+        }
+      },
+      "activeUsersBrandsChart": {
+        "title": "Users & Brands",
+        "subtitle": "Current platform totals",
+        "users": "Users",
+        "brands": "Brands",
+        "snapshotNote": "Snapshot as of now — historical trend charts require a dedicated backend endpoint, not yet built."
+      },
+      "banBrandModal": {
+        "title": "Ban a brand",
+        "description": "Signs a blacklist tx (+ a cancel-sale tx if a token sale is open), then records the audit entry.",
+        "brandLabel": "Brand",
+        "searchPlaceholder": "Search by brand name…",
+        "change": "Change",
+        "noWalletLinked": "no wallet linked",
+        "openSaleWarning": "This brand has an open token sale — it will also be cancelled on-chain.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Why is this brand being banned?",
+        "permanentBan": "Permanent ban",
+        "expiresAtLabel": "Expires at",
+        "notesLabel": "Internal notes (optional)",
+        "cancel": "Cancel",
+        "confirmingBlacklist": "Confirming blacklist tx…",
+        "confirmingCancelSale": "Confirming cancel-sale tx…",
+        "saving": "Saving…",
+        "submit": "Ban brand",
+        "toasts": {
+          "bannedTitle": "Brand banned",
+          "bannedMessage": "{name} has been banned.",
+          "selectBrandTitle": "Select a brand",
+          "selectBrandMessage": "Search and pick a brand to ban.",
+          "reasonRequiredTitle": "Reason required",
+          "reasonRequiredMessage": "Explain why this brand is being banned.",
+          "expiryRequiredTitle": "Expiry required",
+          "expiryRequiredMessage": "Set an expiry date for a temporary ban.",
+          "noWalletTitle": "No wallet linked",
+          "noWalletMessage": "This brand has no on-chain address — cannot blacklist it on-chain."
+        }
+      },
+      "banManagementTable": {
+        "title": "Ban Management",
+        "subtitle": "View and manage user and brand bans",
+        "newBan": "New Ban",
+        "userBansTab": "User Bans",
+        "brandBansTab": "Brand Bans",
+        "searchPlaceholderUsers": "Search users by name or reason…",
+        "searchPlaceholderBrands": "Search brands by name or reason…",
+        "empty": "No bans found",
+        "deletedUser": "Deleted user",
+        "deletedBrand": "Deleted brand",
+        "statusActive": "Active",
+        "statusLifted": "Lifted",
+        "permanent": "Permanent",
+        "remaining": "{time} remaining",
+        "remainingParenthesized": "({time} remaining)",
+        "detailsAction": "Details",
+        "liftBan": "Lift ban",
+        "columns": {
+          "user": "User",
+          "brand": "Brand",
+          "reason": "Reason",
+          "bannedBy": "Banned By",
+          "date": "Date",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "detailsModal": {
+          "title": "Ban Details",
+          "description": "Complete information about this ban",
+          "userInformation": "USER INFORMATION",
+          "brandInformation": "BRAND INFORMATION",
+          "id": "ID: {id}",
+          "banInformation": "BAN INFORMATION",
+          "bannedAt": "Banned At",
+          "type": "Type",
+          "temporary": "Temporary",
+          "expiresAt": "Expires At",
+          "never": "Never",
+          "notSet": "Not set",
+          "blacklistTx": "Blacklist tx",
+          "cancelSaleTx": "Cancel-sale tx",
+          "internalNotes": "Internal Notes"
+        }
+      },
+      "banUserModal": {
+        "title": "Ban a user",
+        "description": "Creates an audit record and blocks login/API access immediately.",
+        "userLabel": "User",
+        "searchPlaceholder": "Search by username or email…",
+        "change": "Change",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Why is this user being banned?",
+        "permanentBan": "Permanent ban",
+        "expiresAtLabel": "Expires at",
+        "notesLabel": "Internal notes (optional)",
+        "cancel": "Cancel",
+        "banning": "Banning…",
+        "submit": "Ban user",
+        "toasts": {
+          "selectUserTitle": "Select a user",
+          "selectUserMessage": "Search and pick a user to ban.",
+          "reasonRequiredTitle": "Reason required",
+          "reasonRequiredMessage": "Explain why this user is being banned.",
+          "expiryRequiredTitle": "Expiry required",
+          "expiryRequiredMessage": "Set an expiry date for a temporary ban.",
+          "bannedTitle": "User banned",
+          "bannedMessage": "{name} has been banned."
+        }
+      },
+      "brandApplicationsTable": {
+        "title": "Brand Applications",
+        "loading": "Loading...",
+        "resultsCount": "{count, plural, one {# application found} other {# applications found}}",
+        "searchPlaceholder": "Search by brand name, email, or ID...",
+        "empty": "No applications found",
+        "approveAction": "Approve",
+        "rejectAction": "Reject",
+        "detailsAction": "Details",
+        "columns": {
+          "brand": "Brand",
+          "contact": "Contact",
+          "status": "Status",
+          "created": "Created",
+          "actions": "Actions"
+        },
+        "statuses": {
+          "all": "All Status",
+          "pending": "Pending",
+          "needsReview": "Needs Review",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        },
+        "toasts": {
+          "errorTitle": "Error",
+          "reasonRequiredMessage": "Rejection reason is required."
+        },
+        "rejectModal": {
+          "title": "Reject Brand Application",
+          "description": "Please provide a reason for rejecting this application. This reason will be sent to the applicant.",
+          "reasonLabel": "Rejection Reason",
+          "reasonPlaceholder": "Enter the reason for rejection...",
+          "notesLabel": "Internal Notes (Optional)",
+          "notesPlaceholder": "Add internal notes (not visible to applicant)...",
+          "cancel": "Cancel",
+          "confirm": "Reject Application"
+        }
+      },
+      "brandApplicationDetail": {
+        "back": "Back to applications",
+        "loading": "Loading...",
+        "notFound": "Application not found",
+        "contactSection": "Contact",
+        "brandSection": "Brand",
+        "legalSection": "Legal",
+        "documentsSection": "Documents",
+        "email": "Email",
+        "phone": "Phone",
+        "name": "Name",
+        "website": "Website",
+        "description": "Description",
+        "registrationNumber": "Registration number",
+        "country": "Country",
+        "createdAt": "Submitted on",
+        "registrationProof": {
+          "label": "Business registration proof",
+          "none": "No document was provided",
+          "view": "View document",
+          "loadError": "Could not load the registration proof"
+        },
+        "approveAction": "Approve",
+        "rejectAction": "Reject",
+        "statuses": {
+          "pending": "Pending",
+          "needsReview": "Needs Review",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        }
+      },
+      "brandWhitelistTable": {
+        "noWalletLinked": "No wallet linked",
+        "checking": "Checking…",
+        "whitelisted": "Whitelisted",
+        "notWhitelisted": "Not whitelisted",
+        "confirming": "Confirming…",
+        "remove": "Remove",
+        "whitelistOnChain": "Whitelist on-chain",
+        "empty": "No brands found",
+        "columns": {
+          "brand": "Brand",
+          "ownerWallet": "Owner wallet",
+          "status": "Status",
+          "action": "Action"
+        },
+        "toasts": {
+          "updatedTitle": "Whitelist updated",
+          "removedMessage": "{name} is now removed from the whitelist.",
+          "whitelistedMessage": "{name} is now whitelisted."
+        }
+      },
+      "notificationCenter": {
+        "title": "Notification Center",
+        "subtitle": "Send notifications to all users or brands on the platform",
+        "recipients": {
+          "heading": "Recipients",
+          "allUsersLabel": "All Users",
+          "allUsersDescription": "Send to all platform users",
+          "allBrandsLabel": "All Brands",
+          "allBrandsDescription": "Send to all brand accounts",
+          "everyoneLabel": "Everyone",
+          "everyoneDescription": "Send to everyone",
+          "recipientsColon": "Recipients:"
+        },
+        "form": {
+          "heading": "Notification Details",
+          "titleLabel": "Title",
+          "titlePlaceholder": "Enter notification title...",
+          "characterCount": "{count}/{max} characters",
+          "messageLabel": "Message",
+          "markdownSupported": "(Markdown supported)",
+          "editTab": "Edit",
+          "previewTab": "Preview",
+          "messagePlaceholder": "Enter notification message... (Markdown supported: **bold**, *italic*, [links](url), etc.)",
+          "previewPlaceholder": "Your markdown preview will appear here...",
+          "sending": "Sending...",
+          "sendButton": "Send Notification"
+        },
+        "preview": {
+          "heading": "Preview",
+          "placeholderTitle": "Notification Title",
+          "toAllUsers": "To: All Users",
+          "toAllBrands": "To: All Brands",
+          "toEveryone": "To: All Users & Brands",
+          "messagePlaceholder": "Your notification message will appear here...",
+          "recipientsLabel": "Recipients:",
+          "titleLengthLabel": "Title length:",
+          "messageLengthLabel": "Message length:",
+          "lengthRatio": "{count}/{max}"
+        },
+        "toasts": {
+          "validationErrorTitle": "Validation Error",
+          "validationErrorMessage": "Please fill in both title and message.",
+          "sentTitle": "Notifications sent",
+          "sentMessage": "Delivered to {count, plural, one {# recipient} other {# recipients}}."
+        }
+      }
+    },
+    "brand": {
+      "dashboardPage": {
+        "heading": "Brand Dashboard",
+        "noBrandFound": "No brand found. Please contact support if you believe this is an error.",
+        "toasts": {
+          "loggedOutTitle": "Logged out",
+          "loggedOutMessage": "See you soon!"
+        }
+      },
+      "changePasswordRequiredPage": {
+        "title": "Set your password",
+        "description": "Welcome! For security reasons, please set your own password before accessing your dashboard."
+      },
+      "eventsPage": {
+        "heading": "My Events",
+        "createEvent": "Create Event",
+        "connectWalletHint": "Connect your wallet above to create an event.",
+        "cancel": "Cancel",
+        "noEvents": "No events yet — create your first one.",
+        "toasts": {
+          "loggedOutTitle": "Logged out",
+          "loggedOutMessage": "See you soon!"
+        },
+        "table": {
+          "title": "Title",
+          "starts": "Starts",
+          "status": "Status",
+          "statusValues": {
+            "draft": "Draft",
+            "published": "Published",
+            "cancelled": "Cancelled",
+            "completed": "Completed"
+          }
+        }
+      },
+      "brandEvents": {
+        "heading": "Events",
+        "createEvent": "Create Event",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "show": "Show:",
+        "noUpcomingEvents": "No upcoming events",
+        "noPastEvents": "No past events",
+        "table": {
+          "eventName": "Event Name",
+          "date": "Date",
+          "type": "Type",
+          "status": "Status",
+          "actions": "Actions",
+          "moreDetails": "More Details",
+          "statusValues": {
+            "published": "Published",
+            "draft": "Draft",
+            "cancelled": "Cancelled"
+          }
+        }
+      },
+      "brandContentMedia": {
+        "heading": "Content & Media",
+        "uploading": "Uploading...",
+        "dropzoneHint": "Click to upload or drag and drop",
+        "dropzoneFormats": "PNG, JPG, GIF up to 5MB",
+        "noMediaYet": "No media uploaded yet",
+        "pending": "Pending",
+        "mediaLabel": "Media {id}",
+        "toasts": {
+          "invalidFileTypeTitle": "Invalid file type",
+          "invalidFileTypeMessage": "Please upload an image file",
+          "fileTooLargeTitle": "File too large",
+          "fileTooLargeMessage": "Maximum file size is 5MB",
+          "uploadSuccessTitle": "Upload successful",
+          "uploadSuccessMessage": "Image uploaded to IPFS. Please confirm to save it.",
+          "uploadFailedTitle": "Upload failed",
+          "uploadFailedFallback": "An error occurred while uploading the image",
+          "errorTitle": "Error",
+          "brandIdRequired": "Brand ID is required",
+          "mediaConfirmedTitle": "Media confirmed",
+          "mediaConfirmedMessage": "Your image has been saved",
+          "uploadCancelledTitle": "Upload cancelled",
+          "uploadCancelledMessage": "The image has been removed from IPFS",
+          "mediaNotFound": "Media not found",
+          "mediaDeletedTitle": "Media deleted",
+          "mediaDeletedMessage": "The media item has been removed"
+        }
+      },
+      "brandNotifications": {
+        "heading": "Notifications",
+        "all": "All",
+        "unreadCount": "Unread ({count})",
+        "markAllAsRead": "Mark all as read",
+        "noUnreadNotifications": "No unread notifications",
+        "noNotifications": "No notifications",
+        "markAsRead": "Mark as read",
+        "showLess": "Show Less",
+        "showAll": "Show All ({count})",
+        "justNow": "Just now",
+        "minutesAgo": "{count, plural, one {# minute ago} other {# minutes ago}}",
+        "hoursAgo": "{count, plural, one {# hour ago} other {# hours ago}}",
+        "daysAgo": "{count, plural, one {# day ago} other {# days ago}}"
+      },
+      "eventSetupWizard": {
+        "draftStep": {
+          "title": "Step 1 — Event details",
+          "description": "Saved as a draft before you deploy anything on-chain.",
+          "titleLabel": "Title",
+          "titlePlaceholder": "Product Launch",
+          "typeLabel": "Type",
+          "typePlaceholder": "Meetup",
+          "startsAtLabel": "Starts at",
+          "endsAtLabel": "Ends at (optional)",
+          "descriptionLabel": "Description (optional)",
+          "saveDraft": "Save draft",
+          "toasts": {
+            "missingFieldsTitle": "Missing fields",
+            "missingFieldsMessage": "Title, type and start date are required."
+          }
+        },
+        "deployModuleStep": {
+          "title": "Step 2 — Deploy the ticket contract",
+          "description": "Deploys an ERC-1155 contract for this event's tickets, owned by your wallet.",
+          "uploadingMetadata": "Uploading metadata…",
+          "confirming": "Confirming…",
+          "deployButton": "Deploy ticket contract",
+          "toasts": {
+            "errorTitle": "Error",
+            "decodeErrorMessage": "Could not read the deployed address from the transaction.",
+            "deployedTitle": "Module deployed",
+            "deployedMessage": "Your event ticket contract is live."
+          }
+        },
+        "deployTicketSaleStep": {
+          "title": "Step 3 — Open the ticket sale",
+          "description": "Deploys the sale contract, then links both addresses to this event.",
+          "freeEventLabel": "Free event (no USDC payment)",
+          "deployButton": "Deploy ticket sale",
+          "linkRetryButton": "Link (retry)",
+          "toasts": {
+            "stillSyncingTitle": "Still syncing",
+            "stillSyncingMessage": "The indexer hasn't picked up the ticket sale yet — click Link again in a few seconds.",
+            "deployedTitle": "Ticket sale deployed",
+            "deployedMessage": "Linking it to your event…"
+          }
+        },
+        "ticketTypesStep": {
+          "title": "Step 4 — Ticket types",
+          "description": "Mint tickets to the sale contract and set their price (0 for free events).",
+          "tokenLabel": "Token #{tokenId}",
+          "mintedSummary": "{minted} minted · {price} USDC",
+          "tokenIdPlaceholder": "Token id",
+          "quantityPlaceholder": "Quantity",
+          "freePlaceholder": "Free",
+          "priceUsdcPlaceholder": "Price USDC",
+          "addTicketType": "Add ticket type",
+          "publishEvent": "Publish event",
+          "toasts": {
+            "missingFieldsTitle": "Missing fields",
+            "missingFieldsMessage": "Quantity and price are required.",
+            "addedTitle": "Ticket type added",
+            "addedMessage": "Token #{tokenId} is now on sale."
+          }
+        }
+      },
+      "myBrandChart": {
+        "defaultBrandName": "My Brand",
+        "noTokenSubtitle": "Create your NFT and fractionalize it to engage with your community",
+        "engagementSubtitle": "Track your supports and community engagement",
+        "likes": "Likes",
+        "holders": "Holders",
+        "table": {
+          "badgeSymbol": "Badge Symbol",
+          "inCirculation": "In Circulation",
+          "holders": "Holders",
+          "basePrice": "Base Price",
+          "actions": "Actions",
+          "moreDetails": "More Details"
+        }
+      },
+      "saleManagement": {
+        "title": "Sale management",
+        "soldOf": "{sold} / {total} tokens sold",
+        "endSaleButton": "End sale",
+        "cancelButton": "Cancel sale",
+        "claimButton": "Claim funds",
+        "cancelledHint": "Sale cancelled — holders can claim a refund.",
+        "toasts": {
+          "confirmedTitle": "Transaction confirmed",
+          "confirmedMessage": "The update may take a moment to appear."
+        }
+      },
+      "tokenSetupWizard": {
+        "connectWallet": {
+          "title": "Connect your wallet",
+          "description": "Connect the wallet linked to your account to deploy your token module.",
+          "hint": "Use the wallet button in the navbar above."
+        },
+        "notWhitelisted": {
+          "title": "Waiting for whitelist",
+          "description": "An admin needs to whitelist your wallet on-chain before you can deploy your token module.",
+          "hint": "This usually happens shortly after your brand application is approved. Check back soon."
+        },
+        "deployStep": {
+          "title": "Step 1 — Deploy your token module",
+          "description": "Your genesis NFT, fractional vault and support token are deployed together, in one transaction.",
+          "nftNameLabel": "Genesis NFT name",
+          "nftNamePlaceholder": "My Brand Genesis",
+          "nftSymbolLabel": "Genesis NFT symbol",
+          "nftSymbolPlaceholder": "MBG",
+          "tokenNameLabel": "Support token name",
+          "tokenNamePlaceholder": "My Brand Token",
+          "tokenSymbolLabel": "Support token symbol",
+          "tokenSymbolPlaceholder": "MBT",
+          "totalSupplyCapLabel": "Total supply cap (optional)",
+          "totalSupplyCapPlaceholder": "Unlimited",
+          "logoLabel": "Support token logo (optional)",
+          "confirming": "Confirming…",
+          "uploadingLogo": "Uploading logo…",
+          "deployButton": "Deploy token module",
+          "toasts": {
+            "deployedTitle": "Module deployed",
+            "deployedMessage": "Your genesis NFT, vault and support token are live on-chain.",
+            "missingFieldsTitle": "Missing fields",
+            "missingFieldsMessage": "Fill in all fields before deploying."
+          }
+        },
+        "genesisStep": {
+          "title": "Step 2 — Lock your genesis NFT",
+          "description": "Mint the genesis NFT, approve the vault, then deposit it — the vault fractionalizes it into your support token supply.",
+          "mintLabel": "Mint genesis NFT",
+          "mintButton": "Mint",
+          "approveLabel": "Approve vault to transfer it",
+          "approveButton": "Approve",
+          "depositLabel": "Deposit into the vault",
+          "depositButton": "Deposit",
+          "toasts": {
+            "lockedTitle": "Genesis locked",
+            "lockedMessage": "Your genesis NFT is now locked in the vault. Ready to open your sale."
+          }
+        },
+        "saleStep": {
+          "title": "Step 3 — Open your token sale",
+          "description": "One transaction: deploys the sale escrow, mints the tokens for sale into it, and links it to your vault.",
+          "priceLabel": "Price per token (USDC)",
+          "tokensForSaleLabel": "Tokens for sale",
+          "startLabel": "Start",
+          "endLabel": "End",
+          "confirming": "Confirming…",
+          "openSaleButton": "Open sale",
+          "toasts": {
+            "openedTitle": "Sale opened",
+            "openedMessage": "Your support token sale is now live.",
+            "missingFieldsTitle": "Missing fields",
+            "missingFieldsMessage": "Fill in all fields before opening the sale.",
+            "invalidWindowTitle": "Invalid window",
+            "invalidWindowMessage": "End time must be after start time."
+          }
+        }
+      }
+    },
+    "client": {
+      "dashboardPage": {
+        "title": "My Dashboard",
+        "loggedOutTitle": "Logged out",
+        "loggedOutDescription": "See you soon!"
+      },
+      "activityTimeline": {
+        "title": "Activity Timeline",
+        "subtitle": "Track your engagement and interactions over time",
+        "likes": "Likes",
+        "supports": "Supports",
+        "eventsAttended": "Events Attended"
+      },
+      "brandLikes": {
+        "totalLikesReceived": "Total {count, plural, one {Like} other {Likes}} Received",
+        "noLikesTitle": "No likes yet",
+        "noLikesSubtitle": "Your brand will appear in the discover section soon!",
+        "usersWhoLikedTitle": "Users Who Liked Your Brand"
+      },
+      "myTickets": {
+        "title": "My Tickets",
+        "noTicketsTitle": "No tickets yet",
+        "noTicketsSubtitle": "Buy tickets from the Events page to see them here",
+        "columnEvent": "Event",
+        "columnQuantity": "Quantity",
+        "columnPaid": "Paid",
+        "columnDate": "Date",
+        "free": "Free",
+        "unknownEvent": "Unknown event"
+      },
+      "myTokens": {
+        "title": "My Badges Units",
+        "totalSupportValue": "Total Support Value (reference, not a market price):",
+        "noBadgesTitle": "No badges yet",
+        "noBadgesSubtitle": "Start supporting brands to see your badges here",
+        "columnBadge": "Badge",
+        "columnHoldings": "My Holdings",
+        "columnValue": "Value (base)",
+        "columnActions": "Actions",
+        "unitsSuffix": "units",
+        "ofTotalSupply": "{percent} of total supply",
+        "perUnit": "{price} / unit",
+        "moreDetails": "More Details",
+        "supportLevelHigh": "High",
+        "supportLevelMedium": "Medium",
+        "supportLevelLow": "Low",
+        "supportLevelSuffix": "support level"
+      },
+      "portfolioValueChart": {
+        "title": "Community Support Over Time",
+        "subtitle": "See how your overall community support evolves, without any financial or speculative dimension",
+        "supportScoreTooltip": "Support score"
+      },
+      "upcomingEvents": {
+        "title": "Events",
+        "upcomingOption": "Upcoming Events",
+        "pastOption": "Past Events",
+        "noEventsUpcoming": "No upcoming events",
+        "noEventsPast": "No past events",
+        "columnEvent": "Event",
+        "columnDate": "Date",
+        "columnLocation": "Location",
+        "columnType": "Type",
+        "columnActions": "Actions",
+        "viewDetails": "View Details",
+        "onlineTba": "Online / TBA",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "daysAgo": "{days, plural, one {# day ago} other {# days ago}}",
+        "inDays": "In {days, plural, one {# day} other {# days}}"
+      },
+      "userLikes": {
+        "title": "My Liked Brands",
+        "brandsCount": "{count, plural, one {# brand} other {# brands}} you've shown interest in",
+        "noLikedTitle": "No liked brands yet",
+        "noLikedSubtitle": "Start swiping to discover brands you love!",
+        "columnBrand": "Brand",
+        "columnLikedOn": "Liked On",
+        "columnActions": "Actions",
+        "visitWebsite": "Visit Website",
+        "moreDetails": "More Details",
+        "dislike": "Dislike",
+        "removeAriaLabel": "Remove from liked"
+      }
+    }
+  },
+  "discover": {
+    "page": {
+      "likesFetchErrorTitle": "Error",
+      "likesFetchErrorMessage": "Failed to fetch your liked brands.",
+      "brandsFetchErrorTitle": "Error",
+      "brandsFetchErrorMessage": "Failed to load brands. Please try again.",
+      "industryFallback": "General",
+      "descriptionFallback": "No description available.",
+      "brandLikedTitle": "Brand Liked!",
+      "brandLikedMessage": "You have successfully liked this brand.",
+      "likeErrorTitle": "Error",
+      "likeErrorFallback": "Failed to like brand. Please try again.",
+      "noBrandsAvailable": "No brands available at the moment."
+    },
+    "header": {
+      "title": "Discover Brands",
+      "searchPlaceholder": "Search brands",
+      "closeSearchAria": "Close search",
+      "searchAria": "Search"
+    },
+    "instructions": {
+      "swipeLeft": "Swipe left to pass",
+      "swipeRight": "Swipe right to like"
+    },
+    "detailModal": {
+      "closeAria": "Close",
+      "dislikeAria": "Dislike",
+      "likeAria": "Like",
+      "noImageAvailable": "No image available",
+      "viewImageAria": "View image {index}",
+      "previousImageAria": "Previous image",
+      "nextImageAria": "Next image",
+      "about": "About",
+      "badgeInformation": "Badge Information",
+      "tokenInformation": "Token Information",
+      "symbol": "Symbol",
+      "currentPrice": "Current Price",
+      "holders": "Holders",
+      "totalRaised": "Total Raised",
+      "noBadgeAvailable": "No badge available",
+      "noBadgeAvailableHint": "This brand hasn't issued badges yet",
+      "visitWebsite": "Visit Website",
+      "gallery": "Gallery"
+    }
+  },
+  "events": {
+    "page": {
+      "title": "Events",
+      "noEventsPublished": "No events published yet.",
+      "getTickets": "Get Tickets",
+      "ticketsComingSoon": "Tickets Coming Soon",
+      "onlineOrTba": "Online / TBA",
+      "loggedOutTitle": "Logged out",
+      "loggedOutMessage": "See you soon!"
+    },
+    "purchaseModal": {
+      "description": "Buy your tickets for this event, paid in USDC.",
+      "notOnSaleYet": "Tickets aren't on sale for this event yet.",
+      "yourUsdcBalance": "Your USDC balance",
+      "ticketTypeLabel": "Ticket type",
+      "ticketOption": "Ticket #{tokenId} — {price}",
+      "free": "Free",
+      "quantityLabel": "Quantity",
+      "total": "Total: {amount}",
+      "selectTicketTitle": "Select a ticket",
+      "selectTicketMessage": "Choose a ticket type and quantity.",
+      "syncingLabel": "Confirmed on-chain — syncing…",
+      "confirmingPurchase": "Confirming purchase…",
+      "confirmingApproval": "Confirming approval…",
+      "approveUsdc": "Approve USDC",
+      "buyTickets": "Buy tickets",
+      "notAvailableYet": "Not Available Yet",
+      "close": "Close",
+      "ticketPurchasedTitle": "Ticket purchased",
+      "ticketPurchasedMessage": "You're going to {eventTitle}!"
+    }
+  },
+  "investment": {
+    "title": "Support {brandName}",
+    "description": "You've liked this brand! Show your support with a community badge — this is not an investment: no financial return is promised and badges do not represent a share of the brand's capital.",
+    "tokenSymbol": "Token Symbol",
+    "yourUsdcBalance": "Your USDC balance",
+    "howManyTokens": "How many tokens?",
+    "estimatedCost": "Estimated cost: {amount} USDC",
+    "needFaucet": "Need test USDC? Get {amount} from the faucet",
+    "requestingFaucet": "Requesting test USDC…",
+    "refundable": "Refundable",
+    "saleCancelledMessage": "This sale was cancelled. You can claim a refund for the tokens you bought.",
+    "howManyToRefund": "How many tokens to refund?",
+    "noSaleYet": "This brand hasn't opened a token sale yet",
+    "checkBackSoon": "Check back soon!",
+    "syncingLabel": "Confirmed on-chain — syncing…",
+    "confirmingPurchase": "Confirming purchase…",
+    "confirmingApproval": "Confirming approval…",
+    "approveUsdc": "Approve USDC",
+    "supportBrand": "Support this Brand",
+    "confirmingRefund": "Confirming refund…",
+    "approveTokens": "Approve tokens",
+    "claimRefund": "Claim Refund",
+    "noBadgeAvailable": "No Badge Available Yet",
+    "later": "Later",
+    "close": "Close",
+    "enterAmountTitle": "Enter an amount",
+    "enterAmountTokensMessage": "How many tokens would you like?",
+    "enterAmountRefundMessage": "How many tokens would you like refunded?",
+    "amountTooHighTitle": "Amount too high",
+    "amountTooHighMessage": "You can't refund more than you originally bought.",
+    "supportConfirmedTitle": "Support confirmed",
+    "supportConfirmedMessage": "You now hold {symbol} from {brandName}.",
+    "refundSubmittedTitle": "Refund submitted",
+    "refundSubmittedMessage": "Your refund was confirmed on-chain — your balance will update shortly.",
+    "tokensFallback": "tokens"
+  },
+  "brandApplication": {
+    "toasts": {
+      "emailTakenTitle": "Email already in use",
+      "emailTakenDescription": "This email is already used by an existing account. Please use a different email for the brand contact."
+    }
+  },
+  "navbar": {
+    "home": "Home",
+    "discover": "Discover",
+    "dashboard": "Dashboard",
+    "feed": "Feed",
+    "events": "Events",
+    "browseBrands": "Browse Brands",
+    "login": "Login",
+    "signUp": "Sign Up",
+    "userMenu": {
+      "title": "User Menu",
+      "userAccount": "User Account",
+      "profile": "My Profile",
+      "createBrand": "Create your brand",
+      "wallet": "Wallet",
+      "logout": "Logout"
+    },
+    "notificationBell": {
+      "ariaLabel": "Notifications",
+      "title": "Notifications",
+      "empty": "No notifications yet",
+      "justNow": "just now",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
+      "daysAgo": "{days}d ago"
     }
   }
 }

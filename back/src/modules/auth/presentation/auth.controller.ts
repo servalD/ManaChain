@@ -9,6 +9,8 @@ import {
   Res,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
+import { Role } from '../../../shared/enums/role.enum';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -31,16 +33,32 @@ import { ResetPasswordUseCase } from '../application/use-cases/reset-password.us
 import { ChangePasswordUseCase } from '../application/use-cases/change-password.use-case';
 import { GoogleLoginUseCase } from '../application/use-cases/google-login.use-case';
 import { GoogleCallbackUseCase } from '../application/use-cases/google-callback.use-case';
+import { SetupTwoFactorUseCase } from '../application/use-cases/setup-two-factor.use-case';
+import { EnableTwoFactorUseCase } from '../application/use-cases/enable-two-factor.use-case';
+import { DisableTwoFactorUseCase } from '../application/use-cases/disable-two-factor.use-case';
+import { VerifyTwoFactorUseCase } from '../application/use-cases/verify-two-factor.use-case';
+import { RefreshSessionUseCase } from '../application/use-cases/refresh-session.use-case';
+import { LogoutUseCase } from '../application/use-cases/logout.use-case';
 import { RegisterRequest } from '../application/dto/register.request';
 import { LoginRequest } from '../application/dto/login.request';
 import { EmailRequest } from '../application/dto/email.request';
 import { VerifyEmailRequest } from '../application/dto/verify-email.request';
 import { ResetPasswordRequest } from '../application/dto/reset-password.request';
 import { ChangePasswordRequest } from '../application/dto/change-password.request';
+import { TwoFactorEnableRequest } from '../application/dto/two-factor-enable.request';
+import { TwoFactorDisableRequest } from '../application/dto/two-factor-disable.request';
+import { TwoFactorVerifyRequest } from '../application/dto/two-factor-verify.request';
+import { RefreshRequest } from '../application/dto/refresh.request';
+import { LogoutRequest } from '../application/dto/logout.request';
 import {
   AuthResponse,
+  LoginResponse,
   MessageResponse,
   toAuthResponse,
+  toLoginSuccessResponse,
+  toTwoFactorRequiredResponse,
+  TwoFactorEnableResponse,
+  TwoFactorSetupResponse,
 } from './auth.presenter';
 import {
   toUserResponse,
@@ -63,15 +81,28 @@ export class AuthController {
     private readonly changePasswordUseCase: ChangePasswordUseCase,
     private readonly googleLoginUseCase: GoogleLoginUseCase,
     private readonly googleCallbackUseCase: GoogleCallbackUseCase,
+    private readonly setupTwoFactorUseCase: SetupTwoFactorUseCase,
+    private readonly enableTwoFactorUseCase: EnableTwoFactorUseCase,
+    private readonly disableTwoFactorUseCase: DisableTwoFactorUseCase,
+    private readonly verifyTwoFactorUseCase: VerifyTwoFactorUseCase,
+    private readonly refreshSessionUseCase: RefreshSessionUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('register')
   @ApiOperation({ summary: 'Inscription (compte local)' })
   @ApiCreatedResponse({ type: AuthResponse })
   async register(@Body() body: RegisterRequest): Promise<AuthResponse> {
-    const user = await this.registerUseCase.execute(body);
+    const user = await this.registerUseCase.execute({
+      ...body,
+      role: this.isBootstrapAdminEmail(body.email) ? Role.ADMIN : undefined,
+      verified: this.config.get('SKIP_EMAIL_VERIFICATION', { infer: true })
+        ? true
+        : undefined,
+    });
     return toAuthResponse(
       user,
       null,
@@ -80,16 +111,22 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Connexion (email + mot de passe)' })
-  @ApiOkResponse({ type: AuthResponse })
-  async login(@Body() body: LoginRequest): Promise<AuthResponse> {
-    const { user, token } = await this.loginUseCase.execute(
-      body.email,
-      body.password,
+  @ApiOkResponse({ type: LoginResponse })
+  async login(@Body() body: LoginRequest): Promise<LoginResponse> {
+    const result = await this.loginUseCase.execute(body.email, body.password);
+    if (result.twoFactorRequired) {
+      return toTwoFactorRequiredResponse(result.challengeToken);
+    }
+    return toLoginSuccessResponse(
+      result.user,
+      result.token,
+      result.refreshToken,
+      'Login successful',
     );
-    return toAuthResponse(user, token, 'Login successful');
   }
 
   @Public()
@@ -107,6 +144,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Renvoyer l'email de vérification" })
@@ -119,6 +157,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Demander un reset de mot de passe' })
@@ -129,6 +168,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60_000 } })
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Réinitialiser le mot de passe via token' })
@@ -149,7 +189,11 @@ export class AuthController {
     @CurrentUser() user: User,
     @Body() body: ChangePasswordRequest,
   ): Promise<MessageResponse> {
-    await this.changePasswordUseCase.execute(user.id, body.newPassword);
+    await this.changePasswordUseCase.execute(
+      user.id,
+      body.currentPassword,
+      body.newPassword,
+    );
     return { message: 'Password changed successfully' };
   }
 
@@ -179,8 +223,17 @@ export class AuthController {
     }
 
     try {
-      const { token, role } = await this.googleCallbackUseCase.execute(code);
-      const params = new URLSearchParams({ token, role });
+      const result = await this.googleCallbackUseCase.execute(code);
+      const params = result.twoFactorRequired
+        ? new URLSearchParams({
+            twoFactorRequired: 'true',
+            challengeToken: result.challengeToken,
+          })
+        : new URLSearchParams({
+            token: result.token,
+            refreshToken: result.refreshToken,
+            role: result.role,
+          });
       res.redirect(
         HttpStatus.FOUND,
         `${this.frontendUrl}/login?${params.toString()}`,
@@ -194,7 +247,111 @@ export class AuthController {
     }
   }
 
+  @Post('2fa/setup')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Démarrer la configuration du 2FA (génère un secret TOTP)',
+  })
+  @ApiOkResponse({ type: TwoFactorSetupResponse })
+  setupTwoFactor(@CurrentUser() user: User): Promise<TwoFactorSetupResponse> {
+    return this.setupTwoFactorUseCase.execute(user.id);
+  }
+
+  @Post('2fa/enable')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Activer le 2FA (confirme le secret avec un code live)',
+  })
+  @ApiOkResponse({ type: TwoFactorEnableResponse })
+  async enableTwoFactor(
+    @CurrentUser() user: User,
+    @Body() body: TwoFactorEnableRequest,
+  ): Promise<TwoFactorEnableResponse> {
+    const recoveryCodes = await this.enableTwoFactorUseCase.execute(
+      user.id,
+      body.code,
+    );
+    return { recoveryCodes };
+  }
+
+  @Post('2fa/disable')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Désactiver le 2FA (confirmation par mot de passe)',
+  })
+  @ApiOkResponse({ type: MessageResponse })
+  async disableTwoFactor(
+    @CurrentUser() user: User,
+    @Body() body: TwoFactorDisableRequest,
+  ): Promise<MessageResponse> {
+    await this.disableTwoFactorUseCase.execute(user.id, body.password);
+    return { message: 'Two-factor authentication disabled' };
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('2fa/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Résoudre le challenge 2FA posé par /auth/login ou /auth/google/callback',
+  })
+  @ApiOkResponse({ type: LoginResponse })
+  async verifyTwoFactor(
+    @Body() body: TwoFactorVerifyRequest,
+  ): Promise<LoginResponse> {
+    const { user, token, refreshToken } =
+      await this.verifyTwoFactorUseCase.execute(body.challengeToken, body.code);
+    return toLoginSuccessResponse(
+      user,
+      token,
+      refreshToken,
+      'Login successful',
+    );
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Échanger un refresh token contre une nouvelle session',
+  })
+  @ApiOkResponse({ type: LoginResponse })
+  async refresh(@Body() body: RefreshRequest): Promise<LoginResponse> {
+    const { user, token, refreshToken } =
+      await this.refreshSessionUseCase.execute(body.refreshToken);
+    return toLoginSuccessResponse(
+      user,
+      token,
+      refreshToken,
+      'Session refreshed',
+    );
+  }
+
+  @Public()
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Révoquer un refresh token' })
+  @ApiOkResponse({ type: MessageResponse })
+  async logout(@Body() body: LogoutRequest): Promise<MessageResponse> {
+    await this.logoutUseCase.execute(body.refreshToken);
+    return { message: 'Logged out' };
+  }
+
   private get frontendUrl(): string {
     return this.config.get('FRONTEND_URL', { infer: true });
+  }
+
+  /** Bootstrap : promeut en ADMIN l'inscription correspondant à `BOOTSTRAP_ADMIN_EMAIL`. */
+  private isBootstrapAdminEmail(email: string): boolean {
+    const bootstrapEmail = this.config.get('BOOTSTRAP_ADMIN_EMAIL', {
+      infer: true,
+    });
+    return (
+      !!bootstrapEmail && bootstrapEmail.toLowerCase() === email.toLowerCase()
+    );
   }
 }

@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {TokenSaleEscrow} from "../../src/brand/TokenSaleEscrow.sol";
 import {BrandSupportToken} from "../../src/brand/BrandSupportToken.sol";
-import {MockUSDC} from "../mocks/MockUSDC.sol";
+import {MockUSDC} from "../../src/mocks/MockUSDC.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenSaleEscrowTest is Test {
@@ -20,21 +20,12 @@ contract TokenSaleEscrowTest is Test {
     address public bob = makeAddr("bob");
 
     uint256 public constant PRICE = 5e6;        // 5 USDC per token
-    uint256 public constant TOTAL_FOR_SALE = 1000;
+    uint256 public constant TOTAL_FOR_SALE = 1000e18;
     uint256 public startTime;
     uint256 public endTime;
 
     function setUp() public {
-        // Force chainId to Base Sepolia so BaseStablecoins.getUSDC() works
-        vm.chainId(84532);
-
         usdc = new MockUSDC();
-        // Patch the USDC address in BaseStablecoins by deploying MockUSDC at the expected address
-        // We use vm.etch to place MockUSDC bytecode at the Base Sepolia USDC address
-        address usdcAddr = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
-        bytes memory code = address(usdc).code;
-        vm.etch(usdcAddr, code);
-        usdc = MockUSDC(usdcAddr);
 
         // Deploy support token (vault = brand for simplicity)
         BrandSupportToken tokenImpl = new BrandSupportToken();
@@ -65,21 +56,12 @@ contract TokenSaleEscrowTest is Test {
         vm.prank(brand);
         supportToken.mint(address(escrow), TOTAL_FOR_SALE);
 
-        // Give buyers USDC using Foundry's deal (works with vm.etch'd contracts)
+        // Give buyers USDC
         deal(address(usdc), alice, 10_000e6);
         deal(address(usdc), bob, 10_000e6);
     }
 
     // ─── constructor validation ────────────────────────────────────
-
-    function test_constructor_rejectNonUSDC() public {
-        MockUSDC fakeToken = new MockUSDC();
-        vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowOnlyUSDC.selector);
-        new TokenSaleEscrow(
-            supportToken, fakeToken, brand, manaAdmin, feeRecipient,
-            PRICE, TOTAL_FOR_SALE, startTime, endTime, 500
-        );
-    }
 
     function test_constructor_rejectZeroAddresses() public {
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowInvalidConfig.selector);
@@ -103,24 +85,48 @@ contract TokenSaleEscrowTest is Test {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
-        assertEq(supportToken.balanceOf(alice), 100);
-        assertEq(escrow.getSoldAmount(), 100);
+        assertEq(supportToken.balanceOf(alice), 100e18);
+        assertEq(escrow.getSoldAmount(), 100e18);
+    }
+
+    /// @dev Decimals: pricePerToken (6 dec) applies per WHOLE token (1e18 base units), not per wei.
+    function test_buy_costScaledByTokenDecimals() public {
+        vm.warp(startTime + 1);
+        uint256 aliceBefore = usdc.balanceOf(alice);
+        vm.startPrank(alice);
+        usdc.approve(address(escrow), 500e6);
+        escrow.buy(100e18); // 100 whole tokens at 5 USDC each
+        vm.stopPrank();
+
+        assertEq(aliceBefore - usdc.balanceOf(alice), 500e6);
+        assertEq(usdc.balanceOf(address(escrow)), 500e6);
+    }
+
+    /// @dev Decimals: cost rounds UP so buying dust amounts is never free.
+    function test_buy_dustAmountRoundsCostUp() public {
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
+        usdc.approve(address(escrow), type(uint256).max);
+        escrow.buy(1); // 1 wei of support token
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(escrow)), 1); // ceil(1 * 5e6 / 1e18) = 1, not 0
     }
 
     function test_buy_revertBeforeStart() public {
         vm.prank(alice);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowTimeWindow.selector);
-        escrow.buy(100);
+        escrow.buy(100e18);
     }
 
     function test_buy_revertAfterEnd() public {
         vm.warp(endTime + 1);
         vm.prank(alice);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowTimeWindow.selector);
-        escrow.buy(100);
+        escrow.buy(100e18);
     }
 
     function test_buy_revertExceedsCap() public {
@@ -128,7 +134,7 @@ contract TokenSaleEscrowTest is Test {
         vm.startPrank(alice);
         usdc.approve(address(escrow), type(uint256).max);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowInsufficientSupply.selector);
-        escrow.buy(TOTAL_FOR_SALE + 1);
+        escrow.buy(TOTAL_FOR_SALE + 1e18);
         vm.stopPrank();
     }
 
@@ -146,7 +152,7 @@ contract TokenSaleEscrowTest is Test {
         vm.warp(startTime + 1);
         vm.prank(alice);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowNotOpen.selector);
-        escrow.buy(100);
+        escrow.buy(100e18);
     }
 
     // ─── endSale ──────────────────────────────────────────────────
@@ -182,7 +188,7 @@ contract TokenSaleEscrowTest is Test {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
     }
 
@@ -265,7 +271,7 @@ contract TokenSaleEscrowTest is Test {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
         vm.prank(manaAdmin);
@@ -273,8 +279,8 @@ contract TokenSaleEscrowTest is Test {
 
         uint256 aliceBefore = usdc.balanceOf(alice);
         vm.startPrank(alice);
-        supportToken.approve(address(escrow), 100);
-        escrow.claimRefund(100);
+        supportToken.approve(address(escrow), 100e18);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(alice) - aliceBefore, 500e6);
@@ -284,7 +290,7 @@ contract TokenSaleEscrowTest is Test {
     function test_claimRefund_revertNotCancelled() public {
         vm.prank(alice);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowNotCancelled.selector);
-        escrow.claimRefund(100);
+        escrow.claimRefund(100e18);
     }
 
     function test_claimRefund_revertZeroAmount() public {
@@ -296,13 +302,13 @@ contract TokenSaleEscrowTest is Test {
         escrow.claimRefund(0);
     }
 
-    /// @dev C-1 SECURITY: TDD Test — Alice must be able to claim her refund successfully
+    /// @dev C-1 SECURITY: tokens minted outside the sale cannot drain the refund pool.
     function test_claimRefund_fullDrain() public {
         // Alice buys 100 tokens, Escrow has 500 USDC
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
         // Admin cancels sale
@@ -311,63 +317,103 @@ contract TokenSaleEscrowTest is Test {
 
         // Brand uses 100 extra tokens (minted outside sale) to drain refunds
         vm.prank(brand);
-        supportToken.mint(brand, 100);
+        supportToken.mint(brand, 100e18);
 
         vm.startPrank(brand);
-        supportToken.approve(address(escrow), 100);
+        supportToken.approve(address(escrow), 100e18);
         vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowOnlyBrand.selector);
-        escrow.claimRefund(100);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
 
-        // Alice tries to refund her valid 100 tokens
+        // A non-brand attacker holding tokens minted outside the sale cannot refund either
+        vm.prank(brand);
+        supportToken.mint(bob, 100e18);
+        vm.startPrank(bob);
+        supportToken.approve(address(escrow), 100e18);
+        vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowRefundExceedsPurchase.selector);
+        escrow.claimRefund(100e18);
+        vm.stopPrank();
+
+        // Alice refunds her valid 100 tokens and gets her full payment back
         vm.startPrank(alice);
-        supportToken.approve(address(escrow), 100);
-        escrow.claimRefund(100); // Should succeed! Will currently REVERT (test fails) because contract is drained
+        supportToken.approve(address(escrow), 100e18);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
     }
 
-    /// @dev C-1 SECURITY: doubleRefund fails because tokens are reclaimed by contract
+    /// @dev C-1 SECURITY: second refund is blocked by per-buyer accounting, before any transfer
     function test_claimRefund_doubleRefund() public {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
+        escrow.buy(100e18);
         vm.stopPrank();
 
         vm.prank(manaAdmin);
         escrow.cancelSaleByAdmin();
 
         vm.startPrank(alice);
-        supportToken.approve(address(escrow), 100);
-        escrow.claimRefund(100);
+        supportToken.approve(address(escrow), 100e18);
+        escrow.claimRefund(100e18);
 
-        // Try second refund without tokens
-        vm.expectRevert(); // safeTransferFrom fails
-        escrow.claimRefund(100);
+        // Try second refund: bought balance is now zero
+        vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowRefundExceedsPurchase.selector);
+        escrow.claimRefund(100e18);
         vm.stopPrank();
     }
 
-    /// @dev C-1 SECURITY: proRata refund logic - transferred tokens refund correct owner
-    function test_claimRefund_proRata() public {
+    /// @dev C-1 SECURITY: refunds are per-buyer — a transferee cannot refund, the original buyer refunds up to their remaining holdings.
+    function test_claimRefund_perBuyerAccounting() public {
         vm.warp(startTime + 1);
         vm.startPrank(alice);
         usdc.approve(address(escrow), 500e6);
-        escrow.buy(100);
-        
+        escrow.buy(100e18);
+
         // Alice transfers half to Bob
-        supportToken.transfer(bob, 50);
+        supportToken.transfer(bob, 50e18);
         vm.stopPrank();
 
         vm.prank(manaAdmin);
         escrow.cancelSaleByAdmin();
 
-        // Bob claims 50
-        uint256 bobBalBefore = usdc.balanceOf(bob);
+        // Bob never bought: his claim reverts
         vm.startPrank(bob);
-        supportToken.approve(address(escrow), 50);
-        escrow.claimRefund(50);
+        supportToken.approve(address(escrow), 50e18);
+        vm.expectRevert(TokenSaleEscrow.TokenSaleEscrowRefundExceedsPurchase.selector);
+        escrow.claimRefund(50e18);
         vm.stopPrank();
-        assertEq(usdc.balanceOf(bob) - bobBalBefore, 250e6); // Half refund
+
+        // Alice refunds the 50 tokens she still holds, pro-rata of her payment
+        uint256 aliceBefore = usdc.balanceOf(alice);
+        vm.startPrank(alice);
+        supportToken.approve(address(escrow), 50e18);
+        escrow.claimRefund(50e18);
+        vm.stopPrank();
+        assertEq(usdc.balanceOf(alice) - aliceBefore, 250e6); // half of what she paid
+        assertEq(escrow.getBoughtOf(alice), 50e18);
+        assertEq(escrow.getPaidOf(alice), 250e6);
+    }
+
+    /// @dev C-1: refunding everything returns exactly what was paid, including the ceil-rounded dust buy.
+    function test_claimRefund_exactPaidBackAfterDustBuy() public {
+        vm.warp(startTime + 1);
+        vm.startPrank(alice);
+        usdc.approve(address(escrow), type(uint256).max);
+        escrow.buy(1); // dust: costs 1 unit (rounded up)
+        escrow.buy(100e18); // 500e6
+        vm.stopPrank();
+
+        vm.prank(manaAdmin);
+        escrow.cancelSaleByAdmin();
+
+        uint256 aliceBefore = usdc.balanceOf(alice);
+        vm.startPrank(alice);
+        supportToken.approve(address(escrow), 100e18 + 1);
+        escrow.claimRefund(100e18 + 1);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(alice) - aliceBefore, 500e6 + 1);
+        assertEq(escrow.getPaidOf(alice), 0);
     }
 
     /// @dev M-2 SECURITY: buy without deposit
@@ -380,7 +426,7 @@ contract TokenSaleEscrowTest is Test {
             manaAdmin,
             feeRecipient,
             PRICE,
-            100,
+            100e18,
             startTime,
             endTime,
             500
@@ -392,7 +438,7 @@ contract TokenSaleEscrowTest is Test {
         
         // Buy fails because contract has no support tokens to transfer
         vm.expectRevert(); // safeTransfer fails
-        badEscrow.buy(100);
+        badEscrow.buy(100e18);
         vm.stopPrank();
     }
 }
