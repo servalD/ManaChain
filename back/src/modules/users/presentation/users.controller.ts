@@ -32,13 +32,16 @@ import { BanUserUseCase } from '../application/use-cases/ban-user.use-case';
 import { UnbanUserUseCase } from '../application/use-cases/unban-user.use-case';
 import { ListUserBansUseCase } from '../application/use-cases/list-user-bans.use-case';
 import { DeleteAccountUseCase } from '../application/use-cases/delete-account.use-case';
+import { GetMyActivityHistoryUseCase } from '../application/use-cases/get-my-activity-history.use-case';
 import { UpdateUserRequest } from '../application/dto/update-user.request';
 import { UpdateBlockchainAddressRequest } from '../application/dto/update-blockchain-address.request';
 import { UpdateInterestsRequest } from '../application/dto/update-interests.request';
 import { ListUsersQuery } from '../application/dto/list-users.query';
 import { BanUserRequest } from '../application/dto/ban-user.request';
 import { ListBansQuery } from '../application/dto/list-bans.query';
+import { HistoryRangeQuery } from '../../../shared/application/dto/history-range.query';
 import {
+  ActivityPointResponse,
   PaginatedUserBansResponse,
   PaginatedUsersResponse,
   toUserBanResponse,
@@ -61,6 +64,7 @@ export class UsersController {
     private readonly unbanUser: UnbanUserUseCase,
     private readonly listUserBans: ListUserBansUseCase,
     private readonly deleteAccount: DeleteAccountUseCase,
+    private readonly getMyActivityHistory: GetMyActivityHistoryUseCase,
   ) {}
 
   /** Profil de l'utilisateur authentifié courant. */
@@ -127,6 +131,17 @@ export class UsersController {
   ): Promise<{ interestIds: string[] }> {
     await this.updateMyInterests.execute(user.id, body.interestIds);
     return { interestIds: body.interestIds };
+  }
+
+  /** Historique d'activité (likes/supports/events par jour + score de support cumulé). */
+  @Get('me/activity-history')
+  @ApiOperation({ summary: "Mon historique d'activité (dashboard)" })
+  @ApiOkResponse({ type: ActivityPointResponse, isArray: true })
+  myActivityHistory(
+    @CurrentUser() user: User,
+    @Query() query: HistoryRangeQuery,
+  ): Promise<ActivityPointResponse[]> {
+    return this.getMyActivityHistory.execute(user.id, query.days);
   }
 
   /** Liste paginée des utilisateurs — admin uniquement. */

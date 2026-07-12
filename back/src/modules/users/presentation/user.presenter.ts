@@ -53,6 +53,14 @@ export class UserResponse {
   twoFactorEnabled: boolean;
 }
 
+export class ActivityPointResponse {
+  @ApiProperty() date: string;
+  @ApiProperty() likesGiven: number;
+  @ApiProperty() tokenPurchases: number;
+  @ApiProperty() eventsAttended: number;
+  @ApiProperty() supportScore: number;
+}
+
 export class PaginatedUsersResponse {
   @ApiProperty({ type: UserResponse, isArray: true }) users: UserResponse[];
   @ApiProperty() total: number;

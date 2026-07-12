@@ -17,6 +17,7 @@ import { InterestReader } from './domain/interest-reader';
 import { BrandApplicationMailer } from './domain/brand-application-mailer.port';
 import { TemporaryPasswordGenerator } from './domain/temporary-password-generator';
 import { BrandTokenStatsReader } from './domain/brand-token-stats.reader';
+import { BrandEngagementHistoryReader } from './domain/brand-engagement-history.reader';
 import { BrandBanReader } from './domain/brand-ban.reader';
 import { BrandBanRepository } from './domain/brand-ban.repository';
 // Adapters
@@ -28,6 +29,7 @@ import { TypeOrmInterestReader } from './infrastructure/typeorm-interest-reader'
 import { TemplatedBrandApplicationMailer } from './infrastructure/email/templated-brand-application-mailer';
 import { SecureTemporaryPasswordGenerator } from './infrastructure/secure-temporary-password.generator';
 import { TypeOrmBrandTokenStatsReader } from './infrastructure/typeorm-brand-token-stats.reader';
+import { TypeOrmBrandEngagementHistoryReader } from './infrastructure/typeorm-brand-engagement-history.reader';
 import { TypeOrmBrandBanReader } from './infrastructure/typeorm-brand-ban.reader';
 import { TypeOrmBrandBanRepository } from './infrastructure/typeorm-brand-ban.repository';
 // Use-cases
@@ -40,6 +42,7 @@ import { ListBrandsForWhitelistUseCase } from './application/use-cases/list-bran
 import { UpdateBrandUseCase } from './application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from './application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from './application/use-cases/get-brand-stats.use-case';
+import { GetBrandEngagementHistoryUseCase } from './application/use-cases/get-brand-engagement-history.use-case';
 import { ListBrandMediaUseCase } from './application/use-cases/list-brand-media.use-case';
 import { ConfirmBrandMediaUseCase } from './application/use-cases/confirm-brand-media.use-case';
 import { DeleteBrandMediaUseCase } from './application/use-cases/delete-brand-media.use-case';
@@ -98,6 +101,10 @@ import { InterestsController } from './presentation/interests.controller';
       useClass: SecureTemporaryPasswordGenerator,
     },
     { provide: BrandTokenStatsReader, useClass: TypeOrmBrandTokenStatsReader },
+    {
+      provide: BrandEngagementHistoryReader,
+      useClass: TypeOrmBrandEngagementHistoryReader,
+    },
     { provide: BrandBanReader, useClass: TypeOrmBrandBanReader },
     { provide: BrandBanRepository, useClass: TypeOrmBrandBanRepository },
     CreateBrandUseCase,
@@ -109,6 +116,7 @@ import { InterestsController } from './presentation/interests.controller';
     UpdateBrandUseCase,
     DeleteBrandUseCase,
     GetBrandStatsUseCase,
+    GetBrandEngagementHistoryUseCase,
     ListBrandMediaUseCase,
     ConfirmBrandMediaUseCase,
     DeleteBrandMediaUseCase,

@@ -9,6 +9,10 @@ import {
   TwoFactorRecoveryCode,
   TwoFactorRecoveryCodeRepository,
 } from '../domain/two-factor-recovery-code.repository';
+import {
+  ActivityPoint,
+  UserActivityHistoryReader,
+} from '../domain/user-activity-history.reader';
 
 export { FakeTransactionRunner } from '../../../shared/application/test-fakes';
 
@@ -109,5 +113,16 @@ export class InMemoryTwoFactorRecoveryCodeRepository extends TwoFactorRecoveryCo
       if (code.userId === userId) this.codes.delete(id);
     }
     return Promise.resolve();
+  }
+}
+
+/** Lecteur d'historique d'activité paramétrable (liste vide par défaut). */
+export class FakeUserActivityHistoryReader extends UserActivityHistoryReader {
+  private readonly byUser = new Map<string, ActivityPoint[]>();
+  seedHistory(userId: string, points: ActivityPoint[]): void {
+    this.byUser.set(userId, points);
+  }
+  getHistory(userId: string): Promise<ActivityPoint[]> {
+    return Promise.resolve(this.byUser.get(userId) ?? []);
   }
 }

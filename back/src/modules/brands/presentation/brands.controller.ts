@@ -33,6 +33,7 @@ import { ListBrandsForWhitelistUseCase } from '../application/use-cases/list-bra
 import { UpdateBrandUseCase } from '../application/use-cases/update-brand.use-case';
 import { DeleteBrandUseCase } from '../application/use-cases/delete-brand.use-case';
 import { GetBrandStatsUseCase } from '../application/use-cases/get-brand-stats.use-case';
+import { GetBrandEngagementHistoryUseCase } from '../application/use-cases/get-brand-engagement-history.use-case';
 import { ListBrandMediaUseCase } from '../application/use-cases/list-brand-media.use-case';
 import { ConfirmBrandMediaUseCase } from '../application/use-cases/confirm-brand-media.use-case';
 import { DeleteBrandMediaUseCase } from '../application/use-cases/delete-brand-media.use-case';
@@ -45,11 +46,13 @@ import { ListBrandsQuery } from '../application/dto/list-brands.query';
 import { ConfirmMediaRequest } from '../application/dto/confirm-media.request';
 import { BanBrandRequest } from '../application/dto/ban-brand.request';
 import { ListBansQuery } from '../application/dto/list-bans.query';
+import { HistoryRangeQuery } from '../../../shared/application/dto/history-range.query';
 import {
   BrandBanResponse,
   BrandMediaResponse,
   BrandResponse,
   BrandStatsResponse,
+  EngagementPointResponse,
   PaginatedBrandBansResponse,
   PaginatedBrandsResponse,
   PaginatedBrandWhitelistResponse,
@@ -71,6 +74,7 @@ export class BrandsController {
     private readonly updateBrand: UpdateBrandUseCase,
     private readonly deleteBrand: DeleteBrandUseCase,
     private readonly getBrandStats: GetBrandStatsUseCase,
+    private readonly getBrandEngagementHistory: GetBrandEngagementHistoryUseCase,
     private readonly listMedia: ListBrandMediaUseCase,
     private readonly confirmMedia: ConfirmBrandMediaUseCase,
     private readonly deleteMedia: DeleteBrandMediaUseCase,
@@ -177,6 +181,18 @@ export class BrandsController {
   @ApiOkResponse({ type: BrandStatsResponse })
   stats(@Param('id', ParseUUIDPipe) id: string): Promise<BrandStatsResponse> {
     return this.getBrandStats.execute(id);
+  }
+
+  @Public()
+  @Get(':id/engagement-history')
+  @ApiOperation({ summary: "Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)" })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: EngagementPointResponse, isArray: true })
+  engagementHistory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: HistoryRangeQuery,
+  ): Promise<EngagementPointResponse[]> {
+    return this.getBrandEngagementHistory.execute(id, query.days);
   }
 
   // --- Médias ---

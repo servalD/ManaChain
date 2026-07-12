@@ -56,6 +56,12 @@ export class BrandStatsResponse {
   @ApiProperty({ type: String, nullable: true }) tokenPrice: string | null;
 }
 
+export class EngagementPointResponse {
+  @ApiProperty() date: string;
+  @ApiProperty() holders: number;
+  @ApiProperty() likes: number;
+}
+
 export class BrandMediaResponse {
   @ApiProperty({ format: 'uuid' }) id: string;
   @ApiProperty({ format: 'uuid' }) brandId: string;

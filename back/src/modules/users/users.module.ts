@@ -5,9 +5,11 @@ import { UserOrmEntity } from './infrastructure/user.orm-entity';
 import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository';
 import { TypeOrmUserBanRepository } from './infrastructure/typeorm-user-ban.repository';
 import { TypeOrmTwoFactorRecoveryCodeRepository } from './infrastructure/typeorm-two-factor-recovery-code.repository';
+import { TypeOrmUserActivityHistoryReader } from './infrastructure/typeorm-user-activity-history.reader';
 import { UserRepository } from './domain/user.repository';
 import { UserBanRepository } from './domain/user-ban.repository';
 import { TwoFactorRecoveryCodeRepository } from './domain/two-factor-recovery-code.repository';
+import { UserActivityHistoryReader } from './domain/user-activity-history.reader';
 import { GetAllUsersUseCase } from './application/use-cases/get-all-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { UpdateBlockchainAddressUseCase } from './application/use-cases/update-blockchain-address.use-case';
@@ -17,6 +19,7 @@ import { BanUserUseCase } from './application/use-cases/ban-user.use-case';
 import { UnbanUserUseCase } from './application/use-cases/unban-user.use-case';
 import { ListUserBansUseCase } from './application/use-cases/list-user-bans.use-case';
 import { DeleteAccountUseCase } from './application/use-cases/delete-account.use-case';
+import { GetMyActivityHistoryUseCase } from './application/use-cases/get-my-activity-history.use-case';
 import { UsersController } from './presentation/users.controller';
 
 @Module({
@@ -33,6 +36,10 @@ import { UsersController } from './presentation/users.controller';
       provide: TwoFactorRecoveryCodeRepository,
       useClass: TypeOrmTwoFactorRecoveryCodeRepository,
     },
+    {
+      provide: UserActivityHistoryReader,
+      useClass: TypeOrmUserActivityHistoryReader,
+    },
     GetAllUsersUseCase,
     UpdateUserUseCase,
     UpdateBlockchainAddressUseCase,
@@ -42,6 +49,7 @@ import { UsersController } from './presentation/users.controller';
     UnbanUserUseCase,
     ListUserBansUseCase,
     DeleteAccountUseCase,
+    GetMyActivityHistoryUseCase,
   ],
   // UserRepository/UserBanRepository sont consommés par le module auth (guard
   // global + login) et chain-sync. TwoFactorRecoveryCodeRepository par les

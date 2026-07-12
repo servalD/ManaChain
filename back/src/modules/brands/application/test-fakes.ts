@@ -5,6 +5,10 @@ import {
   BrandTokenStats,
   BrandTokenStatsReader,
 } from '../domain/brand-token-stats.reader';
+import {
+  BrandEngagementHistoryReader,
+  EngagementPoint,
+} from '../domain/brand-engagement-history.reader';
 import { BrandBanReader } from '../domain/brand-ban.reader';
 import { BrandBan } from '../domain/brand-ban';
 import {
@@ -52,6 +56,17 @@ export class FakeBrandTokenStatsReader extends BrandTokenStatsReader {
         tokenPrice: null,
       },
     );
+  }
+}
+
+/** Lecteur d'historique d'engagement paramétrable (liste vide par défaut). */
+export class FakeBrandEngagementHistoryReader extends BrandEngagementHistoryReader {
+  private readonly byBrand = new Map<string, EngagementPoint[]>();
+  seedHistory(brandId: string, points: EngagementPoint[]): void {
+    this.byBrand.set(brandId, points);
+  }
+  getHistory(brandId: string): Promise<EngagementPoint[]> {
+    return Promise.resolve(this.byBrand.get(brandId) ?? []);
   }
 }
 
