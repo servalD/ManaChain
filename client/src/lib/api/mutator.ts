@@ -58,12 +58,22 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
   _retried?: boolean;
 }
 
+// A 401 from these means "wrong credentials", not "session expired" — there is no
+// session to refresh, and redirecting away would kick the user off the login page
+// mid-attempt instead of just showing the error toast.
+const CREDENTIAL_CHECK_ENDPOINTS = ["/auth/login", "/auth/2fa/verify"];
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const config = error.config as RetryableConfig | undefined;
 
-    if (error.response?.status !== 401 || !config || config._retried) {
+    if (
+      error.response?.status !== 401 ||
+      !config ||
+      config._retried ||
+      CREDENTIAL_CHECK_ENDPOINTS.some((path) => config.url?.includes(path))
+    ) {
       return Promise.reject(error);
     }
     config._retried = true;
