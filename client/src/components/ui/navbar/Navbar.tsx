@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { UserMenu } from "@/components/ui/user-menu";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { NotificationBell } from "./NotificationBell";
 
 export interface NavbarProps {
@@ -49,7 +50,6 @@ export function Navbar({
         return [
           { label: t("discover"), href: "/discover" },
           { label: t("dashboard"), href: "/dashboard" },
-          { label: t("feed"), href: "/feed" },
           { label: t("events"), href: "/events" },
         ];
       case 'BRANDUSER':
@@ -135,11 +135,14 @@ export function Navbar({
 
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+
             {/* Theme Toggler */}
-            <AnimatedThemeToggler 
+            <AnimatedThemeToggler
               className="p-2 rounded-lg hover:bg-accent transition-colors text-foreground"
             />
-            
+
             {isLoggedIn ? (
               <>
                 {/* Wallet Connect Button - Desktop Only */}
@@ -155,9 +158,10 @@ export function Navbar({
                 <NotificationBell />
 
                 {/* User Menu */}
-                <UserMenu 
+                <UserMenu
                   userName={userName || "User"}
                   userAvatarUrl={userAvatarUrl}
+                  userRole={userRole}
                   onLogout={onLogout || (() => {})}
                   onProfile={onProfile}
                   onWalletConnected={onWalletConnected}
@@ -193,7 +197,6 @@ export function Navbar({
           {navItems.map((item) => {
             const isActive = currentPage === "dashboard" && item.href.includes("/dashboard") ||
                             currentPage === "discover" && item.href.includes("/discover") ||
-                            currentPage === "feed" && item.href.includes("/feed") ||
                             currentPage === "events" && item.href.includes("/events") ||
                             currentPage === "brands" && item.href.includes("/brands") ||
                             (item.href === "/" && currentPage === "");

@@ -171,13 +171,6 @@ export function LandingNavbar() {
                   >
                     {t('signUp')}
                   </Link>
-                  <Link
-                    href="/brand-application"
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t('applyAsBrand')}
-                  </Link>
                 </div>
               )}
             </div>
@@ -236,13 +229,6 @@ export function LandingNavbar() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {t('signUp')}
-                  </Link>
-                  <Link
-                    href="/brand-application"
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {t('applyAsBrand')}
                   </Link>
                 </div>
               )}

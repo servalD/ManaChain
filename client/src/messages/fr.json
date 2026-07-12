@@ -14,7 +14,6 @@
       "faq": "FAQ",
       "signIn": "Se connecter",
       "signUp": "S'inscrire",
-      "applyAsBrand": "Devenir une marque",
       "userMenuAriaLabel": "Menu utilisateur",
       "menuAriaLabel": "Menu"
     },
@@ -33,7 +32,6 @@
       "descriptionMiddle": "pour montrer votre soutien et participer à une nouvelle forme d'",
       "descriptionAuthenticEngagement": "engagement authentique",
       "descriptionSuffix": "avec les marques qui vous tiennent à cœur.",
-      "ctaCreateCommunity": "Créer ma communauté",
       "ctaDiscoverProjects": "Découvrir les projets"
     },
     "stats": {
@@ -935,6 +933,12 @@
     "refundSubmittedMessage": "Votre remboursement a été confirmé on-chain — votre solde sera mis à jour sous peu.",
     "tokensFallback": "tokens"
   },
+  "brandApplication": {
+    "toasts": {
+      "emailTakenTitle": "Email déjà utilisé",
+      "emailTakenDescription": "Cet email est déjà utilisé par un compte existant. Merci d'utiliser un email différent pour le contact de la marque."
+    }
+  },
   "navbar": {
     "home": "Accueil",
     "discover": "Découvrir",
@@ -944,6 +948,14 @@
     "browseBrands": "Parcourir les marques",
     "login": "Connexion",
     "signUp": "S'inscrire",
+    "userMenu": {
+      "title": "Menu utilisateur",
+      "userAccount": "Compte utilisateur",
+      "profile": "Mon profil",
+      "createBrand": "Créer votre marque",
+      "wallet": "Portefeuille",
+      "logout": "Déconnexion"
+    },
     "notificationBell": {
       "ariaLabel": "Notifications",
       "title": "Notifications",

@@ -14,7 +14,6 @@
       "faq": "FAQ",
       "signIn": "Sign in",
       "signUp": "Sign up",
-      "applyAsBrand": "Apply as a Brand",
       "userMenuAriaLabel": "User menu",
       "menuAriaLabel": "Menu"
     },
@@ -33,7 +32,6 @@
       "descriptionMiddle": "to show your support and take part in a new form of",
       "descriptionAuthenticEngagement": "authentic engagement",
       "descriptionSuffix": "with the brands you care about.",
-      "ctaCreateCommunity": "Create My Community",
       "ctaDiscoverProjects": "Discover Projects"
     },
     "stats": {
@@ -935,6 +933,12 @@
     "refundSubmittedMessage": "Your refund was confirmed on-chain — your balance will update shortly.",
     "tokensFallback": "tokens"
   },
+  "brandApplication": {
+    "toasts": {
+      "emailTakenTitle": "Email already in use",
+      "emailTakenDescription": "This email is already used by an existing account. Please use a different email for the brand contact."
+    }
+  },
   "navbar": {
     "home": "Home",
     "discover": "Discover",
@@ -944,6 +948,14 @@
     "browseBrands": "Browse Brands",
     "login": "Login",
     "signUp": "Sign Up",
+    "userMenu": {
+      "title": "User Menu",
+      "userAccount": "User Account",
+      "profile": "My Profile",
+      "createBrand": "Create your brand",
+      "wallet": "Wallet",
+      "logout": "Logout"
+    },
     "notificationBell": {
       "ariaLabel": "Notifications",
       "title": "Notifications",
