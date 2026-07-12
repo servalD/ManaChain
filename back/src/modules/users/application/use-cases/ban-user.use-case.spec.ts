@@ -1,7 +1,9 @@
 import { BanUserUseCase } from './ban-user.use-case';
 import { InMemoryUserRepository } from '../../infrastructure/in-memory-user.repository';
 import { InMemoryUserBanRepository } from '../test-fakes';
+import { Role } from '../../../../shared/enums/role.enum';
 import {
+  CannotBanAdminError,
   UserAlreadyBannedError,
   UserNotFoundError,
 } from '../../domain/user.errors';
@@ -38,6 +40,16 @@ describe('BanUserUseCase', () => {
         isPermanent: true,
       }),
     ).rejects.toThrow(UserNotFoundError);
+  });
+
+  it('rejects banning an admin', async () => {
+    const { users, useCase } = setup();
+    const target = users.seed({ role: Role.ADMIN });
+    const admin = users.seed({ role: Role.ADMIN });
+
+    await expect(
+      useCase.execute(admin.id, target.id, { reason: 'x', isPermanent: true }),
+    ).rejects.toThrow(CannotBanAdminError);
   });
 
   it('rejects banning an already-banned user', async () => {

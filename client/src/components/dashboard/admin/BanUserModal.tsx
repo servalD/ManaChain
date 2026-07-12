@@ -26,7 +26,10 @@ export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
   const [notes, setNotes] = useState("");
 
   const { data } = useAdminUsersList({ search: search || undefined, limit: 8, offset: 0 });
-  const results = search.trim() && !selectedUser ? (data?.users ?? []) : [];
+  // Admin accounts can't be banned (enforced server-side too) — don't offer them as a target.
+  const results = search.trim() && !selectedUser
+    ? (data?.users ?? []).filter((user) => user.role !== "ADMIN")
+    : [];
 
   const banUser = useBanUser();
 

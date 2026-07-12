@@ -3,6 +3,7 @@ import { UserRepository } from '../../domain/user.repository';
 import { UserBanRepository } from '../../domain/user-ban.repository';
 import { UserBan } from '../../domain/user-ban';
 import {
+  CannotBanAdminError,
   UserAlreadyBannedError,
   UserNotFoundError,
 } from '../../domain/user.errors';
@@ -22,6 +23,7 @@ export class BanUserUseCase {
   ): Promise<UserBan> {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new UserNotFoundError(userId);
+    if (user.isAdmin()) throw new CannotBanAdminError();
 
     const existing = await this.userBans.findActive(userId);
     if (existing) throw new UserAlreadyBannedError();

@@ -32,6 +32,13 @@ export class UserAlreadyBannedError extends ConflictDomainException {
   }
 }
 
+/** Un compte ADMIN ne peut pas être banni. */
+export class CannotBanAdminError extends ForbiddenDomainException {
+  constructor() {
+    super('Admin accounts cannot be banned');
+  }
+}
+
 /** Le compte authentifié a un ban actif : accès refusé (login + requêtes suivantes). */
 export class UserBannedError extends ForbiddenDomainException {
   constructor(reason: string) {
