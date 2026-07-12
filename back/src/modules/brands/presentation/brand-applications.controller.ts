@@ -10,12 +10,14 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Env } from '../../../infrastructure/config/env.validation';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
 import { Public } from '../../../shared/decorators/public.decorator';
 import { Roles } from '../../../shared/decorators/roles.decorator';
@@ -32,6 +34,7 @@ import { VerifyApplicationEmailRequest } from '../application/dto/verify-applica
 import { ListApplicationsQuery } from '../application/dto/list-applications.query';
 import { RejectApplicationRequest } from '../application/dto/reject-application.request';
 import {
+  ApproveApplicationResponse,
   BrandApplicationResponse,
   PaginatedApplicationsResponse,
   toApplicationResponse,
@@ -47,6 +50,7 @@ export class BrandApplicationsController {
     private readonly getApplication: GetBrandApplicationUseCase,
     private readonly approveApplication: ApproveBrandApplicationUseCase,
     private readonly rejectApplication: RejectBrandApplicationUseCase,
+    private readonly config: ConfigService<Env, true>,
   ) {}
 
   @Public()
@@ -56,7 +60,11 @@ export class BrandApplicationsController {
   async create(
     @Body() body: CreateBrandApplicationRequest,
   ): Promise<BrandApplicationResponse> {
-    const application = await this.createApplication.execute(body);
+    const application = await this.createApplication.execute(body, {
+      skipEmailVerification: this.config.get('SKIP_EMAIL_VERIFICATION', {
+        infer: true,
+      }),
+    });
     return toApplicationResponse(application);
   }
 
@@ -100,11 +108,25 @@ export class BrandApplicationsController {
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Approuver une candidature (admin)' })
+  @ApiOkResponse({ type: ApproveApplicationResponse })
   async approve(
     @CurrentUser() admin: User,
     @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<{ userId: string; brandId: string }> {
-    return this.approveApplication.execute(admin.id, id);
+  ): Promise<ApproveApplicationResponse> {
+    const result = await this.approveApplication.execute(admin.id, id);
+    const skipEmailVerification = this.config.get('SKIP_EMAIL_VERIFICATION', {
+      infer: true,
+    });
+    return {
+      userId: result.userId,
+      brandId: result.brandId,
+      username: result.username,
+      // Le mot de passe temporaire n'est JAMAIS renvoyé en prod (il part par email) —
+      // seulement en dev/démo, pour permettre un login scripté sans boîte mail.
+      temporaryPassword: skipEmailVerification
+        ? result.temporaryPassword
+        : undefined,
+    };
   }
 
   @Put(':id/reject')

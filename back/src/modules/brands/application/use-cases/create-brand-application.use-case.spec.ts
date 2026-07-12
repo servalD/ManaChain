@@ -5,6 +5,7 @@ import { InMemoryBrandRepository } from '../../infrastructure/in-memory-brand.re
 import { InMemoryBrandApplicationRepository } from '../../infrastructure/in-memory-brand-application.repository';
 import {
   ApplicationBrandNameTakenError,
+  ApplicationContactEmailAlreadyRegisteredError,
   InvalidInterestSelectionError,
   RegistrationNumberTakenError,
 } from '../../domain/brand.errors';
@@ -75,5 +76,13 @@ describe('CreateBrandApplicationUseCase', () => {
     await expect(
       useCase.execute({ ...input, businessRegistrationNumber: 'REG-2' }),
     ).rejects.toBeInstanceOf(ApplicationBrandNameTakenError);
+  });
+
+  it('rejects a contact email already used by an existing account', async () => {
+    users.seed({ email: input.contactEmail });
+
+    await expect(useCase.execute(input)).rejects.toBeInstanceOf(
+      ApplicationContactEmailAlreadyRegisteredError,
+    );
   });
 });

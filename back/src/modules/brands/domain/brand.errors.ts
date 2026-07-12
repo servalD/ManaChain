@@ -78,6 +78,20 @@ export class RegistrationNumberTakenError extends ConflictDomainException {
   }
 }
 
+/**
+ * Approving an application creates a brand-new BRANDUSER account (never an
+ * upgrade of an existing one) — if `contactEmail` already belongs to a user,
+ * that INSERT collides with the unique email constraint. Caught here, at
+ * submission time, instead of surfacing as a raw DB error at approval time.
+ */
+export class ApplicationContactEmailAlreadyRegisteredError extends ConflictDomainException {
+  constructor() {
+    super(
+      'This email is already used by an existing account. Please use a different email for the brand contact.',
+    );
+  }
+}
+
 export class ApplicationBrandNameTakenError extends ConflictDomainException {
   constructor() {
     super('This brand name is already in use or pending approval');

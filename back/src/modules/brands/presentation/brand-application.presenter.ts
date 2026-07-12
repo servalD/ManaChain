@@ -25,6 +25,15 @@ export class PaginatedApplicationsResponse {
   @ApiProperty() total: number;
 }
 
+export class ApproveApplicationResponse {
+  @ApiProperty({ format: 'uuid' }) userId: string;
+  @ApiProperty({ format: 'uuid' }) brandId: string;
+  @ApiProperty() username: string;
+  /** Uniquement en dev/démo (SKIP_EMAIL_VERIFICATION) — jamais renvoyé en prod, le mot de passe part par email. */
+  @ApiProperty({ type: String, required: false })
+  temporaryPassword?: string;
+}
+
 export const toApplicationResponse = (
   a: BrandApplication,
 ): BrandApplicationResponse => ({

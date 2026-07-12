@@ -11,6 +11,7 @@ import { InterestChecker } from '../../domain/interest-checker';
 import { BrandApplicationMailer } from '../../domain/brand-application-mailer.port';
 import {
   ApplicationBrandNameTakenError,
+  ApplicationContactEmailAlreadyRegisteredError,
   InvalidInterestSelectionError,
   RegistrationNumberTakenError,
 } from '../../domain/brand.errors';
@@ -38,7 +39,10 @@ export class CreateBrandApplicationUseCase {
     private readonly mailer: BrandApplicationMailer,
   ) {}
 
-  async execute(input: CreateBrandApplicationInput): Promise<BrandApplication> {
+  async execute(
+    input: CreateBrandApplicationInput,
+    options?: { skipEmailVerification?: boolean },
+  ): Promise<BrandApplication> {
     if (input.interestIds.length < 1 || input.interestIds.length > 2) {
       throw new InvalidInterestSelectionError(
         'Select between 1 and 2 interests',
@@ -62,15 +66,24 @@ export class CreateBrandApplicationUseCase {
     ) {
       throw new ApplicationBrandNameTakenError();
     }
+    if (await this.userRepository.findByEmail(input.contactEmail)) {
+      throw new ApplicationContactEmailAlreadyRegisteredError();
+    }
 
     const token = this.tokenGenerator.generate();
-    const application = await this.applicationRepository.create({
+    let application = await this.applicationRepository.create({
       ...input,
       emailVerificationToken: token,
       emailVerificationExpires: new Date(Date.now() + VERIFICATION_TTL_MS),
     });
 
-    await this.notify(application, token);
+    if (options?.skipEmailVerification) {
+      application = await this.applicationRepository.markEmailVerified(
+        application.id,
+      );
+    } else {
+      await this.notify(application, token);
+    }
     return application;
   }
 
