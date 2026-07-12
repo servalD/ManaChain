@@ -31,11 +31,13 @@ import type {
   BrandResponse,
   BrandStatsResponse,
   BrandsControllerBansParams,
+  BrandsControllerEngagementHistoryParams,
   BrandsControllerListActiveParams,
   BrandsControllerListForWhitelistParams,
   BrandsControllerListParams,
   ConfirmMediaRequest,
   CreateBrandRequest,
+  EngagementPointResponse,
   PaginatedBrandBansResponse,
   PaginatedBrandWhitelistResponse,
   PaginatedBrandsResponse,
@@ -764,6 +766,106 @@ export function useBrandsControllerStats<TData = Awaited<ReturnType<typeof brand
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getBrandsControllerStatsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)
+ */
+export const brandsControllerEngagementHistory = (
+    id: string,
+    params?: BrandsControllerEngagementHistoryParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<EngagementPointResponse[]>(
+      {url: `/api/brands/${id}/engagement-history`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getBrandsControllerEngagementHistoryQueryKey = (id: string,
+    params?: BrandsControllerEngagementHistoryParams,) => {
+    return [
+    `/api/brands/${id}/engagement-history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBrandsControllerEngagementHistoryQueryOptions = <TData = Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError = ErrorType<unknown>>(id: string,
+    params?: BrandsControllerEngagementHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBrandsControllerEngagementHistoryQueryKey(id,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>> = ({ signal }) => brandsControllerEngagementHistory(id,params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type BrandsControllerEngagementHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>>
+export type BrandsControllerEngagementHistoryQueryError = ErrorType<unknown>
+
+
+export function useBrandsControllerEngagementHistory<TData = Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError = ErrorType<unknown>>(
+ id: string,
+    params: undefined |  BrandsControllerEngagementHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerEngagementHistory>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerEngagementHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerEngagementHistory<TData = Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: BrandsControllerEngagementHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof brandsControllerEngagementHistory>>,
+          TError,
+          Awaited<ReturnType<typeof brandsControllerEngagementHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useBrandsControllerEngagementHistory<TData = Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: BrandsControllerEngagementHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Historique d'engagement d'une marque (holders + likes cumulés, jour par jour)
+ */
+
+export function useBrandsControllerEngagementHistory<TData = Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError = ErrorType<unknown>>(
+ id: string,
+    params?: BrandsControllerEngagementHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof brandsControllerEngagementHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getBrandsControllerEngagementHistoryQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -4,34 +4,23 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Heart, TrendingUp, Calendar } from "lucide-react";
+import { useMyActivityHistory } from "@/hooks/api/useAuth";
+import type { ActivityPointResponse } from "@/api/generated/models";
 
-// Mock activity data
-const generateActivityData = (days: number) => {
-  const data = [];
-  const today = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    
-    // Generate random activity counts
-    const likes = Math.floor(Math.random() * 5) + 1;
-    const tokens = Math.floor(Math.random() * 3);
-    const events = Math.floor(Math.random() * 2);
-    const total = likes + tokens + events;
-    
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      likes,
-      tokens,
-      events,
-      total,
-      fullDate: date.toISOString(),
-    });
-  }
-  
-  return data;
-};
+/** Formate l'historique d'activité pour le LineChart : compteurs journaliers (pas cumulés). */
+function formatActivityData(points: ActivityPointResponse[]) {
+  return points.map((point) => {
+    const date = new Date(`${point.date}T00:00:00Z`);
+    return {
+      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+      likes: point.likesGiven,
+      tokens: point.tokenPurchases,
+      events: point.eventsAttended,
+      total: point.likesGiven + point.tokenPurchases + point.eventsAttended,
+      fullDate: point.date,
+    };
+  });
+}
 
 const timeRanges = [
   { label: "7D", days: 7 },
@@ -41,10 +30,11 @@ const timeRanges = [
 
 export function ActivityTimeline() {
   const t = useTranslations("dashboard.client.activityTimeline");
-  const [selectedRange, setSelectedRange] = useState<number>(30);
+  const [selectedRange, setSelectedRange] = useState<7 | 30 | 90>(30);
   const [axisColor, setAxisColor] = useState<string>("#ffffff");
-  const data = generateActivityData(selectedRange);
-  
+  const { data: history } = useMyActivityHistory(selectedRange);
+  const data = formatActivityData(history ?? []);
+
   // Get the actual color from CSS variable based on theme
   useEffect(() => {
     const updateAxisColor = () => {

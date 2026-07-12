@@ -9,6 +9,7 @@ import {
   getBrandsControllerConfirmBrandMediaMutationOptions,
   getBrandsControllerRemoveMediaMutationOptions,
   getBrandsControllerListForWhitelistQueryOptions,
+  getBrandsControllerEngagementHistoryQueryOptions,
 } from "@/api/generated/endpoints/brands/brands";
 import type { BrandsControllerListForWhitelistParams } from "@/api/generated/models";
 import { apiErrorToast } from "@/lib/api-error";
@@ -36,6 +37,14 @@ export function useBrandById(brandId: string | undefined, options?: { enabled?: 
   return useToastQuery({
     ...getBrandsControllerGetOneQueryOptions(brandId ?? ""),
     enabled: !!brandId && (options?.enabled ?? true),
+  });
+}
+
+/** Historique d'engagement (holders + likes cumulés, jour par jour) pour le chart du dashboard marque. */
+export function useBrandEngagementHistory(brandId: string | undefined, days: 7 | 30 | 90) {
+  return useToastQuery({
+    ...getBrandsControllerEngagementHistoryQueryOptions(brandId ?? "", { days }),
+    enabled: !!brandId,
   });
 }
 

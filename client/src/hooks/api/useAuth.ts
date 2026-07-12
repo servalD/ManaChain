@@ -21,11 +21,13 @@ import {
   getUsersControllerUpdateMeMutationOptions,
   getUsersControllerUpdateMyBlockchainAddressMutationOptions,
   getUsersControllerDeleteMeMutationOptions,
+  getUsersControllerMyActivityHistoryQueryOptions,
 } from "@/api/generated/endpoints/users/users";
 import type { UserResponse } from "@/api/generated/models";
 import { asAxiosError, apiErrorToast } from "@/lib/api-error";
 import { toast } from "@/lib/toast";
 import { useToastMutation } from "./useToastMutation";
+import { useToastQuery } from "./useToastQuery";
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -384,6 +386,13 @@ export function useTwoFactorDisable() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getUsersControllerMeQueryKey() });
     },
+  });
+}
+
+/** Historique d'activité (likes/supports/events par jour + score de support cumulé) pour les charts du dashboard. */
+export function useMyActivityHistory(days: 7 | 30 | 90) {
+  return useToastQuery({
+    ...getUsersControllerMyActivityHistoryQueryOptions({ days }),
   });
 }
 

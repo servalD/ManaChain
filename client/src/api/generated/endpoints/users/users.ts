@@ -25,6 +25,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  ActivityPointResponse,
   BanUserRequest,
   PaginatedUserBansResponse,
   PaginatedUsersResponse,
@@ -34,7 +35,8 @@ import type {
   UserBanResponse,
   UserResponse,
   UsersControllerBansParams,
-  UsersControllerFindAllParams
+  UsersControllerFindAllParams,
+  UsersControllerMyActivityHistoryParams
 } from '../../models';
 
 import { customInstance } from '../../../../lib/api/mutator';
@@ -497,6 +499,99 @@ export const useUsersControllerUpdateMyInterestsEndpoint = <TError = ErrorType<u
       return useMutation(getUsersControllerUpdateMyInterestsEndpointMutationOptions(options), queryClient);
     }
     /**
+ * @summary Mon historique d'activité (dashboard)
+ */
+export const usersControllerMyActivityHistory = (
+    params?: UsersControllerMyActivityHistoryParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<ActivityPointResponse[]>(
+      {url: `/api/users/me/activity-history`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getUsersControllerMyActivityHistoryQueryKey = (params?: UsersControllerMyActivityHistoryParams,) => {
+    return [
+    `/api/users/me/activity-history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getUsersControllerMyActivityHistoryQueryOptions = <TData = Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError = ErrorType<unknown>>(params?: UsersControllerMyActivityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getUsersControllerMyActivityHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>> = ({ signal }) => usersControllerMyActivityHistory(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type UsersControllerMyActivityHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>>
+export type UsersControllerMyActivityHistoryQueryError = ErrorType<unknown>
+
+
+export function useUsersControllerMyActivityHistory<TData = Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError = ErrorType<unknown>>(
+ params: undefined |  UsersControllerMyActivityHistoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersControllerMyActivityHistory>>,
+          TError,
+          Awaited<ReturnType<typeof usersControllerMyActivityHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersControllerMyActivityHistory<TData = Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerMyActivityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof usersControllerMyActivityHistory>>,
+          TError,
+          Awaited<ReturnType<typeof usersControllerMyActivityHistory>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUsersControllerMyActivityHistory<TData = Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerMyActivityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Mon historique d'activité (dashboard)
+ */
+
+export function useUsersControllerMyActivityHistory<TData = Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError = ErrorType<unknown>>(
+ params?: UsersControllerMyActivityHistoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof usersControllerMyActivityHistory>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getUsersControllerMyActivityHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
  * @summary Lister les utilisateurs (admin)
  */
 export const usersControllerFindAll = (

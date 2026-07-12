@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './activityPointResponse';
 export * from './authResponse';
 export * from './banBrandRequest';
 export * from './banUserRequest';
@@ -17,6 +18,8 @@ export * from './brandMediaResponse';
 export * from './brandResponse';
 export * from './brandResponseSocialMedias';
 export * from './brandsControllerBansParams';
+export * from './brandsControllerEngagementHistoryDays';
+export * from './brandsControllerEngagementHistoryParams';
 export * from './brandsControllerListActiveParams';
 export * from './brandsControllerListForWhitelistParams';
 export * from './brandsControllerListParams';
@@ -32,6 +35,7 @@ export * from './createBrandRequestSocialMedias';
 export * from './createEventRequest';
 export * from './createLikeRequest';
 export * from './emailRequest';
+export * from './engagementPointResponse';
 export * from './eventResponse';
 export * from './eventsControllerListParams';
 export * from './eventsControllerMyBrandEventsParams';
@@ -101,5 +105,7 @@ export * from './userResponseRole';
 export * from './usersControllerBansParams';
 export * from './usersControllerFindAllParams';
 export * from './usersControllerFindAllRole';
+export * from './usersControllerMyActivityHistoryDays';
+export * from './usersControllerMyActivityHistoryParams';
 export * from './verifyApplicationEmailRequest';
 export * from './verifyEmailRequest';

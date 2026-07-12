@@ -10,38 +10,21 @@ import { Button } from "@/components/ui/button";
 import PinataService from "@/services/pinata.service";
 import { TokenSetupWizard } from "./TokenSetupWizard";
 import { useTokenHoldersCount } from "@/hooks/api/useTokens";
-import type { TokenResponse } from "@/api/generated/models";
+import { useBrandEngagementHistory } from "@/hooks/api/useBrands";
+import type { EngagementPointResponse, TokenResponse } from "@/api/generated/models";
 
-// Mock data generator for holders and likes over time
-const generateMockData = (days: number, hasToken: boolean, dateLocale: string) => {
-  const data = [];
-  const today = new Date();
-  const baseHolders = hasToken ? 150 : 0;
-  const baseLikes = 45;
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-
-    // Generate realistic fluctuations
-    const holdersVariation = hasToken ? Math.floor((Math.random() - 0.3) * 10) : 0;
-    const likesVariation = Math.floor((Math.random() - 0.2) * 3);
-    const holdersTrend = hasToken ? Math.floor((days - i) * 0.5) : 0;
-    const likesTrend = Math.floor((days - i) * 0.2);
-
-    const holders = Math.max(0, baseHolders + holdersVariation + holdersTrend);
-    const likes = Math.max(0, baseLikes + likesVariation + likesTrend);
-
-    data.push({
-      date: date.toLocaleDateString(dateLocale, { month: "short", day: "numeric" }),
-      holders: holders,
-      likes: likes,
-      fullDate: date.toISOString(),
-    });
-  }
-
-  return data;
-};
+/** Formate les points d'historique renvoyés par l'API pour le LineChart (date affichable, timezone-safe). */
+function formatEngagementHistory(points: EngagementPointResponse[], dateLocale: string) {
+  return points.map((point) => {
+    const date = new Date(`${point.date}T00:00:00Z`);
+    return {
+      date: date.toLocaleDateString(dateLocale, { month: "short", day: "numeric", timeZone: "UTC" }),
+      holders: point.holders,
+      likes: point.likes,
+      fullDate: point.date,
+    };
+  });
+}
 
 const timeRanges = [
   { label: "7D", days: 7 },
@@ -63,9 +46,10 @@ export function MyBrandChart({ brandId, hasToken = false, token, brandName, bran
   const dateLocale = locale === "fr" ? "fr-FR" : "en-US";
   const resolvedBrandName = brandName ?? t("defaultBrandName");
   const { data: holdersPage } = useTokenHoldersCount(token?.id, { enabled: hasToken });
-  const [selectedRange, setSelectedRange] = useState<number>(30);
+  const [selectedRange, setSelectedRange] = useState<7 | 30 | 90>(30);
   const [axisColor, setAxisColor] = useState<string>("#ffffff");
-  const data = generateMockData(selectedRange, hasToken, dateLocale);
+  const { data: history } = useBrandEngagementHistory(brandId, selectedRange);
+  const data = formatEngagementHistory(history ?? [], dateLocale);
   
   // Get the actual color from CSS variable based on theme
   useEffect(() => {
