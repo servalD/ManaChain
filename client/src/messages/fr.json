@@ -202,7 +202,7 @@
       "emailPlaceholder": "Saisissez votre adresse email",
       "passwordLabel": "Mot de passe",
       "passwordPlaceholder": "Créez un mot de passe",
-      "passwordCriteriaLength": "Au moins 8 caractères",
+      "passwordCriteriaLength": "Au moins 12 caractères",
       "passwordCriteriaDigit": "Au moins un chiffre",
       "passwordCriteriaSpecial": "Au moins un caractère spécial",
       "interestsLabel": "Centres d'intérêt",

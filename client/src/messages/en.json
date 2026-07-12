@@ -202,7 +202,7 @@
       "emailPlaceholder": "Enter your email address",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Create a password",
-      "passwordCriteriaLength": "At least 8 characters",
+      "passwordCriteriaLength": "At least 12 characters",
       "passwordCriteriaDigit": "At least one digit",
       "passwordCriteriaSpecial": "At least one special character",
       "interestsLabel": "Interests",

@@ -144,7 +144,7 @@ export function ChangePasswordForm({ resetToken, redirectTo, title, description,
             />
             <ul className="mt-1.5 text-xs text-muted-foreground space-y-0.5">
               <li className={criteria.length ? "text-green-600 dark:text-green-400" : ""}>
-                {criteria.length ? "✓" : "○"} At least 8 characters
+                {criteria.length ? "✓" : "○"} At least 12 characters
               </li>
               <li className={criteria.digit ? "text-green-600 dark:text-green-400" : ""}>
                 {criteria.digit ? "✓" : "○"} At least one digit

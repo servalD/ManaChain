@@ -80,7 +80,7 @@ export function Footer() {
             {t('copyright')}
           </p>
           <div className="flex justify-center gap-4 mt-3 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('privacy')}</a>
+            <a href="/privacy" className="hover:text-foreground transition-colors pointer-events-auto">{t('privacy')}</a>
             <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('terms')}</a>
             <a href="#" className="hover:text-foreground transition-colors pointer-events-auto">{t('legal')}</a>
           </div>

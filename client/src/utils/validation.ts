@@ -16,7 +16,7 @@ export function isValidEmail(email: string): boolean {
  */
 export function getPasswordCriteria(password: string) {
   return {
-    length: password.length >= 8,
+    length: password.length >= 12,
     digit: /\d/.test(password),
     special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
   };
@@ -24,18 +24,19 @@ export function getPasswordCriteria(password: string) {
 
 /**
  * Validate strong password
- * Requirements:
- * - At least 8 characters
+ * Requirements (backlog sécu CNIL — recommandation pour un mot de passe seul,
+ * sans second facteur obligatoire):
+ * - At least 12 characters
  * - At least one digit
  * - At least one special character
  */
 export function isValidPassword(password: string): { valid: boolean; error?: string } {
   const criteria = getPasswordCriteria(password);
-  
+
   if (!criteria.length) {
     return {
       valid: false,
-      error: 'Password must be at least 8 characters long',
+      error: 'Password must be at least 12 characters long',
     };
   }
 
