@@ -86,27 +86,65 @@ justificatif contenant des données sensibles (ex. pièce d'identité d'une
 candidature marque) ; vérifier qu'aucun flux actuel ne le fait
 (`brand-application/FileUpload.tsx` à auditer si des justificatifs y transitent).
 
-### 1.5 Sous-traitants
+### 1.5 Sous-traitants — registre
 
-| Sous-traitant | Donnée transmise | Localisation / transfert hors UE |
-|---|---|---|
-| **Dynamic Labs** (`@dynamic-labs/*`, `Web3Provider.tsx`) | Widget de connexion wallet côté client — l'adresse publique transite par leur SDK ; email seulement si l'utilisateur choisit une méthode de connexion email via leur widget (à confirmer selon la config de l'environnement Dynamic utilisé, `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) ; vérifier leur DPA avant mise en prod si pas déjà signé |
-| **Pinata** (IPFS pinning) | Fichiers uploadés (avatars, logos, médias, métadonnées JSON) | À vérifier dans leur DPA — infrastructure IPFS distribuée par nature |
-| **Resend** (`back/.env` → `RESEND_API_KEY`) | Email, contenu des emails transactionnels (vérification, reset password, notifications candidature) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) ; vérifier leur DPA avant mise en prod si pas déjà signé (`RESEND_API_KEY` vide = mode simulation) |
-| **Sentry** (`SENTRY_DSN`) | Stack traces, contexte de requête (à auditer pour s'assurer qu'aucun PII n'y fuite — email/mot de passe ne doivent jamais apparaître dans un message d'exception) | Selon la région du projet Sentry configuré |
+Registre formalisé au 2026-07-12 (au sens Art. 30 RGPD, tenu par le
+responsable de traitement — ce document liste les sous-traitants connus du
+code, il ne remplace pas le registre officiel à tenir par l'organisation).
+**Aucun DPA n'est signé à ce jour** — c'est un prérequis juridique/contractuel
+avec chaque fournisseur, que ce document ne peut pas remplir lui-même :
+l'action reste à faire par le responsable de traitement, pas par ce repo.
 
-**Backlog** : registre des sous-traitants formalisé + DPA signés avant toute mise en
-production avec des utilisateurs réels (ce repo ne contient aucun DPA — c'est un
-prérequis juridique, pas seulement technique).
+| Sous-traitant | Donnée transmise | Localisation / transfert hors UE | DPA signé ? |
+|---|---|---|---|
+| **Dynamic Labs** (`@dynamic-labs/*`, `Web3Provider.tsx`) | Widget de connexion wallet côté client — l'adresse publique transite par leur SDK ; email seulement si l'utilisateur choisit une méthode de connexion email via leur widget (à confirmer selon la config de l'environnement Dynamic utilisé, `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
+| **Pinata** (IPFS pinning) | Fichiers uploadés (avatars, logos, médias, métadonnées JSON) | À vérifier dans leur DPA — infrastructure IPFS distribuée par nature | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
+| **Resend** (`back/.env` → `RESEND_API_KEY`) | Email, contenu des emails transactionnels (vérification, reset password, rappel de rotation de mot de passe, notifications candidature) | US-based — transfert hors UE, nécessite un mécanisme de transfert valide (SCC ou équivalent) | ◻ à faire — vérifier leur DPA/trust center avant mise en prod (`RESEND_API_KEY` vide = mode simulation) |
+| **Sentry** (`SENTRY_DSN`) | Stack traces, contexte de requête (à auditer pour s'assurer qu'aucun PII n'y fuite — email/mot de passe ne doivent jamais apparaître dans un message d'exception) | Selon la région du projet Sentry configuré | ◻ à faire — vérifier leur DPA/trust center avant mise en prod |
+
+**Ce qu'un agent de code peut faire vs. ce qui reste une action humaine** :
+tenir ce tableau à jour dans le repo (fait) ; **signer/accepter un DPA est un
+acte contractuel** qui doit être fait directement sur le compte du
+fournisseur (la plupart proposent un DPA en libre-acceptation depuis leur
+dashboard ou trust center — à vérifier au cas par cas) ou par échange avec
+leur service juridique. Aucun outil de ce repo ne peut le faire à la place du
+responsable de traitement. **Backlog** : DPA acceptés/signés pour les 4
+sous-traitants ci-dessus avant toute mise en production avec des utilisateurs
+réels.
 
 ### 1.6 Politique de confidentialité front
 
-Le footer (`client/src/components/landing/Footer.tsx`) contient déjà des liens
-« Privacy / Terms / Legal » mais ils pointent vers `#` (ancres mortes) — **aucune
-page de politique de confidentialité n'existe aujourd'hui dans `client/src/app/`**.
-Ce document (`COMPLIANCE.md`) sert de base factuelle pour la rédiger, mais son
-contenu final doit être validé par un juriste/DPO avant publication : ce n'est pas
-une politique de confidentialité prête à publier telle quelle.
+Page publique ajoutée le 2026-07-12 : `client/src/app/privacy/page.tsx`, en
+français (contenu spécifique RGPD/CNIL, jurisdiction France), rédigée à partir
+de la base factuelle de ce document. Le lien « Privacy » du footer
+(`client/src/components/landing/Footer.tsx`) pointe désormais vers `/privacy`
+au lieu d'une ancre morte. « Terms » et « Legal » restent des ancres mortes —
+hors périmètre (CGU à rédiger séparément, cf. §3).
+
+**Statut juridique** : rédigée à partir du code réel (même exigence que ce
+document), pas un boilerplate générique. **Reste un prérequis avant mise en
+production avec des utilisateurs réels** : relecture par un juriste/DPO — ce
+n'est pas un avis juridique et ce document ne le remplace pas.
+
+### 1.7 Politique de mot de passe (CNIL)
+
+Ajoutée le 2026-07-12, backlog sécu CNIL :
+
+- **Longueur** : 12 caractères minimum (`IsStrongPassword`,
+  `back/src/modules/auth/application/dto/password.rules.ts`) + 1 chiffre + 1
+  caractère spécial — recommandation CNIL pour une authentification par mot
+  de passe seul (pas de second facteur obligatoire ; le 2FA TOTP reste
+  optionnel, cf. §2FA dans le runbook).
+- **Anti-brute-force** : throttler + lockout du challenge 2FA (H-2, cf.
+  `SECURITY_AUDIT.md`) — pas de lockout de compte séparé sur le mot de passe
+  seul, jugé redondant avec le rate-limiting déjà en place.
+- **Rotation** : rappel par email tous les 60 jours
+  (`PASSWORD_ROTATION_DAYS`, `SendPasswordExpiryRemindersUseCase` +
+  `PasswordExpiryReminderScheduler`, cron quotidien). **Volontairement non
+  bloquant** : pas de bannière, pas de blocage à la connexion — décision
+  produit du 2026-07-12, cohérente avec le choix déjà fait sur M-2
+  (`SECURITY_AUDIT.md`) de privilégier des mesures non intrusives. Les
+  comptes Google OAuth (sans mot de passe local) sont exclus du rappel.
 
 ## 2. MiCA (Markets in Crypto-Assets)
 
