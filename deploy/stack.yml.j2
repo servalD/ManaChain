@@ -146,8 +146,11 @@ services:
         constraints:
           - node.role == worker
         max_replicas_per_node: 1
+      # stop-first : avec 2 workers et max_replicas_per_node=1, start-first
+      # n'a jamais de nœud libre pour placer la nouvelle tâche (les 2 workers
+      # portent déjà chacun un replica) — deadlock de scheduling à chaque update.
       update_config:
-        order: start-first
+        order: stop-first
         parallelism: 1
       restart_policy:
         condition: any
