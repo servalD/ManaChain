@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 
 /** Shape of the JSON error body returned by the API. */
 export interface ApiErrorPayload {
-  error?: string;
+  error?: { code: number; name: string };
   message?: string;
 }
 
