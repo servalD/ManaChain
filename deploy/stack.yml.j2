@@ -80,7 +80,7 @@ services:
       DATABASE_SSL: "true"
       APP_JWT_EXPIRES_IN: 15m
       # Vide ("") → mode simulation des emails, comme en dev.
-      EMAIL_FROM: "{{ email_from | default('noreply@manachain.online') }}"
+      EMAIL_FROM: "{{ email_from | default('noreply@contact.manachain.online') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
       SENTRY_DSN: "{{ sentry_dsn_back | default('') }}"
       # chain-sync : sans ces variables, CHAIN_SYNC_ENABLED retombe sur son

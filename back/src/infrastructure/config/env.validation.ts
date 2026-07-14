@@ -40,7 +40,7 @@ export const envSchema = z.object({
 
   // Resend (emails transactionnels). Si non configuré → mode simulation (log).
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default('noreply@manachain.online'),
+  EMAIL_FROM: z.string().default('noreply@contact.manachain.online'),
 
   // Google OAuth. Si absent → l'endpoint /auth/google renvoie une erreur claire.
   GOOGLE_CLIENT_ID: z.string().optional(),
