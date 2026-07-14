@@ -26,7 +26,7 @@ export const envSchema = z.object({
 
   // JWT applicatif. DOIT être le MÊME secret que l'Express actuel pour que le
   // nouveau back valide les jetons déjà émis (bascule strangler sans re-login).
-  APP_JWT_SECRET: z.string().min(16),
+  APP_JWT_SECRET: z.string().min(32),
   APP_JWT_EXPIRES_IN: z.string().default('7d'),
 
   // 2FA TOTP : clé de chiffrement du secret TOTP en base (AES-256-GCM, dérivée
@@ -40,7 +40,7 @@ export const envSchema = z.object({
 
   // Resend (emails transactionnels). Si non configuré → mode simulation (log).
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default('noreply@mana-chain.com'),
+  EMAIL_FROM: z.string().default('noreply@manachain.online'),
 
   // Google OAuth. Si absent → l'endpoint /auth/google renvoie une erreur claire.
   GOOGLE_CLIENT_ID: z.string().optional(),

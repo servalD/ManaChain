@@ -8,6 +8,7 @@ import {
 } from '../../domain/auth.errors';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * Désactive le 2FA. Demande le mot de passe courant (pas un code TOTP) :
@@ -40,16 +41,8 @@ export class DisableTwoFactorUseCase {
     await this.userRepository.disableTwoFactor(userId);
     await this.recoveryCodeRepository.deleteAll(userId);
 
-    await this.safeSend(() =>
+    await bestEffort('two-factor disabled email', () =>
       this.mailer.sendTwoFactorDisabled(user.email, user.username),
     );
-  }
-
-  private async safeSend(send: () => Promise<void>): Promise<void> {
-    try {
-      await send();
-    } catch {
-      /* email non bloquant */
-    }
   }
 }

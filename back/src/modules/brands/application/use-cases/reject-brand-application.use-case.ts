@@ -5,6 +5,7 @@ import {
   ApplicationNotReviewableError,
   BrandApplicationNotFoundError,
 } from '../../domain/brand.errors';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /** Rejette une candidature (admin) avec un motif, puis notifie le contact. */
 @Injectable()
@@ -34,14 +35,12 @@ export class RejectBrandApplicationUseCase {
       rejectionReason,
     );
 
-    try {
-      await this.mailer.sendRejected(
+    await bestEffort('brand application rejected email', () =>
+      this.mailer.sendRejected(
         application.contactEmail,
         application.brandName,
         rejectionReason,
-      );
-    } catch {
-      /* email non bloquant */
-    }
+      ),
+    );
   }
 }

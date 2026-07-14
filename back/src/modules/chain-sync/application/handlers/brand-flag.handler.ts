@@ -4,7 +4,7 @@ import { BrandContractsRepository } from '../../domain/brand-contracts.repositor
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
-import { bestEffort } from '../best-effort';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * `BrandWhitelisted`/`BrandBlacklisted` (ManaAdmin) : met à jour le flag
@@ -36,7 +36,7 @@ export class BrandFlagHandler implements ChainEventHandler {
   }
 
   private notifyOwner(brandAddress: string): Promise<void> {
-    return bestEffort(async () => {
+    return bestEffort('brand whitelisted notification', async () => {
       const owner =
         await this.userRepository.findByBlockchainAddress(brandAddress);
       if (!owner) return;

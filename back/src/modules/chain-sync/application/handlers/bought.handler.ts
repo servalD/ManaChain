@@ -9,7 +9,7 @@ import { TokenTransactionRepository } from '../../../tokens/domain/token-transac
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
-import { bestEffort } from '../best-effort';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * `Bought` (TokenSaleEscrow) : trace l'achat en `token_transaction` (type
@@ -74,7 +74,7 @@ export class BoughtHandler implements ChainEventHandler {
   }
 
   private notifyBrandOwner(tokenId: string, amount: number): Promise<void> {
-    return bestEffort(async () => {
+    return bestEffort('token purchased notification', async () => {
       const token = await this.tokenRepository.findById(tokenId);
       if (!token) return;
       const ownerId = await this.brandRepository.findOwnerId(token.brandId);

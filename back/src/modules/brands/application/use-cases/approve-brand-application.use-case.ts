@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
+import { bestEffort } from '../../../../shared/application/best-effort';
 import { PasswordHasher } from '../../../auth/application/ports/password-hasher.port';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { BrandApplicationRepository } from '../../domain/brand-application.repository';
@@ -94,16 +95,14 @@ export class ApproveBrandApplicationUseCase {
       return { userId: user.id, brandId: brand.id, username };
     });
 
-    try {
-      await this.mailer.sendApproved(
+    await bestEffort('brand application approved email', () =>
+      this.mailer.sendApproved(
         application.contactEmail,
         application.brandName,
         username,
         temporaryPassword,
-      );
-    } catch {
-      /* email non bloquant */
-    }
+      ),
+    );
 
     return { ...result, temporaryPassword };
   }
