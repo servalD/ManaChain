@@ -61,6 +61,7 @@ export * from './messageResponse';
 export * from './notificationResponse';
 export * from './notificationResponseType';
 export * from './notificationsControllerMyNotificationsParams';
+export * from './oAuthExchangeRequest';
 export * from './paginatedApplicationsResponse';
 export * from './paginatedBrandBansResponse';
 export * from './paginatedBrandsResponse';

@@ -14,6 +14,7 @@ import {
   getAuthControllerEnableTwoFactorMutationOptions,
   getAuthControllerDisableTwoFactorMutationOptions,
   getAuthControllerVerifyTwoFactorMutationOptions,
+  getAuthControllerExchangeOAuthTicketMutationOptions,
 } from "@/api/generated/endpoints/auth/auth";
 import {
   usersControllerMe,
@@ -125,7 +126,7 @@ export function useLogin() {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
         const data = axiosErr.response.data;
-        switch (data?.error) {
+        switch (data?.error?.name) {
           case "EmailNotVerifiedError":
             return {
               title: "Account not verified",
@@ -171,7 +172,7 @@ export function useTwoFactorVerify() {
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       const data = axiosErr?.response?.data;
-      switch (data?.error) {
+      switch (data?.error?.name) {
         case "TooManyTwoFactorAttemptsError":
         case "InvalidOrExpiredTwoFactorChallengeError":
           return {
@@ -193,6 +194,27 @@ export function useTwoFactorVerify() {
   });
 }
 
+/**
+ * Échange le ticket posé par le callback Google OAuth (`?ticket=...`) contre
+ * une session — le JWT/refresh token ne transitent jamais par l'URL (cf.
+ * `useLogin`/`useTwoFactorVerify` pour la même mécanique de session).
+ */
+export function useOAuthExchange() {
+  return useToastMutation({
+    ...getAuthControllerExchangeOAuthTicketMutationOptions(),
+    errorToast: (error) => ({
+      title: "Session expired",
+      description:
+        asAxiosError(error)?.response?.data?.message ||
+        "Please log in again.",
+      variant: "error",
+    }),
+    onSuccess: (data) => {
+      if (data.token && data.refreshToken) storeSession(data.token, data.refreshToken);
+    },
+  });
+}
+
 /** Inscription (remplace `AuthService.register`). Ne stocke pas de token : l'email doit être vérifié d'abord. */
 export function useRegister() {
   return useToastMutation({
@@ -208,14 +230,14 @@ export function useRegister() {
         const status = axiosErr.response.status;
         const data = axiosErr.response.data;
         if (status === 409) {
-          if (data?.error === "EmailAlreadyRegisteredError") {
+          if (data?.error?.name === "EmailAlreadyRegisteredError") {
             return {
               title: "Email already in use",
               description: "This email is already associated with an account",
               variant: "error",
             };
           }
-          if (data?.error === "UsernameAlreadyTakenError") {
+          if (data?.error?.name === "UsernameAlreadyTakenError") {
             return { title: "Username already taken", description: "Please choose another username", variant: "error" };
           }
           return { title: "Conflict", description: data?.message || "Please check your information", variant: "error" };
@@ -339,7 +361,7 @@ export function useChangePassword() {
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
-        if (axiosErr.response.data?.error === "InvalidCredentialsError") {
+        if (axiosErr.response.data?.error?.name === "InvalidCredentialsError") {
           return { title: "Incorrect password", description: "Your current password is incorrect", variant: "error" };
         }
         return {
@@ -425,7 +447,10 @@ export function useDeleteAccount() {
     errorToast: (error) => {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
-        if (axiosErr.response.data?.error === "BrandOwnerCannotDeleteAccountError") {
+        if (
+          axiosErr.response.data?.error?.name ===
+          "BrandOwnerCannotDeleteAccountError"
+        ) {
           return {
             title: "Cannot delete account",
             description: "You own a brand — delete or transfer it before deleting your account.",

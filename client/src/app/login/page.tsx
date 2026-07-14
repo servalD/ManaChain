@@ -5,9 +5,8 @@ import { useTranslations } from "next-intl";
 import { SignInPage, Testimonial } from "@/components/ui/sign-in";
 import { useRouter, useSearchParams } from "next/navigation";
 import Toaster, { ToasterRef } from "@/components/ui/toast";
-import { useLogin, useTwoFactorVerify } from "@/hooks/api/useAuth";
+import { useLogin, useTwoFactorVerify, useOAuthExchange } from "@/hooks/api/useAuth";
 import { ApiService } from "@/services/api.service";
-import axios from "axios";
 import { isValidEmail, isSafeInternalPath } from "@/utils/validation";
 import { savePostAuthRedirect, getPostAuthRedirect, clearPostAuthRedirect } from "@/utils/post-auth-redirect";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
@@ -67,6 +66,7 @@ function LoginPageContent() {
   const logoSrc = useThemedLogoSrc();
   const login = useLogin();
   const twoFactorVerify = useTwoFactorVerify();
+  const oauthExchange = useOAuthExchange();
   const t = useTranslations("auth.login");
   const tCommon = useTranslations("auth.common");
 
@@ -92,11 +92,11 @@ function LoginPageContent() {
     if (isSafeInternalPath(redirectParam)) savePostAuthRedirect(redirectParam);
   }, [redirectParam]);
 
-  // Handle Google OAuth callback: token + refreshToken + role in URL -> store session and redirect by role
+  // Handle Google OAuth callback: a one-time ticket in the URL is exchanged
+  // (never the JWT/refresh token themselves, cf. AUTH-1) -> store session and
+  // redirect by role.
   useEffect(() => {
-    const token = searchParams.get("token");
-    const refreshToken = searchParams.get("refreshToken");
-    const role = searchParams.get("role");
+    const ticket = searchParams.get("ticket");
     const error = searchParams.get("error");
 
     if (error) {
@@ -125,20 +125,30 @@ function LoginPageContent() {
       return;
     }
 
-    if (token && refreshToken && role) {
-      localStorage.setItem("Token", token);
-      localStorage.setItem("RefreshToken", refreshToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      toasterRef.current?.show({
-        title: t("toasts.signedInTitle"),
-        message: t("toasts.signedInMessage"),
-        variant: "success",
-        duration: 2000,
-      });
-      const redirectPath = safeRedirect ?? getRedirectPathByRole(role);
-      clearPostAuthRedirect();
-      router.replace(redirectPath);
+    if (ticket) {
+      oauthExchange.mutate(
+        { data: { ticket } },
+        {
+          onSuccess: (result) => {
+            if (!result.user) return;
+            toasterRef.current?.show({
+              title: t("toasts.signedInTitle"),
+              message: t("toasts.signedInMessage"),
+              variant: "success",
+              duration: 2000,
+            });
+            const mustChangePassword =
+              result.user.role === "BRANDUSER" && result.user.passwordChanged === false;
+            const redirectPath = !mustChangePassword && safeRedirect
+              ? safeRedirect
+              : getRedirectPathByRole(result.user.role, result.user);
+            clearPostAuthRedirect();
+            router.replace(redirectPath);
+          },
+        }
+      );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, router, t, safeRedirect]);
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
