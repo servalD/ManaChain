@@ -34,7 +34,9 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/2fa/setup')
       .set(...bearer(token))
       .expect(201);
-    const { secret } = setup.body as { secret: string; otpauthUri: string };
+    const { secret } = (
+      setup.body as { data: { secret: string; otpauthUri: string } }
+    ).data;
     expect(secret).toBeTruthy();
 
     const enable = await http()
@@ -42,7 +44,9 @@ describe('2FA TOTP (e2e)', () => {
       .set(...bearer(token))
       .send({ code: authenticator.generate(secret) })
       .expect(200);
-    const { recoveryCodes } = enable.body as { recoveryCodes: string[] };
+    const { recoveryCodes } = (
+      enable.body as { data: { recoveryCodes: string[] } }
+    ).data;
     expect(recoveryCodes).toHaveLength(10);
 
     // A regular login now returns a challenge instead of a session.
@@ -50,12 +54,13 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    expect(login.body).toMatchObject({
+    expect((login.body as { data: unknown }).data).toMatchObject({
       twoFactorRequired: true,
       user: null,
       token: null,
     });
-    const { challengeToken } = login.body as { challengeToken: string };
+    const { challengeToken } = (login.body as { data: { challengeToken: string } })
+      .data;
 
     // Wrong code does not consume the challenge; it's rejected.
     await http()
@@ -68,8 +73,11 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/2fa/verify')
       .send({ challengeToken, code: authenticator.generate(secret) })
       .expect(200);
-    expect(verify.body).toMatchObject({ twoFactorRequired: false });
-    const sessionToken = (verify.body as { token: string }).token;
+    expect((verify.body as { data: unknown }).data).toMatchObject({
+      twoFactorRequired: false,
+    });
+    const sessionToken = (verify.body as { data: { token: string } }).data
+      .token;
     expect(typeof sessionToken).toBe('string');
 
     // A recovery code works once, and is rejected the second time.
@@ -77,8 +85,9 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    const challengeToken2 = (login2.body as { challengeToken: string })
-      .challengeToken;
+    const challengeToken2 = (
+      login2.body as { data: { challengeToken: string } }
+    ).data.challengeToken;
     await http()
       .post('/api/auth/2fa/verify')
       .send({ challengeToken: challengeToken2, code: recoveryCodes[0] })
@@ -88,8 +97,9 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    const challengeToken3 = (login3.body as { challengeToken: string })
-      .challengeToken;
+    const challengeToken3 = (
+      login3.body as { data: { challengeToken: string } }
+    ).data.challengeToken;
     await http()
       .post('/api/auth/2fa/verify')
       .send({ challengeToken: challengeToken3, code: recoveryCodes[0] })
@@ -112,8 +122,12 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    expect(finalLogin.body).toMatchObject({ twoFactorRequired: false });
-    expect((finalLogin.body as { token: string | null }).token).toBeTruthy();
+    expect((finalLogin.body as { data: unknown }).data).toMatchObject({
+      twoFactorRequired: false,
+    });
+    expect(
+      (finalLogin.body as { data: { token: string | null } }).data.token,
+    ).toBeTruthy();
   });
 
   it('locks a challenge out after 5 failed attempts', async () => {
@@ -128,7 +142,7 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/2fa/setup')
       .set(...bearer(token))
       .expect(201);
-    const { secret } = setup.body as { secret: string };
+    const { secret } = (setup.body as { data: { secret: string } }).data;
     await http()
       .post('/api/auth/2fa/enable')
       .set(...bearer(token))
@@ -139,13 +153,15 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: user.email, password })
       .expect(200);
-    const { challengeToken } = login.body as { challengeToken: string };
+    const { challengeToken } = (
+      login.body as { data: { challengeToken: string } }
+    ).data;
 
     for (let i = 0; i < 4; i++) {
       const res = await http()
         .post('/api/auth/2fa/verify')
         .send({ challengeToken, code: '000000' });
-      expect((res.body as { error: string }).error).toBe(
+      expect((res.body as { error: { name: string } }).error.name).toBe(
         'InvalidTwoFactorCodeError',
       );
     }
@@ -154,7 +170,7 @@ describe('2FA TOTP (e2e)', () => {
       .post('/api/auth/2fa/verify')
       .send({ challengeToken, code: '000000' })
       .expect(401);
-    expect((locked.body as { error: string }).error).toBe(
+    expect((locked.body as { error: { name: string } }).error.name).toBe(
       'TooManyTwoFactorAttemptsError',
     );
 

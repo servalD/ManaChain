@@ -2,7 +2,7 @@
  * Base des exceptions MÉTIER. La couche `application` (use-cases) et la couche
  * `domain` ne lèvent QUE des sous-classes de {@link DomainException} — jamais
  * d'exception `@nestjs/*`. La traduction vers HTTP est faite uniquement dans la
- * couche présentation par {@link DomainExceptionFilter}.
+ * couche présentation par `AllExceptionsFilter`.
  *
  * `kind` porte la sémantique métier ; le filtre la mappe vers un code HTTP sans
  * que le domaine n'ait à connaître le protocole.

@@ -31,10 +31,9 @@ describe('Refresh tokens & change-password (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: 'ada-session@example.com', password })
       .expect(200);
-    const { token, refreshToken } = login.body as {
-      token: string;
-      refreshToken: string;
-    };
+    const { token, refreshToken } = (
+      login.body as { data: { token: string; refreshToken: string } }
+    ).data;
     expect(token).toBeTruthy();
     expect(refreshToken).toBeTruthy();
 
@@ -43,8 +42,9 @@ describe('Refresh tokens & change-password (e2e)', () => {
       .post('/api/auth/refresh')
       .send({ refreshToken })
       .expect(200);
-    const newRefreshToken = (refreshed.body as { refreshToken: string })
-      .refreshToken;
+    const newRefreshToken = (
+      refreshed.body as { data: { refreshToken: string } }
+    ).data.refreshToken;
     expect(newRefreshToken).not.toBe(refreshToken);
 
     // The old (already-rotated) refresh token is now dead — and its reuse
@@ -60,7 +60,9 @@ describe('Refresh tokens & change-password (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: 'ada-session@example.com', password })
       .expect(200);
-    const session = secondLogin.body as { token: string; refreshToken: string };
+    const session = (
+      secondLogin.body as { data: { token: string; refreshToken: string } }
+    ).data;
 
     await http()
       .post('/api/auth/change-password')
@@ -98,7 +100,8 @@ describe('Refresh tokens & change-password (e2e)', () => {
       .post('/api/auth/login')
       .send({ email: 'ada-logout@example.com', password })
       .expect(200);
-    const { refreshToken } = login.body as { refreshToken: string };
+    const { refreshToken } = (login.body as { data: { refreshToken: string } })
+      .data;
 
     await http().post('/api/auth/logout').send({ refreshToken }).expect(200);
     await http().post('/api/auth/refresh').send({ refreshToken }).expect(401);
