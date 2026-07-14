@@ -12,6 +12,7 @@ import { TotpService } from './application/ports/totp.port';
 import { TwoFactorSecretCipher } from './application/ports/two-factor-secret-cipher.port';
 import { TwoFactorChallengeRepository } from './domain/two-factor-challenge.repository';
 import { RefreshTokenRepository } from './domain/refresh-token.repository';
+import { OAuthLoginTicketRepository } from './domain/oauth-login-ticket.repository';
 // Adapters
 import { BcryptPasswordHasher } from './infrastructure/bcrypt-password-hasher';
 import { JwtAppTokenService } from './infrastructure/jwt-app-token.service';
@@ -22,6 +23,7 @@ import { OtplibTotpService } from './infrastructure/otplib-totp.service';
 import { AesTwoFactorSecretCipher } from './infrastructure/aes-two-factor-secret-cipher';
 import { TypeOrmTwoFactorChallengeRepository } from './infrastructure/typeorm-two-factor-challenge.repository';
 import { TypeOrmRefreshTokenRepository } from './infrastructure/typeorm-refresh-token.repository';
+import { TypeOrmOAuthLoginTicketRepository } from './infrastructure/typeorm-oauth-login-ticket.repository';
 // Use-cases
 import { AuthenticateBearerUseCase } from './application/use-cases/authenticate-bearer.use-case';
 import { RegisterUseCase } from './application/use-cases/register.use-case';
@@ -37,6 +39,7 @@ import { SetupTwoFactorUseCase } from './application/use-cases/setup-two-factor.
 import { EnableTwoFactorUseCase } from './application/use-cases/enable-two-factor.use-case';
 import { DisableTwoFactorUseCase } from './application/use-cases/disable-two-factor.use-case';
 import { VerifyTwoFactorUseCase } from './application/use-cases/verify-two-factor.use-case';
+import { ExchangeOAuthTicketUseCase } from './application/use-cases/exchange-oauth-ticket.use-case';
 import { RefreshSessionUseCase } from './application/use-cases/refresh-session.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { SendPasswordExpiryRemindersUseCase } from './application/use-cases/send-password-expiry-reminders.use-case';
@@ -67,6 +70,10 @@ import { PasswordExpiryReminderScheduler } from './infrastructure/password-expir
       provide: RefreshTokenRepository,
       useClass: TypeOrmRefreshTokenRepository,
     },
+    {
+      provide: OAuthLoginTicketRepository,
+      useClass: TypeOrmOAuthLoginTicketRepository,
+    },
     // Use-cases
     AuthenticateBearerUseCase,
     RegisterUseCase,
@@ -82,6 +89,7 @@ import { PasswordExpiryReminderScheduler } from './infrastructure/password-expir
     EnableTwoFactorUseCase,
     DisableTwoFactorUseCase,
     VerifyTwoFactorUseCase,
+    ExchangeOAuthTicketUseCase,
     RefreshSessionUseCase,
     LogoutUseCase,
     SendPasswordExpiryRemindersUseCase,

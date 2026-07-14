@@ -11,6 +11,7 @@ import {
   RefreshTokenRecord,
   RefreshTokenRepository,
 } from '../domain/refresh-token.repository';
+import { OAuthLoginTicketRepository } from '../domain/oauth-login-ticket.repository';
 import { TotpService } from './ports/totp.port';
 import { TwoFactorSecretCipher } from './ports/two-factor-secret-cipher.port';
 
@@ -151,6 +152,28 @@ export class InMemoryRefreshTokenRepository extends RefreshTokenRepository {
       }
     }
     return Promise.resolve();
+  }
+}
+
+/** Fake {@link OAuthLoginTicketRepository} en mémoire pour les tests unitaires. */
+export class InMemoryOAuthLoginTicketRepository extends OAuthLoginTicketRepository {
+  private readonly tickets = new Map<
+    string,
+    { userId: string; expiresAt: Date; usedAt: Date | null }
+  >();
+
+  create(userId: string, ticket: string, expiresAt: Date): Promise<void> {
+    this.tickets.set(ticket, { userId, expiresAt, usedAt: null });
+    return Promise.resolve();
+  }
+
+  redeem(ticket: string): Promise<string | null> {
+    const record = this.tickets.get(ticket);
+    if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) {
+      return Promise.resolve(null);
+    }
+    record.usedAt = new Date();
+    return Promise.resolve(record.userId);
   }
 }
 

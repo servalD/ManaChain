@@ -1,51 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { Role } from '../../../../shared/enums/role.enum';
 import {
   OAUTH_GOOGLE_PASSWORD_SENTINEL,
   UserRepository,
 } from '../../../users/domain/user.repository';
 import { OAuthEmailUsesPasswordError } from '../../domain/auth.errors';
-import { TwoFactorChallengeRepository } from '../../domain/two-factor-challenge.repository';
+import { OAuthLoginTicketRepository } from '../../domain/oauth-login-ticket.repository';
 import { OAuthProvider } from '../ports/oauth-provider.port';
-import { AppTokenService } from '../ports/app-token.service';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
-import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
-import { createTwoFactorChallenge } from '../create-two-factor-challenge';
-import { issueSession } from '../session';
+import { createOAuthLoginTicket } from '../create-oauth-login-ticket';
 
-export interface GoogleCallbackSuccess {
-  twoFactorRequired: false;
-  token: string;
-  refreshToken: string;
-  role: Role;
+export interface GoogleCallbackResult {
+  /**
+   * Ticket d'échange à usage unique — jamais le JWT/refresh token ni le
+   * challenge 2FA directement (le contrôleur redirige avec `?ticket=`, le
+   * front l'échange via `POST /auth/oauth/exchange`, qui décide alors s'il
+   * faut un code 2FA ou renvoie directement une session). Évite d'exposer
+   * tout secret de session dans l'URL (historique navigateur, logs
+   * serveur/proxy, breadcrumbs Sentry).
+   */
+  ticket: string;
 }
-
-export interface GoogleCallbackTwoFactorRequired {
-  twoFactorRequired: true;
-  challengeToken: string;
-}
-
-export type GoogleCallbackResult =
-  GoogleCallbackSuccess | GoogleCallbackTwoFactorRequired;
 
 /**
  * Callback Google : échange le code contre un profil, puis find-or-create.
  * - email déjà inscrit avec mot de passe → {@link OAuthEmailUsesPasswordError}.
- * - email déjà inscrit via Google, 2FA actif → challenge (cf. `LoginUseCase`).
- * - email déjà inscrit via Google, pas de 2FA → reconnexion directe.
- * - email inconnu → création d'un compte Google (vérifié) avec un username
- *   unique — jamais de 2FA actif sur un compte tout juste créé.
- * Renvoie le JWT + le rôle (le contrôleur fait la redirection front).
+ * - email déjà inscrit via Google, ou inconnu (création d'un compte Google
+ *   vérifié, username unique) → ticket d'échange dans tous les cas. La
+ *   décision 2FA-requise-ou-pas est déportée dans `ExchangeOAuthTicketUseCase`
+ *   (server-side, jamais dans l'URL de redirection).
  */
 @Injectable()
 export class GoogleCallbackUseCase {
   constructor(
     private readonly oauthProvider: OAuthProvider,
     private readonly userRepository: UserRepository,
-    private readonly tokenService: AppTokenService,
     private readonly tokenGenerator: SecureTokenGenerator,
-    private readonly challengeRepository: TwoFactorChallengeRepository,
-    private readonly refreshTokenRepository: RefreshTokenRepository,
+    private readonly ticketRepository: OAuthLoginTicketRepository,
   ) {}
 
   async execute(code: string): Promise<GoogleCallbackResult> {
@@ -54,42 +44,30 @@ export class GoogleCallbackUseCase {
     const existing = await this.userRepository.findCredentialsByEmail(
       profile.email,
     );
+
+    let userId: string;
     if (existing) {
       if (existing.passwordHash !== OAUTH_GOOGLE_PASSWORD_SENTINEL) {
         throw new OAuthEmailUsesPasswordError();
       }
-      if (existing.user.twoFactorEnabled) {
-        const challengeToken = await createTwoFactorChallenge(
-          this.tokenGenerator,
-          this.challengeRepository,
-          existing.user.id,
-        );
-        return { twoFactorRequired: true, challengeToken };
-      }
-      const session = await issueSession(
-        existing.user,
-        this.tokenService,
-        this.tokenGenerator,
-        this.refreshTokenRepository,
-      );
-      return { twoFactorRequired: false, ...session, role: existing.user.role };
+      userId = existing.user.id;
+    } else {
+      const username = await this.generateUniqueUsername(profile.email);
+      const user = await this.userRepository.createGoogle({
+        email: profile.email,
+        username,
+        firstName: profile.firstName || 'User',
+        lastName: profile.lastName || '',
+      });
+      userId = user.id;
     }
 
-    const username = await this.generateUniqueUsername(profile.email);
-    const user = await this.userRepository.createGoogle({
-      email: profile.email,
-      username,
-      firstName: profile.firstName || 'User',
-      lastName: profile.lastName || '',
-    });
-
-    const session = await issueSession(
-      user,
-      this.tokenService,
+    const ticket = await createOAuthLoginTicket(
       this.tokenGenerator,
-      this.refreshTokenRepository,
+      this.ticketRepository,
+      userId,
     );
-    return { twoFactorRequired: false, ...session, role: user.role };
+    return { ticket };
   }
 
   private async generateUniqueUsername(email: string): Promise<string> {
