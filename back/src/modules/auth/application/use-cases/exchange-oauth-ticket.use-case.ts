@@ -25,7 +25,7 @@ export interface ExchangeOAuthTicketChallenge {
 }
 
 export type ExchangeOAuthTicketResult =
-  | ExchangeOAuthTicketSession | ExchangeOAuthTicketChallenge;
+  ExchangeOAuthTicketSession | ExchangeOAuthTicketChallenge;
 
 /**
  * Consomme le ticket d'échange posé par `GoogleCallbackUseCase` — remplace la

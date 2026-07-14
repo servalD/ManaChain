@@ -59,8 +59,9 @@ describe('2FA TOTP (e2e)', () => {
       user: null,
       token: null,
     });
-    const { challengeToken } = (login.body as { data: { challengeToken: string } })
-      .data;
+    const { challengeToken } = (
+      login.body as { data: { challengeToken: string } }
+    ).data;
 
     // Wrong code does not consume the challenge; it's rejected.
     await http()

@@ -7,9 +7,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * on les purge plutôt que de les migrer, un challenge en cours forcera
  * simplement une nouvelle tentative de connexion.
  */
-export class HashTwoFactorChallengeToken1750000000012
-  implements MigrationInterface
-{
+export class HashTwoFactorChallengeToken1750000000012 implements MigrationInterface {
   name = 'HashTwoFactorChallengeToken1750000000012';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

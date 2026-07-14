@@ -22,9 +22,10 @@ export interface ApiResponse<T> {
  * `@RawResponse()` (ex. `/metrics`, format Prometheus texte) en sont exemptées.
  */
 @Injectable()
-export class ResponseEnvelopeInterceptor<T>
-  implements NestInterceptor<T, ApiResponse<T> | T>
-{
+export class ResponseEnvelopeInterceptor<T> implements NestInterceptor<
+  T,
+  ApiResponse<T> | T
+> {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(

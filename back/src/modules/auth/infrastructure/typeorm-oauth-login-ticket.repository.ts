@@ -13,11 +13,7 @@ export class TypeOrmOAuthLoginTicketRepository extends OAuthLoginTicketRepositor
     super();
   }
 
-  async create(
-    userId: string,
-    ticket: string,
-    expiresAt: Date,
-  ): Promise<void> {
+  async create(userId: string, ticket: string, expiresAt: Date): Promise<void> {
     await this.db.manager.query(
       `INSERT INTO oauth_login_ticket (ticket_hash, user_id, expires_at)
        VALUES ($1, $2, $3)`,
