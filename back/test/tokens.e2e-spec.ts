@@ -104,7 +104,9 @@ describe('Tokens & brand stats (e2e)', () => {
       .get(`/api/tokens/${tokenId}/balance`)
       .set(...bearer(signToken(ctx, buyer1)))
       .expect(200);
-    expect((balance.body as { balance: number }).balance).toBe(100);
+    expect((balance.body as { data: { balance: number } }).data.balance).toBe(
+      100,
+    );
 
     // Transfert P2P (équivalent d'un Transfer ERC-20 buyer1 -> buyer2).
     await transactions.record({
@@ -125,23 +127,27 @@ describe('Tokens & brand stats (e2e)', () => {
       .get(`/api/tokens/${tokenId}/balance`)
       .set(...bearer(signToken(ctx, buyer2)))
       .expect(200);
-    expect((b1.body as { balance: number }).balance).toBe(70);
-    expect((b2.body as { balance: number }).balance).toBe(80);
+    expect((b1.body as { data: { balance: number } }).data.balance).toBe(70);
+    expect((b2.body as { data: { balance: number } }).data.balance).toBe(80);
   });
 
   it('lists holders and transactions from the DB', async () => {
     const holders = await http()
       .get(`/api/tokens/${tokenId}/holders`)
       .expect(200);
-    expect((holders.body as { total: number }).total).toBe(2);
+    expect((holders.body as { data: { total: number } }).data.total).toBe(2);
 
     const txs = await http()
       .get(`/api/tokens/${tokenId}/transactions`)
       .expect(200);
-    const body = txs.body as {
-      total: number;
-      transactions: { amount: number; pricePerToken: number | null }[];
-    };
+    const body = (
+      txs.body as {
+        data: {
+          total: number;
+          transactions: { amount: number; pricePerToken: number | null }[];
+        };
+      }
+    ).data;
     expect(body.total).toBe(3);
     const purchase100 = body.transactions.find((t) => t.amount === 100);
     expect(purchase100?.pricePerToken).toBe(1.5);
@@ -149,12 +155,16 @@ describe('Tokens & brand stats (e2e)', () => {
 
   it('computes real brand stats (Σ amount × price)', async () => {
     const res = await http().get(`/api/brands/${brandId}/stats`).expect(200);
-    const stats = res.body as {
-      tokenHolders: number;
-      totalRaised: string;
-      tokenSymbol: string | null;
-      tokenPrice: string | null;
-    };
+    const stats = (
+      res.body as {
+        data: {
+          tokenHolders: number;
+          totalRaised: string;
+          tokenSymbol: string | null;
+          tokenPrice: string | null;
+        };
+      }
+    ).data;
     expect(stats.tokenHolders).toBe(2);
     expect(stats.totalRaised).toBe('250.00'); // 100×1.5 + 50×2.0
     expect(stats.tokenSymbol).toBe('MANA');
@@ -183,9 +193,9 @@ describe('Tokens & brand stats (e2e)', () => {
       .get('/api/brands/admin/active')
       .set(...bearer(signToken(ctx, admin)))
       .expect(200);
-    const ids = (res.body as { brands: { id: string }[] }).brands.map(
-      (b) => b.id,
-    );
+    const ids = (
+      res.body as { data: { brands: { id: string }[] } }
+    ).data.brands.map((b) => b.id);
     expect(ids).toContain(brandId);
     expect(ids).not.toContain(banned.id);
   });

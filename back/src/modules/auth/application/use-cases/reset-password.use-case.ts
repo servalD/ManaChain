@@ -4,6 +4,7 @@ import { InvalidOrExpiredTokenError } from '../../domain/auth.errors';
 import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * Réinitialise le mot de passe via un token de reset valide : hash le nouveau
@@ -33,10 +34,8 @@ export class ResetPasswordUseCase {
     );
     await this.refreshTokenRepository.revokeAllForUser(found.user.id);
 
-    try {
-      await this.mailer.sendPasswordChanged(user.email, user.username);
-    } catch {
-      /* email non bloquant */
-    }
+    await bestEffort('password changed email', () =>
+      this.mailer.sendPasswordChanged(user.email, user.username),
+    );
   }
 }

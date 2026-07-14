@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { DatabaseContext } from '../../../infrastructure/database/database-context';
 import {
   TwoFactorChallenge,
@@ -6,7 +7,6 @@ import {
 } from '../domain/two-factor-challenge.repository';
 
 interface ChallengeRow {
-  token: string;
   user_id: string;
   attempts: number;
   expires_at: Date;
@@ -14,7 +14,8 @@ interface ChallengeRow {
 
 /**
  * Adapter SQL (raw, pas d'ORM entity) de {@link TwoFactorChallengeRepository} —
- * même approche que `TypeOrmUserBanRepository` pour `user_ban`.
+ * même approche que `TypeOrmRefreshTokenRepository`/`TypeOrmOAuthLoginTicketRepository`
+ * (hash SHA-256, jamais le jeton en clair en base).
  */
 @Injectable()
 export class TypeOrmTwoFactorChallengeRepository extends TwoFactorChallengeRepository {
@@ -24,18 +25,18 @@ export class TypeOrmTwoFactorChallengeRepository extends TwoFactorChallengeRepos
 
   async create(userId: string, token: string, expiresAt: Date): Promise<void> {
     await this.db.manager.query(
-      `INSERT INTO user_two_factor_challenge (token, user_id, expires_at)
+      `INSERT INTO user_two_factor_challenge (token_hash, user_id, expires_at)
        VALUES ($1, $2, $3)`,
-      [token, userId, expiresAt],
+      [this.hash(token), userId, expiresAt],
     );
   }
 
   async find(token: string): Promise<TwoFactorChallenge | null> {
     const rows = await this.db.manager.query<ChallengeRow[]>(
-      `SELECT * FROM user_two_factor_challenge WHERE token = $1`,
-      [token],
+      `SELECT user_id, attempts, expires_at FROM user_two_factor_challenge WHERE token_hash = $1`,
+      [this.hash(token)],
     );
-    return rows[0] ? this.toDomain(rows[0]) : null;
+    return rows[0] ? this.toDomain(token, rows[0]) : null;
   }
 
   async incrementAttempts(token: string): Promise<number> {
@@ -46,22 +47,26 @@ export class TypeOrmTwoFactorChallengeRepository extends TwoFactorChallengeRepos
       [{ attempts: number }[], number]
     >(
       `UPDATE user_two_factor_challenge SET attempts = attempts + 1
-        WHERE token = $1 RETURNING attempts`,
-      [token],
+        WHERE token_hash = $1 RETURNING attempts`,
+      [this.hash(token)],
     );
     return rows[0]?.attempts ?? 0;
   }
 
   async delete(token: string): Promise<void> {
     await this.db.manager.query(
-      `DELETE FROM user_two_factor_challenge WHERE token = $1`,
-      [token],
+      `DELETE FROM user_two_factor_challenge WHERE token_hash = $1`,
+      [this.hash(token)],
     );
   }
 
-  private toDomain(row: ChallengeRow): TwoFactorChallenge {
+  private hash(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private toDomain(token: string, row: ChallengeRow): TwoFactorChallenge {
     return {
-      token: row.token,
+      token,
       userId: row.user_id,
       attempts: row.attempts,
       expiresAt: row.expires_at,

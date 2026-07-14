@@ -26,10 +26,10 @@ dashboard « Edge (Traefik) ») — le dupliquer côté back violerait le princi
 `src/instrument.ts`, importé en première ligne de `main.ts` (avant tout autre
 module, requis par Sentry pour instrumenter les imports suivants). Conditionné
 à la variable `SENTRY_DSN` : vide/absente → Sentry désactivé (dev local, CI).
-`tracesSampleRate: 0.1`. Le filtre `SentryGlobalFilter` (déclaré avant
-`DomainExceptionFilter` dans `app.module.ts`) rapporte l'exception à Sentry
-puis la laisse retomber sur le filtre applicatif — aucun changement de
-comportement HTTP.
+`tracesSampleRate: 0.1`. `AllExceptionsFilter` (`app.module.ts`, unique
+`APP_FILTER`) appelle `Sentry.captureException(...)` pour les exceptions
+imprévues (5xx) avant de construire la réponse HTTP — remplace l'ancien duo
+`SentryGlobalFilter` + `DomainExceptionFilter`.
 
 ## Profil dev
 

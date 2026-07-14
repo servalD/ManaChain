@@ -3,6 +3,7 @@ import { User } from '../../../users/domain/user';
 import { UserRepository } from '../../../users/domain/user.repository';
 import { InvalidOrExpiredTokenError } from '../../domain/auth.errors';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * Vérifie l'email d'un compte via son token : passe `verified=true`, purge le
@@ -26,11 +27,9 @@ export class VerifyEmailUseCase {
 
     const user = await this.userRepository.markEmailVerified(found.user.id);
 
-    try {
-      await this.mailer.sendWelcome(user.email, user.username);
-    } catch {
-      /* email non bloquant */
-    }
+    await bestEffort('welcome email', () =>
+      this.mailer.sendWelcome(user.email, user.username),
+    );
 
     return user;
   }

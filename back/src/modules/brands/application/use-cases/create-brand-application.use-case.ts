@@ -16,6 +16,7 @@ import {
   InvalidInterestSelectionError,
   RegistrationNumberTakenError,
 } from '../../domain/brand.errors';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 export type CreateBrandApplicationInput = Omit<
   CreateBrandApplicationParams,
@@ -118,23 +119,19 @@ export class CreateBrandApplicationUseCase {
     application: BrandApplication,
     token: string,
   ): Promise<void> {
-    try {
-      await this.mailer.sendVerification(
+    await bestEffort('brand application verification email', () =>
+      this.mailer.sendVerification(
         application.contactEmail,
         application.contactFirstName,
         application.brandName,
         token,
-      );
-    } catch {
-      /* email non bloquant */
-    }
-    try {
+      ),
+    );
+    await bestEffort('brand application admin notification', async () => {
       const admins = await this.userRepository.findAdminEmails();
       for (const adminEmail of admins) {
         await this.mailer.sendAdminNotification(adminEmail, application);
       }
-    } catch {
-      /* email non bloquant */
-    }
+    });
   }
 }

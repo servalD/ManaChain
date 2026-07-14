@@ -32,6 +32,7 @@ import type {
   LoginResponse,
   LogoutRequest,
   MessageResponse,
+  OAuthExchangeRequest,
   RefreshRequest,
   RegisterRequest,
   ResetPasswordRequest,
@@ -949,6 +950,70 @@ export const useAuthControllerVerifyTwoFactor = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getAuthControllerVerifyTwoFactorMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Échanger le ticket posé par /auth/google/callback contre une session
+ */
+export const authControllerExchangeOAuthTicket = (
+    oAuthExchangeRequest: OAuthExchangeRequest,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<LoginResponse>(
+      {url: `/api/auth/oauth/exchange`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthExchangeRequest, signal
+    },
+      );
+    }
+
+
+
+
+export const getAuthControllerExchangeOAuthTicketMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>, TError,{data: OAuthExchangeRequest}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>, TError,{data: OAuthExchangeRequest}, TContext> => {
+
+const mutationKey = ['authControllerExchangeOAuthTicket'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>, {data: OAuthExchangeRequest}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authControllerExchangeOAuthTicket(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthControllerExchangeOAuthTicketMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>>
+    export type AuthControllerExchangeOAuthTicketMutationBody = OAuthExchangeRequest
+    export type AuthControllerExchangeOAuthTicketMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Échanger le ticket posé par /auth/google/callback contre une session
+ */
+export const useAuthControllerExchangeOAuthTicket = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>, TError,{data: OAuthExchangeRequest}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authControllerExchangeOAuthTicket>>,
+        TError,
+        {data: OAuthExchangeRequest},
+        TContext
+      > => {
+      return useMutation(getAuthControllerExchangeOAuthTicketMutationOptions(options), queryClient);
     }
     /**
  * @summary Échanger un refresh token contre une nouvelle session

@@ -40,11 +40,14 @@ function refreshSession(): Promise<string | null> {
   if (!refreshToken) return Promise.resolve(null);
 
   refreshPromise = refreshInstance
-    .post<{ token: string; refreshToken: string }>("/api/auth/refresh", { refreshToken })
+    .post<{ data: { token: string; refreshToken: string } }>(
+      "/api/auth/refresh",
+      { refreshToken },
+    )
     .then(({ data }) => {
-      localStorage.setItem("Token", data.token);
-      localStorage.setItem("RefreshToken", data.refreshToken);
-      return data.token;
+      localStorage.setItem("Token", data.data.token);
+      localStorage.setItem("RefreshToken", data.data.refreshToken);
+      return data.data.token;
     })
     .catch(() => null)
     .finally(() => {
@@ -93,7 +96,7 @@ axiosInstance.interceptors.response.use(
 export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
   const source = Axios.CancelToken.source();
   const promise = axiosInstance({ ...config, cancelToken: source.token }).then(
-    ({ data }) => data,
+    ({ data }) => (data as { data: T }).data,
   );
 
   // @ts-expect-error react-query reads `.cancel` off the returned promise to abort in-flight requests

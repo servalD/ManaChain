@@ -7,6 +7,7 @@ import { EmailAlreadyRegisteredError } from '../../domain/auth.errors';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 export interface RegisterInput {
   email: string;
@@ -72,8 +73,8 @@ export class RegisterUseCase {
     });
 
     if (!input.verified) {
-      // Best-effort : l'inscription réussit même si l'email ne part pas (l'adapter logue).
-      await this.safeSend(() =>
+      // Best-effort : l'inscription réussit même si l'email ne part pas (loggué en warn).
+      await bestEffort('verification email', () =>
         this.mailer.sendEmailVerification(
           user.email,
           user.username,
@@ -83,13 +84,5 @@ export class RegisterUseCase {
     }
 
     return user;
-  }
-
-  private async safeSend(send: () => Promise<void>): Promise<void> {
-    try {
-      await send();
-    } catch {
-      /* email non bloquant */
-    }
   }
 }

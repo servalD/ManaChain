@@ -8,6 +8,7 @@ import {
 } from '../../domain/brand.errors';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { BanBrandRequest } from '../dto/ban-brand.request';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * D8 : le front a déjà passé les tx on-chain (blacklist + éventuel
@@ -45,17 +46,15 @@ export class BanBrandUseCase {
       cancelSaleTxHash: body.cancelSaleTxHash ?? null,
     });
 
-    try {
-      await this.notifications.create({
+    await bestEffort('brand banned notification', () =>
+      this.notifications.create({
         userId: brand.ownerId,
         type: 'brand_banned',
         title: 'Your brand has been banned',
         body: body.reason,
         createdBy: adminId,
-      });
-    } catch {
-      /* notification non bloquante */
-    }
+      }),
+    );
 
     return ban;
   }

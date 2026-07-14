@@ -7,7 +7,7 @@ import { UserRepository } from '../../../users/domain/user.repository';
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
-import { bestEffort } from '../best-effort';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * `Bought` (TicketSale — distinct de `TokenSaleEscrow.Bought`, dispatché dans
@@ -71,7 +71,7 @@ export class TicketBoughtHandler implements ChainEventHandler {
     eventTitle: string,
     quantity: number,
   ): Promise<void> {
-    return bestEffort(async () => {
+    return bestEffort('ticket bought notification', async () => {
       const ownerId = await this.brandRepository.findOwnerId(brandId);
       if (!ownerId) return;
       await this.notifications.create({

@@ -5,7 +5,7 @@ import { TokenSaleStatus } from '../../domain/token-sale';
 import { TokenHolderRepository } from '../../../tokens/domain/token-holder.repository';
 import { NotificationRepository } from '../../../notifications/domain/notification.repository';
 import { TransactionRunner } from '../../../../shared/application/transaction-runner';
-import { bestEffort } from '../best-effort';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 const HOLDERS_PAGE_SIZE = 200;
 
@@ -42,7 +42,7 @@ export class SaleStatusHandler implements ChainEventHandler {
   }
 
   private notifyHolders(escrowAddress: string): Promise<void> {
-    return bestEffort(async () => {
+    return bestEffort('sale cancelled holders notification', async () => {
       const sale = await this.tokenSales.findByEscrowAddress(escrowAddress);
       if (!sale) return;
 

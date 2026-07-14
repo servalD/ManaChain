@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { Env, validateEnv } from './infrastructure/config/env.validation';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { MetricsModule } from './infrastructure/monitoring/metrics.module';
@@ -12,7 +12,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { RolesGuard } from './shared/guards/roles.guard';
-import { DomainExceptionFilter } from './shared/filters/domain-exception.filter';
+import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
+import { ResponseEnvelopeInterceptor } from './shared/interceptors/response-envelope.interceptor';
 import { HealthController } from './health.controller';
 import { LikesModule } from './modules/likes/likes.module';
 import { BrandsModule } from './modules/brands/brands.module';
@@ -57,11 +58,12 @@ import { MediaModule } from './modules/media/media.module';
   ],
   controllers: [HealthController],
   providers: [
-    // Doit être déclaré avant les autres filtres (recommandation Sentry) :
-    // rapporte l'exception à Sentry puis la laisse retomber sur le filtre suivant.
-    { provide: APP_FILTER, useClass: SentryGlobalFilter },
-    // Traduit les exceptions de domaine en réponses HTTP (présentation).
-    { provide: APP_FILTER, useClass: DomainExceptionFilter },
+    // Seul filtre global : traduit toute exception (domaine, HttpException,
+    // imprévue) en réponse HTTP, logue, et reporte à Sentry (remplace
+    // SentryGlobalFilter + DomainExceptionFilter, cf. all-exceptions.filter.ts).
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    // Enveloppe symétrique côté succès (miroir du filtre ci-dessus).
+    { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
     // L'ordre compte : ThrottlerGuard rejette avant de toucher la DB,
     // AuthGuard authentifie avant que RolesGuard n'autorise.
     { provide: APP_GUARD, useClass: ThrottlerGuard },

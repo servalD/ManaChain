@@ -80,9 +80,20 @@ services:
       DATABASE_SSL: "true"
       APP_JWT_EXPIRES_IN: 15m
       # Vide ("") → mode simulation des emails, comme en dev.
-      EMAIL_FROM: "{{ email_from | default('noreply@mana-chain.com') }}"
+      EMAIL_FROM: "{{ email_from | default('noreply@manachain.online') }}"
       GOOGLE_CLIENT_ID: "{{ google_client_id | default('') }}"
       SENTRY_DSN: "{{ sentry_dsn_back | default('') }}"
+      # chain-sync : sans ces variables, CHAIN_SYNC_ENABLED retombe sur son
+      # défaut (false) et le back ne reflète jamais l'état on-chain en DB.
+      CHAIN_SYNC_ENABLED: "true"
+      CHAIN_RPC_URL: "{{ chain_rpc_url }}"
+      CHAIN_ID: "{{ chain_id }}"
+      CHAIN_SYNC_START_BLOCK: "{{ chain_sync_start_block }}"
+      MANA_ADMIN_ADDRESS: "{{ mana_admin_address }}"
+      BRAND_FACTORY_ADDRESS: "{{ brand_factory_address }}"
+      SALE_FACTORY_ADDRESS: "{{ sale_factory_address }}"
+      EVENT_FACTORY_ADDRESS: "{{ event_factory_address }}"
+      USDC_ADDRESS: "{{ usdc_address }}"
       DATABASE_PASSWORD_FILE: /run/secrets/database_password
       APP_JWT_SECRET_FILE: /run/secrets/app_jwt_secret
       TWO_FACTOR_ENCRYPTION_KEY_FILE: /run/secrets/two_factor_encryption_key
@@ -99,11 +110,16 @@ services:
     networks:
       - edge
     deploy:
-      replicas: 2
+      # 1 seul réplica : le poller chain-sync (`isRunning`) n'a aucune
+      # coordination inter-instances — 2 réplicas pollant en parallèle
+      # risqueraient de doubler des deltas (soldes, sold_amount) non protégés
+      # par l'idempotence des transactions/curseur (cf. cours 13, §"Et si deux
+      # instances du back tournent ?"). `order: start-first` garde un
+      # rolling-update quasi sans coupure malgré replicas: 1.
+      replicas: 1
       placement:
         constraints:
           - node.role == worker
-        max_replicas_per_node: 1
       update_config:
         order: start-first
         parallelism: 1

@@ -67,7 +67,10 @@ export function useCreateBrandApplication() {
       const axiosErr = asAxiosError(error);
       if (axiosErr?.response) {
         const message = axiosErr.response.data?.message;
-        if (axiosErr.response.data?.error === "ApplicationContactEmailAlreadyRegisteredError") {
+        if (
+          axiosErr.response.data?.error?.name ===
+          "ApplicationContactEmailAlreadyRegisteredError"
+        ) {
           return {
             title: t("emailTakenTitle"),
             description: t("emailTakenDescription"),

@@ -37,6 +37,7 @@ import { SetupTwoFactorUseCase } from '../application/use-cases/setup-two-factor
 import { EnableTwoFactorUseCase } from '../application/use-cases/enable-two-factor.use-case';
 import { DisableTwoFactorUseCase } from '../application/use-cases/disable-two-factor.use-case';
 import { VerifyTwoFactorUseCase } from '../application/use-cases/verify-two-factor.use-case';
+import { ExchangeOAuthTicketUseCase } from '../application/use-cases/exchange-oauth-ticket.use-case';
 import { RefreshSessionUseCase } from '../application/use-cases/refresh-session.use-case';
 import { LogoutUseCase } from '../application/use-cases/logout.use-case';
 import { RegisterRequest } from '../application/dto/register.request';
@@ -49,6 +50,7 @@ import { TwoFactorEnableRequest } from '../application/dto/two-factor-enable.req
 import { TwoFactorDisableRequest } from '../application/dto/two-factor-disable.request';
 import { TwoFactorVerifyRequest } from '../application/dto/two-factor-verify.request';
 import { RefreshRequest } from '../application/dto/refresh.request';
+import { OAuthExchangeRequest } from '../application/dto/oauth-exchange.request';
 import { LogoutRequest } from '../application/dto/logout.request';
 import {
   AuthResponse,
@@ -85,6 +87,7 @@ export class AuthController {
     private readonly enableTwoFactorUseCase: EnableTwoFactorUseCase,
     private readonly disableTwoFactorUseCase: DisableTwoFactorUseCase,
     private readonly verifyTwoFactorUseCase: VerifyTwoFactorUseCase,
+    private readonly exchangeOAuthTicketUseCase: ExchangeOAuthTicketUseCase,
     private readonly refreshSessionUseCase: RefreshSessionUseCase,
     private readonly logoutUseCase: LogoutUseCase,
     private readonly config: ConfigService<Env, true>,
@@ -224,16 +227,7 @@ export class AuthController {
 
     try {
       const result = await this.googleCallbackUseCase.execute(code);
-      const params = result.twoFactorRequired
-        ? new URLSearchParams({
-            twoFactorRequired: 'true',
-            challengeToken: result.challengeToken,
-          })
-        : new URLSearchParams({
-            token: result.token,
-            refreshToken: result.refreshToken,
-            role: result.role,
-          });
+      const params = new URLSearchParams({ ticket: result.ticket });
       res.redirect(
         HttpStatus.FOUND,
         `${this.frontendUrl}/login?${params.toString()}`,
@@ -310,6 +304,29 @@ export class AuthController {
       refreshToken,
       'Login successful',
     );
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('oauth/exchange')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Échanger le ticket posé par /auth/google/callback contre une session',
+  })
+  @ApiOkResponse({ type: LoginResponse })
+  async exchangeOAuthTicket(
+    @Body() body: OAuthExchangeRequest,
+  ): Promise<LoginResponse> {
+    const result = await this.exchangeOAuthTicketUseCase.execute(body.ticket);
+    return result.twoFactorRequired
+      ? toTwoFactorRequiredResponse(result.challengeToken)
+      : toLoginSuccessResponse(
+          result.user,
+          result.token,
+          result.refreshToken,
+          'Login successful',
+        );
   }
 
   @Public()

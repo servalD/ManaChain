@@ -3,6 +3,7 @@ import { UserRepository } from '../../../users/domain/user.repository';
 import { EmailAlreadyVerifiedError } from '../../domain/auth.errors';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -35,10 +36,8 @@ export class ResendVerificationUseCase {
       expiresAt,
     );
 
-    try {
-      await this.mailer.sendEmailVerification(user.email, user.username, token);
-    } catch {
-      /* email non bloquant */
-    }
+    await bestEffort('resend verification email', () =>
+      this.mailer.sendEmailVerification(user.email, user.username, token),
+    );
   }
 }

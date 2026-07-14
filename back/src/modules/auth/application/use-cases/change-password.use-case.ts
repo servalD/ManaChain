@@ -5,6 +5,7 @@ import { InvalidCredentialsError } from '../../domain/auth.errors';
 import { RefreshTokenRepository } from '../../domain/refresh-token.repository';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 /**
  * Change le mot de passe de l'utilisateur authentifié. Exige le mot de passe
@@ -49,10 +50,8 @@ export class ChangePasswordUseCase {
     const user = await this.userRepository.updatePassword(userId, passwordHash);
     await this.refreshTokenRepository.revokeAllForUser(userId);
 
-    try {
-      await this.mailer.sendPasswordChanged(user.email, user.username);
-    } catch {
-      /* email non bloquant */
-    }
+    await bestEffort('password changed email', () =>
+      this.mailer.sendPasswordChanged(user.email, user.username),
+    );
   }
 }

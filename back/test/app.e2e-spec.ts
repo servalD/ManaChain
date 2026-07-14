@@ -23,7 +23,7 @@ describe('Auth & RBAC (e2e)', () => {
 
   it('GET /health is public', async () => {
     const res = await http().get('/health').expect(200);
-    expect((res.body as { status: string }).status).toBe('ok');
+    expect((res.body as { data: { status: string } }).data.status).toBe('ok');
   });
 
   it('GET /api/users/me without a token is 401', () => {
@@ -52,7 +52,9 @@ describe('Auth & RBAC (e2e)', () => {
         ageRange: '25-34',
       })
       .expect(201);
-    expect((register.body as { token: string | null }).token).toBeNull();
+    expect(
+      (register.body as { data: { token: string | null } }).data.token,
+    ).toBeNull();
 
     // Login avant vérification → refusé.
     await http().post('/api/auth/login').send({ email, password }).expect(403);
@@ -70,14 +72,16 @@ describe('Auth & RBAC (e2e)', () => {
       .post('/api/auth/login')
       .send({ email, password })
       .expect(200);
-    const token = (login.body as { token: string }).token;
+    const token = (login.body as { data: { token: string } }).data.token;
     expect(typeof token).toBe('string');
 
     const me = await http()
       .get('/api/users/me')
       .set(...bearer(token))
       .expect(200);
-    expect(me.body as { email: string; role: Role }).toMatchObject({
+    expect(
+      (me.body as { data: { email: string; role: Role } }).data,
+    ).toMatchObject({
       email,
       role: Role.CLIENT,
     });
@@ -104,7 +108,8 @@ describe('Auth & RBAC (e2e)', () => {
       .set(...bearer(signToken(ctx, admin)))
       .expect(200);
     // GET /api/users renvoie une liste paginée { users, total }.
-    const body = res.body as { users: unknown[]; total: number };
+    const body = (res.body as { data: { users: unknown[]; total: number } })
+      .data;
     expect(Array.isArray(body.users)).toBe(true);
     expect(body.users.length).toBeGreaterThanOrEqual(2);
     expect(body.total).toBeGreaterThanOrEqual(2);

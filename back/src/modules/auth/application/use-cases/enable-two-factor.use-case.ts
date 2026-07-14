@@ -12,6 +12,7 @@ import { TwoFactorSecretCipher } from '../ports/two-factor-secret-cipher.port';
 import { PasswordHasher } from '../ports/password-hasher.port';
 import { SecureTokenGenerator } from '../ports/secure-token-generator.port';
 import { Mailer } from '../ports/mailer.port';
+import { bestEffort } from '../../../../shared/application/best-effort';
 
 const RECOVERY_CODE_COUNT = 10;
 
@@ -54,7 +55,7 @@ export class EnableTwoFactorUseCase {
     await this.recoveryCodeRepository.replaceAll(userId, hashes);
     await this.userRepository.enableTwoFactor(userId);
 
-    await this.safeSend(() =>
+    await bestEffort('two-factor enabled email', () =>
       this.mailer.sendTwoFactorEnabled(user.email, user.username),
     );
 
@@ -66,13 +67,5 @@ export class EnableTwoFactorUseCase {
       const raw = this.tokenGenerator.generate().slice(0, 10);
       return { raw, formatted: `${raw.slice(0, 5)}-${raw.slice(5, 10)}` };
     });
-  }
-
-  private async safeSend(send: () => Promise<void>): Promise<void> {
-    try {
-      await send();
-    } catch {
-      /* email non bloquant */
-    }
   }
 }

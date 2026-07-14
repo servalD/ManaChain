@@ -99,6 +99,17 @@ export class InvalidOrExpiredTwoFactorChallengeError extends UnauthorizedDomainE
   }
 }
 
+/**
+ * Ticket d'échange OAuth (callback Google) absent, expiré, ou déjà consommé —
+ * remplace la transmission du JWT/refresh token en clair dans l'URL de
+ * redirection.
+ */
+export class InvalidOrExpiredOAuthTicketError extends UnauthorizedDomainException {
+  constructor() {
+    super('Invalid or expired login ticket — please log in again');
+  }
+}
+
 /** Trop de tentatives ratées sur un même challenge : force un nouveau login. */
 export class TooManyTwoFactorAttemptsError extends UnauthorizedDomainException {
   constructor() {
