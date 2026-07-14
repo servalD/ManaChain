@@ -19,6 +19,19 @@ google_client_id: "863120568268-mp7cam4i3s6bett5pvd9mdsrvod8g1mf.apps.googleuser
 stack_name: manachain
 stack_dir: /opt/manachain
 
+# Chain-sync (miroir SQL de la chaîne, Avalanche Fuji). Adresses issues du
+# dernier déploiement des contrats (contracts/config/deploy.json -> deployed.*)
+# — à mettre à jour à chaque redeploy. Rien ici n'est un secret : RPC public,
+# adresses de contrats publiques on-chain.
+chain_rpc_url: https://api.avax-test.network/ext/bc/C/rpc
+chain_id: 43113
+chain_sync_start_block: 56960203 # bloc de déploiement de ManaAdmin
+mana_admin_address: "0x487c5551c861082DF3f96d5EE5f5400631B5d4b7"
+brand_factory_address: "0x8D66194C16B3e2Af4db9694fed2028Bd2a1De054"
+sale_factory_address: "0xf21Bb292975E7ADa0C87f3e85b8104feC45F67a7"
+event_factory_address: "0x4a42176891eccaf8692F8F07c7Eee1C3847a6db1"
+usdc_address: "0x9Bb08F460F07Bd67920ea867b34F86e454d848e3"
+
 # Monitoring (Prometheus + Grafana + Sentry).
 telegram_chat_id: "8821560616"
 sentry_dsn_back: "https://2de61554c91382ea7bed215d5a4516b8@o4511682552266752.ingest.de.sentry.io/4511682565046352" # un DSN n'est pas un secret
