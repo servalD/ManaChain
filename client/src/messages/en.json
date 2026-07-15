@@ -263,7 +263,6 @@
         "detailsAction": "Details",
         "columns": {
           "brand": "Brand",
-          "id": "ID",
           "country": "Country",
           "created": "Created",
           "actions": "Actions"
@@ -280,7 +279,6 @@
         "bannedFlag": "Banned",
         "columns": {
           "user": "User",
-          "id": "ID",
           "role": "Role",
           "created": "Created",
           "actions": "Actions"
@@ -325,6 +323,14 @@
           "txFailedTitle": "Transaction failed",
           "txFailedMessage": "The transaction could not be signed. Check that your operator wallet is connected and try again."
         }
+      },
+      "brandDetailsModal": {
+        "address": "Address",
+        "website": "Website",
+        "registrationNumber": "Registration #",
+        "interests": "Interests",
+        "socials": "Socials",
+        "createdAt": "Created"
       },
       "banManagementTable": {
         "title": "Ban Management",

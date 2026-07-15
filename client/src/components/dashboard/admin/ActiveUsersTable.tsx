@@ -77,7 +77,6 @@ export function ActiveUsersTable() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.user")}</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.id")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.role")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
@@ -86,13 +85,13 @@ export function ActiveUsersTable() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("loading")}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("empty")}
                   </td>
                 </tr>
@@ -132,11 +131,6 @@ export function ActiveUsersTable() {
                             <div className="text-xs text-yellow-500 mt-0.5">{t("unverified")}</div>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="text-sm text-muted-foreground font-mono">
-                        {user.id.slice(0, 8)}...
                       </div>
                     </td>
                     <td className="p-4">

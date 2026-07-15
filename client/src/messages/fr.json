@@ -263,7 +263,6 @@
         "detailsAction": "Détails",
         "columns": {
           "brand": "Marque",
-          "id": "ID",
           "country": "Pays",
           "created": "Créée le",
           "actions": "Actions"
@@ -280,7 +279,6 @@
         "bannedFlag": "Banni",
         "columns": {
           "user": "Utilisateur",
-          "id": "ID",
           "role": "Rôle",
           "created": "Créé le",
           "actions": "Actions"
@@ -325,6 +323,14 @@
           "txFailedTitle": "Échec de la transaction",
           "txFailedMessage": "La transaction n'a pas pu être signée. Vérifie que ton wallet opérateur est connecté et réessaie."
         }
+      },
+      "brandDetailsModal": {
+        "address": "Adresse",
+        "website": "Site web",
+        "registrationNumber": "N° d'immatriculation",
+        "interests": "Centres d'intérêt",
+        "socials": "Réseaux sociaux",
+        "createdAt": "Créée le"
       },
       "banManagementTable": {
         "title": "Gestion des bans",
