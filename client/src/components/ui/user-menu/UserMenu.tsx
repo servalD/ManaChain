@@ -4,9 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { User, LogOut, UserCircle, ChevronDown, Wallet, Rocket } from "lucide-react";
+import { useAccount } from "wagmi";
+import { User, LogOut, UserCircle, ChevronDown, Wallet, Rocket, Droplets } from "lucide-react";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import PinataService from "@/services/pinata.service";
+import { useUsdcFaucet, FAUCET_MINT_AMOUNT } from "@/hooks/web3/useUsdcFaucet";
+import { toast } from "@/lib/toast";
 
 interface UserMenuProps {
   userName: string;
@@ -34,6 +37,16 @@ export function UserMenu({
   const displayAvatarUrl = userAvatarUrl ? PinataService.normalizeIpfsUrl(userAvatarUrl) : null;
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { address } = useAccount();
+  const { mint: mintFaucet, status: faucetStatus } = useUsdcFaucet({
+    onConfirmed: () => {
+      toast({ title: t("faucet.successTitle"), description: t("faucet.successMessage", { amount: FAUCET_MINT_AMOUNT }), variant: "success" });
+    },
+    onFailed: (error) => {
+      toast({ title: t("faucet.errorTitle"), description: error.message, variant: "error" });
+    },
+  });
+  const isFaucetBusy = faucetStatus === "signing" || faucetStatus === "pending";
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -153,6 +166,18 @@ export function UserMenu({
               >
                 <Rocket className="w-4 h-4 text-violet-400" />
                 <span>{t("createBrand")}</span>
+              </button>
+            )}
+
+            {/* Test USDC Faucet Button — testnet only, requires a connected wallet */}
+            {address && (
+              <button
+                onClick={() => void mintFaucet()}
+                disabled={isFaucetBusy}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all disabled:opacity-50"
+              >
+                <Droplets className="w-4 h-4 text-violet-400" />
+                <span>{isFaucetBusy ? t("faucet.requesting") : t("faucet.label")}</span>
               </button>
             )}
 

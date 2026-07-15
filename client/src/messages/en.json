@@ -996,6 +996,9 @@
     "enterAmountTitle": "Enter an amount",
     "enterAmountTokensMessage": "How many tokens would you like?",
     "enterAmountRefundMessage": "How many tokens would you like refunded?",
+    "insufficientBalanceTitle": "Insufficient USDC balance",
+    "insufficientBalanceMessage": "You don't have enough USDC to cover this purchase.",
+    "insufficientBalanceHint": "insufficient balance",
     "amountTooHighTitle": "Amount too high",
     "amountTooHighMessage": "You can't refund more than you originally bought.",
     "supportConfirmedTitle": "Support confirmed",
@@ -1025,6 +1028,13 @@
       "profile": "My Profile",
       "createBrand": "Create your brand",
       "wallet": "Wallet",
+      "faucet": {
+        "label": "Get test USDC",
+        "requesting": "Requesting test USDC…",
+        "successTitle": "Test USDC received",
+        "successMessage": "{amount} USDC added to your wallet.",
+        "errorTitle": "Faucet failed"
+      },
       "logout": "Logout"
     },
     "notificationBell": {

@@ -996,6 +996,9 @@
     "enterAmountTitle": "Saisissez un montant",
     "enterAmountTokensMessage": "Combien de tokens souhaitez-vous ?",
     "enterAmountRefundMessage": "Combien de tokens souhaitez-vous vous faire rembourser ?",
+    "insufficientBalanceTitle": "Solde USDC insuffisant",
+    "insufficientBalanceMessage": "Vous n'avez pas assez d'USDC pour cet achat.",
+    "insufficientBalanceHint": "solde insuffisant",
     "amountTooHighTitle": "Montant trop élevé",
     "amountTooHighMessage": "Vous ne pouvez pas rembourser plus que ce que vous avez acheté à l'origine.",
     "supportConfirmedTitle": "Soutien confirmé",
@@ -1025,6 +1028,13 @@
       "profile": "Mon profil",
       "createBrand": "Créer votre marque",
       "wallet": "Portefeuille",
+      "faucet": {
+        "label": "Obtenir des USDC de test",
+        "requesting": "Demande d'USDC de test…",
+        "successTitle": "USDC de test reçus",
+        "successMessage": "{amount} USDC ajoutés à ton wallet.",
+        "errorTitle": "Échec du faucet"
+      },
       "logout": "Déconnexion"
     },
     "notificationBell": {

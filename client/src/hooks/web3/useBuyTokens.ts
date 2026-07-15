@@ -4,13 +4,14 @@ import { useCallback } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { parseUnits, formatUnits, type Address } from "viem";
 import { useTxFlow } from "./useTxFlow";
+import { useUsdcFaucet, FAUCET_MINT_AMOUNT } from "./useUsdcFaucet";
 import { tokenSaleEscrowAbi, mockUsdcAbi } from "@/lib/web3/generated";
 import { CONTRACT_ADDRESSES } from "@/lib/web3/addresses";
 
+export { FAUCET_MINT_AMOUNT };
+
 const USDC_DECIMALS = 6;
 const SUPPORT_TOKEN_DECIMALS = 18;
-/** Faucet cap côté contrat (10 000 USDC par appel). */
-export const FAUCET_MINT_AMOUNT = "1000";
 
 /**
  * Flux d'achat : approve USDC (si besoin) -> buy. `pricePerToken` est le prix
@@ -51,9 +52,7 @@ export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: 
     },
   });
 
-  const faucetFlow = useTxFlow({
-    abi: mockUsdcAbi,
-    address: CONTRACT_ADDRESSES.usdc,
+  const faucet = useUsdcFaucet({
     onConfirmed: async () => {
       await refetchBalance();
     },
@@ -89,11 +88,6 @@ export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: 
     await approveFlow.write("approve", [escrowAddress, cost]);
   };
 
-  const mintFaucet = async () => {
-    if (!address) return;
-    await faucetFlow.write("mint", [address, parseUnits(FAUCET_MINT_AMOUNT, USDC_DECIMALS)]);
-  };
-
   const needsApproval = useCallback(
     (amountHuman: string) => {
       const cost = estimateCost(amountHuman);
@@ -116,7 +110,7 @@ export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: 
     buyStatus: buyFlow.status,
     buyError: buyFlow.error,
     buyHash: buyFlow.hash,
-    mintFaucet,
-    faucetStatus: faucetFlow.status,
+    mintFaucet: faucet.mint,
+    faucetStatus: faucet.status,
   };
 }
