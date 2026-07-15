@@ -14,12 +14,14 @@ import type { UserResponse } from "@/api/generated/models";
 interface BanUserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Pré-sélectionne la cible (ex. clic direct depuis une ligne du tableau) — saute l'étape de recherche. */
+  initialUser?: UserResponse | null;
 }
 
-export function BanUserModal({ isOpen, onClose }: BanUserModalProps) {
+export function BanUserModal({ isOpen, onClose, initialUser = null }: BanUserModalProps) {
   const t = useTranslations("dashboard.admin.banUserModal");
   const [search, setSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(initialUser);
   const [reason, setReason] = useState("");
   const [isPermanent, setIsPermanent] = useState(true);
   const [expiresAt, setExpiresAt] = useState("");

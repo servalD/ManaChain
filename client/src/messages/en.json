@@ -277,7 +277,6 @@
         "empty": "No users found",
         "unverified": "Unverified",
         "banAction": "Ban",
-        "detailsAction": "Details",
         "columns": {
           "user": "User",
           "id": "ID",

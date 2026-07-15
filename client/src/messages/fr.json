@@ -277,7 +277,6 @@
         "empty": "Aucun utilisateur trouvé",
         "unverified": "Non vérifié",
         "banAction": "Bannir",
-        "detailsAction": "Détails",
         "columns": {
           "user": "Utilisateur",
           "id": "ID",
