@@ -10,7 +10,7 @@ import { useWalletSync } from "@/hooks/useWalletSync";
 import { toast } from "@/lib/toast";
 import { useMyBrand } from "@/hooks/api/useBrands";
 import { useTokenByBrand } from "@/hooks/api/useTokens";
-import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia } from "@/components/dashboard";
+import { MyBrandChart, BrandEvents, BrandNotifications, BrandContentMedia, BrandLikes } from "@/components/dashboard";
 
 export default function BrandDashboardPage() {
   const t = useTranslations("dashboard.brand.dashboardPage");
@@ -79,6 +79,7 @@ export default function BrandDashboardPage() {
                 <MyBrandChart brandId={brandId} hasToken={hasToken} token={token} brandName={brandName} brandLogo={brandLogo} />
                 <BrandEvents />
                 <BrandContentMedia brandId={brandId} />
+                <BrandLikes brandId={brandId} />
                 <BrandNotifications />
               </>
             ) : (

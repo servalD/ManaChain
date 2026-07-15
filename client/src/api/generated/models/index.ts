@@ -7,6 +7,7 @@
  */
 
 export * from './activityPointResponse';
+export * from './adminEventEntryResponse';
 export * from './approveApplicationResponse';
 export * from './authResponse';
 export * from './banBrandRequest';
@@ -39,6 +40,7 @@ export * from './createLikeRequest';
 export * from './emailRequest';
 export * from './engagementPointResponse';
 export * from './eventResponse';
+export * from './eventsControllerAdminAllParams';
 export * from './eventsControllerListParams';
 export * from './eventsControllerMyBrandEventsParams';
 export * from './eventsControllerMyTicketsParams';
@@ -62,6 +64,7 @@ export * from './notificationResponse';
 export * from './notificationResponseType';
 export * from './notificationsControllerMyNotificationsParams';
 export * from './oAuthExchangeRequest';
+export * from './paginatedAdminEventsResponse';
 export * from './paginatedApplicationsResponse';
 export * from './paginatedBrandBansResponse';
 export * from './paginatedBrandsResponse';

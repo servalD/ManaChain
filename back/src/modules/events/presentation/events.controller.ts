@@ -26,8 +26,10 @@ import { CreateEventUseCase } from '../application/use-cases/create-event.use-ca
 import { ListEventsUseCase } from '../application/use-cases/list-events.use-case';
 import { GetEventUseCase } from '../application/use-cases/get-event.use-case';
 import { ListBrandEventsUseCase } from '../application/use-cases/list-brand-events.use-case';
+import { ListAllEventsUseCase } from '../application/use-cases/list-all-events.use-case';
 import { LinkEventContractsUseCase } from '../application/use-cases/link-event-contracts.use-case';
 import { PublishEventUseCase } from '../application/use-cases/publish-event.use-case';
+import { CancelEventUseCase } from '../application/use-cases/cancel-event.use-case';
 import { ListEventTicketTypesUseCase } from '../application/use-cases/list-event-ticket-types.use-case';
 import { ListMyTicketsUseCase } from '../application/use-cases/list-my-tickets.use-case';
 import { CreateEventRequest } from '../application/dto/create-event.request';
@@ -37,8 +39,10 @@ import {
   EventResponse,
   EventTicketTypeResponse,
   PaginatedEventsResponse,
+  PaginatedAdminEventsResponse,
   PaginatedTicketPurchasesResponse,
   toEventResponse,
+  toAdminEventEntryResponse,
   toEventTicketPurchaseResponse,
   toEventTicketTypeResponse,
 } from './event.presenter';
@@ -51,8 +55,10 @@ export class EventsController {
     private readonly listEvents: ListEventsUseCase,
     private readonly getEvent: GetEventUseCase,
     private readonly listBrandEvents: ListBrandEventsUseCase,
+    private readonly listAllEvents: ListAllEventsUseCase,
     private readonly linkEventContracts: LinkEventContractsUseCase,
     private readonly publishEvent: PublishEventUseCase,
+    private readonly cancelEvent: CancelEventUseCase,
     private readonly listEventTicketTypes: ListEventTicketTypesUseCase,
     private readonly listMyTickets: ListMyTicketsUseCase,
   ) {}
@@ -96,6 +102,18 @@ export class EventsController {
       query,
     );
     return { events: events.map(toEventResponse), total };
+  }
+
+  @Get('admin/all')
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tous les événements, toutes marques (admin)' })
+  @ApiOkResponse({ type: PaginatedAdminEventsResponse })
+  async adminAll(
+    @Query() query: ListEventsQuery,
+  ): Promise<PaginatedAdminEventsResponse> {
+    const { events, total } = await this.listAllEvents.execute(query);
+    return { events: events.map(toAdminEventEntryResponse), total };
   }
 
   @Get('my/tickets')
@@ -155,6 +173,20 @@ export class EventsController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<EventResponse> {
     return toEventResponse(await this.publishEvent.execute(user.id, id));
+  }
+
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.BRANDUSER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Annuler l'événement" })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  @ApiOkResponse({ type: EventResponse })
+  async cancel(
+    @CurrentUser() user: User,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<EventResponse> {
+    return toEventResponse(await this.cancelEvent.execute(user.id, id));
   }
 
   @Public()

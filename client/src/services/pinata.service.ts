@@ -41,14 +41,14 @@ export default class PinataService {
           }
         );
 
-        if (response.data?.ipfsUrl) {
+        if (response.data?.data?.ipfsUrl) {
           toast({
             title: "Upload successful",
             description: "Your file has been uploaded to IPFS",
             variant: "success",
           });
 
-          return response.data.ipfsUrl;
+          return response.data.data.ipfsUrl;
         } else {
           throw new Error("Invalid response from server");
         }

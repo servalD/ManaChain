@@ -6,6 +6,7 @@ import {
   getEventsControllerGetOneQueryOptions,
   getEventsControllerMyBrandEventsQueryOptions,
   getEventsControllerMyBrandEventsQueryKey,
+  getEventsControllerAdminAllQueryOptions,
   getEventsControllerMyTicketsQueryOptions,
   getEventsControllerMyTicketsQueryKey,
   getEventsControllerTicketTypesQueryOptions,
@@ -13,11 +14,13 @@ import {
   getEventsControllerCreateMutationOptions,
   getEventsControllerLinkContractsMutationOptions,
   getEventsControllerPublishMutationOptions,
+  getEventsControllerCancelMutationOptions,
 } from "@/api/generated/endpoints/events/events";
 import type {
   EventsControllerListParams,
   EventsControllerMyBrandEventsParams,
   EventsControllerMyTicketsParams,
+  EventsControllerAdminAllParams,
 } from "@/api/generated/models";
 import { apiErrorToast } from "@/lib/api-error";
 import { useToastQuery } from "./useToastQuery";
@@ -39,6 +42,14 @@ export function useEvent(eventId: string | undefined, options?: { enabled?: bool
 /** Mes événements (brand, tous statuts). */
 export function useMyBrandEvents(params?: EventsControllerMyBrandEventsParams) {
   return useToastQuery({ ...getEventsControllerMyBrandEventsQueryOptions(params) });
+}
+
+/** Tous les événements, toutes marques (admin). */
+export function useAdminEvents(params?: EventsControllerAdminAllParams) {
+  return useToastQuery({
+    ...getEventsControllerAdminAllQueryOptions(params),
+    errorToast: apiErrorToast("Failed to load events."),
+  });
 }
 
 /** Mes billets achetés. */
@@ -77,6 +88,17 @@ export function usePublishEvent() {
   return useToastMutation({
     ...getEventsControllerPublishMutationOptions(),
     errorToast: apiErrorToast("Failed to publish event."),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: getEventsControllerMyBrandEventsQueryKey() });
+    },
+  });
+}
+
+export function useCancelEvent() {
+  const queryClient = useQueryClient();
+  return useToastMutation({
+    ...getEventsControllerCancelMutationOptions(),
+    errorToast: apiErrorToast("Failed to cancel event."),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getEventsControllerMyBrandEventsQueryKey() });
     },

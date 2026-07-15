@@ -70,6 +70,10 @@ export class InMemoryEventRepository extends EventRepository {
     const events = [...this.rows.values()].filter((e) => e.brandId === brandId);
     return Promise.resolve({ events, total: events.length });
   }
+  listAll(): Promise<{ events: Event[]; total: number }> {
+    const events = [...this.rows.values()];
+    return Promise.resolve({ events, total: events.length });
+  }
   create(params: CreateEventParams): Promise<Event> {
     return Promise.resolve(
       this.seed({
@@ -110,5 +114,10 @@ export class InMemoryEventRepository extends EventRepository {
     const e = this.rows.get(id);
     if (!e) throw new EventNotFoundError();
     return Promise.resolve(this.seed({ ...e, status: 'published' }));
+  }
+  cancel(id: string): Promise<Event> {
+    const e = this.rows.get(id);
+    if (!e) throw new EventNotFoundError();
+    return Promise.resolve(this.seed({ ...e, status: 'cancelled' }));
   }
 }

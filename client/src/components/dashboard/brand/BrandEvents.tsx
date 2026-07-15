@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Calendar, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, MoreHorizontal, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useMyBrandEvents } from "@/hooks/api/useEvents";
+import { useMyBrandEvents, useCancelEvent } from "@/hooks/api/useEvents";
+import { toast } from "@/lib/toast";
 
 const limitOptions = [5, 10, 25, 50];
 
@@ -21,6 +22,23 @@ export function BrandEvents() {
   const { data, isLoading } = useMyBrandEvents({ limit: 50, offset: 0 });
   const events = data?.events ?? [];
   const [now] = useState(() => Date.now());
+  const cancelEvent = useCancelEvent();
+
+  const handleCancel = (eventId: string) => {
+    if (!window.confirm(t("table.cancelConfirm"))) return;
+    cancelEvent.mutate(
+      { id: eventId },
+      {
+        onSuccess: () => {
+          toast({
+            title: t("toasts.cancelledTitle"),
+            description: t("toasts.cancelledMessage"),
+            variant: "success",
+          });
+        },
+      },
+    );
+  };
 
   const filtered = events
     .filter((event) =>
@@ -150,7 +168,19 @@ export function BrandEvents() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <div className="flex items-center justify-end">
+                      <div className="flex items-center justify-end gap-2">
+                        {(event.status === "draft" || event.status === "published") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs text-destructive hover:text-destructive"
+                            disabled={cancelEvent.isPending}
+                            onClick={() => handleCancel(event.id)}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            {t("table.cancelEvent")}
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"

@@ -13,7 +13,7 @@ nodes_subnet_cidr: 10.10.1.0/24
 
 # Email (Resend, clé dans vault.yml → vault_resend_api_key ; mode simulation
 # si laissée vide) et OAuth.
-email_from: noreply@manachain.online
+email_from: noreply@contact.manachain.online
 google_client_id: "863120568268-mp7cam4i3s6bett5pvd9mdsrvod8g1mf.apps.googleusercontent.com"
 
 stack_name: manachain

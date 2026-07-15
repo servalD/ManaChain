@@ -3,6 +3,7 @@ import { toIso } from '../../../shared/presentation/date';
 import { Event } from '../domain/event';
 import { EventTicketType } from '../../chain-sync/domain/event-ticket-type';
 import { EventTicketPurchase } from '../../chain-sync/domain/event-ticket-purchase';
+import { EventWithBrandName } from '../application/use-cases/list-all-events.use-case';
 
 export class EventResponse {
   @ApiProperty({ format: 'uuid' }) id: string;
@@ -33,6 +34,17 @@ export class EventResponse {
 
 export class PaginatedEventsResponse {
   @ApiProperty({ type: EventResponse, isArray: true }) events: EventResponse[];
+  @ApiProperty() total: number;
+}
+
+export class AdminEventEntryResponse {
+  @ApiProperty({ type: EventResponse }) event: EventResponse;
+  @ApiProperty({ type: String, nullable: true }) brandName: string | null;
+}
+
+export class PaginatedAdminEventsResponse {
+  @ApiProperty({ type: AdminEventEntryResponse, isArray: true })
+  events: AdminEventEntryResponse[];
   @ApiProperty() total: number;
 }
 
@@ -81,6 +93,13 @@ export const toEventResponse = (e: Event): EventResponse => ({
   ticketSaleAddress: e.ticketSaleAddress,
   paymentFree: e.paymentFree,
   createdAt: toIso(e.createdAt),
+});
+
+export const toAdminEventEntryResponse = (
+  entry: EventWithBrandName,
+): AdminEventEntryResponse => ({
+  event: toEventResponse(entry.event),
+  brandName: entry.brandName,
 });
 
 export const toEventTicketTypeResponse = (

@@ -69,13 +69,36 @@ export function WalletConnectButton({ onConnected, onDisconnected, shouldDisconn
     const address = primaryWallet.address;
     const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
+    const handleCopyAddress = async () => {
+      try {
+        await navigator.clipboard.writeText(address);
+        toast({
+          title: "Address copied",
+          description: shortAddress,
+          variant: "default",
+        });
+      } catch (error) {
+        console.error("Error copying address:", error);
+        toast({
+          title: "Error",
+          description: "Failed to copy address.",
+          variant: "error",
+        });
+      }
+    };
+
     return (
       <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Connected Wallet Display */}
-        <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500/20 border border-green-500/30">
+        <button
+          type="button"
+          onClick={handleCopyAddress}
+          title="Copy address to clipboard"
+          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-green-500/20 border border-green-500/30 cursor-pointer hover:bg-green-500/30 transition-colors"
+        >
           <Check className="w-3 h-3 text-green-400" />
           <span className="text-[10px] sm:text-xs text-green-300 font-medium">{shortAddress}</span>
-        </div>
+        </button>
 
         {/* Disconnect Button */}
         <button

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import webpack from "webpack";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -65,4 +66,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  // Proxy les envelopes Sentry via /monitoring (même origine) : les
+  // ad-blockers bloquent *.ingest.sentry.io par domaine (ERR_BLOCKED_BY_CLIENT).
+  tunnelRoute: "/monitoring",
+  silent: true,
+  // Pas de SENTRY_AUTH_TOKEN configuré : upload des sourcemaps désactivé.
+  sourcemaps: { disable: true },
+});

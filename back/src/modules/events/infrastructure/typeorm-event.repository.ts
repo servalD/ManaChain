@@ -75,6 +75,18 @@ export class TypeOrmEventRepository extends EventRepository {
     return { events: entities.map((e) => this.toDomain(e)), total };
   }
 
+  async listAll(
+    params: ListEventsParams,
+  ): Promise<{ events: Event[]; total: number }> {
+    const qb = this.repository.createQueryBuilder('e');
+    if (params.search) {
+      qb.andWhere('e.title ILIKE :search', { search: `%${params.search}%` });
+    }
+    qb.orderBy('e.created_at', 'DESC').skip(params.offset).take(params.limit);
+    const [entities, total] = await qb.getManyAndCount();
+    return { events: entities.map((e) => this.toDomain(e)), total };
+  }
+
   async create(params: CreateEventParams): Promise<Event> {
     const saved = await this.repository.save(
       this.repository.create({
@@ -120,6 +132,11 @@ export class TypeOrmEventRepository extends EventRepository {
 
   async publish(id: string): Promise<Event> {
     await this.repository.update({ id }, { status: 'published' });
+    return this.getOrThrow(id);
+  }
+
+  async cancel(id: string): Promise<Event> {
+    await this.repository.update({ id }, { status: 'cancelled' });
     return this.getOrThrow(id);
   }
 
