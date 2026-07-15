@@ -277,6 +277,7 @@
         "empty": "No users found",
         "unverified": "Unverified",
         "banAction": "Ban",
+        "bannedFlag": "Banned",
         "columns": {
           "user": "User",
           "id": "ID",
@@ -320,7 +321,9 @@
           "expiryRequiredTitle": "Expiry required",
           "expiryRequiredMessage": "Set an expiry date for a temporary ban.",
           "noWalletTitle": "No wallet linked",
-          "noWalletMessage": "This brand has no on-chain address — cannot blacklist it on-chain."
+          "noWalletMessage": "This brand has no on-chain address — cannot blacklist it on-chain.",
+          "txFailedTitle": "Transaction failed",
+          "txFailedMessage": "The transaction could not be signed. Check that your operator wallet is connected and try again."
         }
       },
       "banManagementTable": {

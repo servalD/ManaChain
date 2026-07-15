@@ -155,16 +155,22 @@ export function ActiveUsersTable() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        {user.role !== "ADMIN" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                            onClick={() => setBanTarget(user)}
-                          >
-                            <Ban className="h-3 w-3 mr-1" />
-                            {t("banAction")}
-                          </Button>
+                        {user.banned ? (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-400">
+                            {t("bannedFlag")}
+                          </span>
+                        ) : (
+                          user.role !== "ADMIN" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                              onClick={() => setBanTarget(user)}
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              {t("banAction")}
+                            </Button>
+                          )
                         )}
                       </div>
                     </td>

@@ -26,4 +26,6 @@ export interface UserResponse {
   createdAt: string;
   /** Authentification à deux facteurs (TOTP) active. */
   twoFactorEnabled: boolean;
+  /** Ban actif (permanent ou non expiré). */
+  banned: boolean;
 }

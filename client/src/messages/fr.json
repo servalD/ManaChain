@@ -277,6 +277,7 @@
         "empty": "Aucun utilisateur trouvé",
         "unverified": "Non vérifié",
         "banAction": "Bannir",
+        "bannedFlag": "Banni",
         "columns": {
           "user": "Utilisateur",
           "id": "ID",
@@ -320,7 +321,9 @@
           "expiryRequiredTitle": "Date d'expiration requise",
           "expiryRequiredMessage": "Définissez une date d'expiration pour un ban temporaire.",
           "noWalletTitle": "Aucun wallet lié",
-          "noWalletMessage": "Cette marque n'a pas d'adresse on-chain — impossible de la blacklister on-chain."
+          "noWalletMessage": "Cette marque n'a pas d'adresse on-chain — impossible de la blacklister on-chain.",
+          "txFailedTitle": "Échec de la transaction",
+          "txFailedMessage": "La transaction n'a pas pu être signée. Vérifie que ton wallet opérateur est connecté et réessaie."
         }
       },
       "banManagementTable": {
