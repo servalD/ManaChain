@@ -59,9 +59,6 @@ export default class GeocodingService {
             limit: this.SEARCH_LIMIT,
             countrycodes: "", // Search worldwide
           },
-          headers: {
-            "User-Agent": "ManaChain/1.0", // Required by Nominatim
-          },
         }
       );
 
@@ -140,9 +137,6 @@ export default class GeocodingService {
             format: "json",
             addressdetails: 1,
             limit: 1,
-          },
-          headers: {
-            "User-Agent": "ManaChain/1.0",
           },
         }
       );
