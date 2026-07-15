@@ -60,13 +60,11 @@ export function Hero() {
                 fontFamily: 'var(--font-space-grotesk), system-ui, sans-serif'
               }}>
                 {t('headlineSupport')}<br />
-                <span className="whitespace-nowrap">
-                  {t('headlineThe')}{' '}
-                  <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
-                    {t('headlineBrands')}
-                  </span>
-                  {' '}{t('headlineYou')}
+                {t('headlineThe')}{' '}
+                <span className="bg-linear-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+                  {t('headlineBrands')}
                 </span>
+                {' '}{t('headlineYou')}
                 <br />
                 {t('headlineBelieveIn')}
               </h1>
