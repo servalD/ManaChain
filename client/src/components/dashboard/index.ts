@@ -12,6 +12,7 @@ export { BrandApplicationsTable } from './admin/BrandApplicationsTable';
 export { NotificationCenter } from './admin/NotificationCenter';
 export { BanManagementTable } from './admin/BanManagementTable';
 export { BrandWhitelistTable } from './admin/BrandWhitelistTable';
+export { AdminEventsTable } from './admin/AdminEventsTable';
 export { MyBrandChart } from './brand/MyBrandChart';
 export { BrandEvents } from './brand/BrandEvents';
 export { BrandNotifications } from './brand/BrandNotifications';

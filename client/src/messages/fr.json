@@ -222,6 +222,30 @@
           "loggedOutMessage": "À bientôt !"
         }
       },
+      "eventsPage": {
+        "title": "Événements",
+        "description": "Tous les événements, toutes marques, tous statuts.",
+        "toasts": {
+          "loggedOutTitle": "Déconnecté",
+          "loggedOutMessage": "À bientôt !"
+        }
+      },
+      "adminEventsTable": {
+        "columns": {
+          "eventName": "Nom de l'événement",
+          "brand": "Marque",
+          "date": "Date",
+          "type": "Type",
+          "status": "Statut",
+          "statusValues": {
+            "published": "Publié",
+            "draft": "Brouillon",
+            "cancelled": "Annulé"
+          }
+        },
+        "empty": "Aucun événement pour l'instant",
+        "unknownBrand": "Marque inconnue"
+      },
       "dashboardPage": {
         "title": "Tableau de bord admin",
         "toasts": {
@@ -557,11 +581,17 @@
           "status": "Statut",
           "actions": "Actions",
           "moreDetails": "Plus de détails",
+          "cancelEvent": "Annuler",
+          "cancelConfirm": "Annuler cet événement ? Cette action est irréversible.",
           "statusValues": {
             "published": "Publié",
             "draft": "Brouillon",
             "cancelled": "Annulé"
           }
+        },
+        "toasts": {
+          "cancelledTitle": "Événement annulé",
+          "cancelledMessage": "L'événement a été annulé."
         }
       },
       "brandContentMedia": {

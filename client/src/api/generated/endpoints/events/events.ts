@@ -28,10 +28,12 @@ import type {
   CreateEventRequest,
   EventResponse,
   EventTicketTypeResponse,
+  EventsControllerAdminAllParams,
   EventsControllerListParams,
   EventsControllerMyBrandEventsParams,
   EventsControllerMyTicketsParams,
   LinkEventContractsRequest,
+  PaginatedAdminEventsResponse,
   PaginatedEventsResponse,
   PaginatedTicketPurchasesResponse
 } from '../../models';
@@ -296,6 +298,99 @@ export function useEventsControllerMyBrandEvents<TData = Awaited<ReturnType<type
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getEventsControllerMyBrandEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+/**
+ * @summary Tous les événements, toutes marques (admin)
+ */
+export const eventsControllerAdminAll = (
+    params?: EventsControllerAdminAllParams,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<PaginatedAdminEventsResponse>(
+      {url: `/api/events/admin/all`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+
+
+
+
+export const getEventsControllerAdminAllQueryKey = (params?: EventsControllerAdminAllParams,) => {
+    return [
+    `/api/events/admin/all`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getEventsControllerAdminAllQueryOptions = <TData = Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError = ErrorType<unknown>>(params?: EventsControllerAdminAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEventsControllerAdminAllQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof eventsControllerAdminAll>>> = ({ signal }) => eventsControllerAdminAll(params, signal);
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EventsControllerAdminAllQueryResult = NonNullable<Awaited<ReturnType<typeof eventsControllerAdminAll>>>
+export type EventsControllerAdminAllQueryError = ErrorType<unknown>
+
+
+export function useEventsControllerAdminAll<TData = Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError = ErrorType<unknown>>(
+ params: undefined |  EventsControllerAdminAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof eventsControllerAdminAll>>,
+          TError,
+          Awaited<ReturnType<typeof eventsControllerAdminAll>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEventsControllerAdminAll<TData = Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError = ErrorType<unknown>>(
+ params?: EventsControllerAdminAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof eventsControllerAdminAll>>,
+          TError,
+          Awaited<ReturnType<typeof eventsControllerAdminAll>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEventsControllerAdminAll<TData = Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError = ErrorType<unknown>>(
+ params?: EventsControllerAdminAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Tous les événements, toutes marques (admin)
+ */
+
+export function useEventsControllerAdminAll<TData = Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError = ErrorType<unknown>>(
+ params?: EventsControllerAdminAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventsControllerAdminAll>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEventsControllerAdminAllQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -618,6 +713,68 @@ export const useEventsControllerPublish = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getEventsControllerPublishMutationOptions(options), queryClient);
+    }
+    /**
+ * @summary Annuler l'événement
+ */
+export const eventsControllerCancel = (
+    id: string,
+ signal?: AbortSignal
+) => {
+
+
+      return customInstance<EventResponse>(
+      {url: `/api/events/${id}/cancel`, method: 'PATCH', signal
+    },
+      );
+    }
+
+
+
+
+export const getEventsControllerCancelMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof eventsControllerCancel>>, TError,{id: string}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof eventsControllerCancel>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['eventsControllerCancel'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof eventsControllerCancel>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  eventsControllerCancel(id,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EventsControllerCancelMutationResult = NonNullable<Awaited<ReturnType<typeof eventsControllerCancel>>>
+
+    export type EventsControllerCancelMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Annuler l'événement
+ */
+export const useEventsControllerCancel = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof eventsControllerCancel>>, TError,{id: string}, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof eventsControllerCancel>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getEventsControllerCancelMutationOptions(options), queryClient);
     }
     /**
  * @summary Événement par id

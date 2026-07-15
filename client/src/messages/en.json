@@ -222,6 +222,30 @@
           "loggedOutMessage": "See you soon!"
         }
       },
+      "eventsPage": {
+        "title": "Events",
+        "description": "All events across every brand, all statuses.",
+        "toasts": {
+          "loggedOutTitle": "Logged out",
+          "loggedOutMessage": "See you soon!"
+        }
+      },
+      "adminEventsTable": {
+        "columns": {
+          "eventName": "Event Name",
+          "brand": "Brand",
+          "date": "Date",
+          "type": "Type",
+          "status": "Status",
+          "statusValues": {
+            "published": "Published",
+            "draft": "Draft",
+            "cancelled": "Cancelled"
+          }
+        },
+        "empty": "No events yet",
+        "unknownBrand": "Unknown brand"
+      },
       "dashboardPage": {
         "title": "Admin Dashboard",
         "toasts": {
@@ -557,11 +581,17 @@
           "status": "Status",
           "actions": "Actions",
           "moreDetails": "More Details",
+          "cancelEvent": "Cancel",
+          "cancelConfirm": "Cancel this event? This cannot be undone.",
           "statusValues": {
             "published": "Published",
             "draft": "Draft",
             "cancelled": "Cancelled"
           }
+        },
+        "toasts": {
+          "cancelledTitle": "Event cancelled",
+          "cancelledMessage": "The event has been cancelled."
         }
       },
       "brandContentMedia": {
