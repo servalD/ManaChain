@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '../../domain/event';
-import { EventRepository, ListEventsParams } from '../../domain/event.repository';
+import {
+  EventRepository,
+  ListEventsParams,
+} from '../../domain/event.repository';
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 
 export interface EventWithBrandName {
