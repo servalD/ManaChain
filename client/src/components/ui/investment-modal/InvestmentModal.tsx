@@ -49,29 +49,47 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
   const { data: balanceData } = useTokenBalance(token?.id, { enabled: isOpen && !!token });
 
   const {
+    usdcBalance,
     usdcBalanceFormatted,
     estimateCost,
     needsApproval,
     approve,
     approveStatus,
+    approveError,
     buy,
     buyStatus,
     buyError,
     mintFaucet,
     faucetStatus,
-  } = useBuyTokens(sale?.escrowAddress as `0x${string}` | undefined, sale?.pricePerToken);
+  } = useBuyTokens(sale?.escrowAddress as `0x${string}` | undefined, sale?.pricePerToken, {
+    onApproveFailed: (error) => {
+      toast({ title: t("approvalFailedTitle"), description: error.message || t("approvalFailedMessage"), variant: "error" });
+    },
+    onBuyFailed: (error) => {
+      toast({ title: t("purchaseFailedTitle"), description: error.message || t("purchaseFailedMessage"), variant: "error" });
+    },
+  });
 
   const {
     boughtOf,
     needsApproval: refundNeedsApproval,
     approve: approveRefund,
     approveStatus: refundApproveStatus,
+    approveError: refundApproveError,
     claim: claimRefund,
     claimStatus: refundClaimStatus,
     claimError: refundClaimError,
   } = useClaimRefund(
     sale?.escrowAddress as Address | undefined,
     token?.supportTokenAddress as Address | undefined,
+    {
+      onApproveFailed: (error) => {
+        toast({ title: t("approvalFailedTitle"), description: error.message || t("approvalFailedMessage"), variant: "error" });
+      },
+      onClaimFailed: (error) => {
+        toast({ title: t("refundFailedTitle"), description: error.message || t("refundFailedMessage"), variant: "error" });
+      },
+    },
   );
 
   const stopPolling = () => {
@@ -158,6 +176,11 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
       toast({ title: t("enterAmountTitle"), description: t("enterAmountTokensMessage"), variant: "error" });
       return;
     }
+    const cost = estimateCost(amount);
+    if (cost != null && usdcBalance < cost) {
+      toast({ title: t("insufficientBalanceTitle"), description: t("insufficientBalanceMessage"), variant: "error" });
+      return;
+    }
     if (needsApproval(amount)) {
       await approve(amount);
       return;
@@ -198,6 +221,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
     approveStatus === "signing" || approveStatus === "pending" ||
     buyStatus === "signing" || buyStatus === "pending" || isSyncing;
   const mustApprove = amount.trim() ? needsApproval(amount) : false;
+  const hasInsufficientBalance = cost != null && usdcBalance < cost;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -254,8 +278,9 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
                   disabled={isBusy}
                 />
                 {cost != null && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className={`text-xs ${hasInsufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
                     {t("estimatedCost", { amount: (Number(cost) / 1e6).toFixed(2) })}
+                    {hasInsufficientBalance && ` — ${t("insufficientBalanceHint")}`}
                   </p>
                 )}
               </div>
@@ -314,7 +339,7 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
             {isSaleOpen ? (
               <Button
                 onClick={handleApproveOrBuy}
-                disabled={isBusy}
+                disabled={isBusy || hasInsufficientBalance}
                 className="w-full bg-linear-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
                 size="lg"
               >
@@ -357,8 +382,14 @@ export function InvestmentModal({ isOpen, onClose, brand }: InvestmentModalProps
               {isSaleOpen ? t("later") : t("close")}
             </Button>
           </div>
+          {refundApproveError && refundApproveStatus === "failed" && (
+            <p className="text-sm text-destructive">{refundApproveError.message}</p>
+          )}
           {refundClaimError && refundClaimStatus === "failed" && (
             <p className="text-sm text-destructive">{refundClaimError.message}</p>
+          )}
+          {approveError && approveStatus === "failed" && (
+            <p className="text-sm text-destructive">{approveError.message}</p>
           )}
           {buyError && buyStatus === "failed" && (
             <p className="text-sm text-destructive">{buyError.message}</p>

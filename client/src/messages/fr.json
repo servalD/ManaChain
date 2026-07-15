@@ -965,7 +965,11 @@
       "notAvailableYet": "Pas encore disponible",
       "close": "Fermer",
       "ticketPurchasedTitle": "Billet acheté",
-      "ticketPurchasedMessage": "Vous allez à {eventTitle} !"
+      "ticketPurchasedMessage": "Vous allez à {eventTitle} !",
+      "approvalFailedTitle": "Échec de l'approbation",
+      "approvalFailedMessage": "L'approbation USDC n'a pas pu être signée. Vérifiez votre wallet et réessayez.",
+      "purchaseFailedTitle": "Échec de l'achat",
+      "purchaseFailedMessage": "L'achat n'a pas pu être signé. Vérifiez votre wallet et réessayez."
     }
   },
   "investment": {
@@ -1005,7 +1009,13 @@
     "supportConfirmedMessage": "Vous détenez désormais des {symbol} de {brandName}.",
     "refundSubmittedTitle": "Remboursement envoyé",
     "refundSubmittedMessage": "Votre remboursement a été confirmé on-chain — votre solde sera mis à jour sous peu.",
-    "tokensFallback": "tokens"
+    "tokensFallback": "tokens",
+    "approvalFailedTitle": "Échec de l'approbation",
+    "approvalFailedMessage": "L'approbation USDC n'a pas pu être signée. Vérifiez votre wallet et réessayez.",
+    "purchaseFailedTitle": "Échec de l'achat",
+    "purchaseFailedMessage": "L'achat n'a pas pu être signé. Vérifiez votre wallet et réessayez.",
+    "refundFailedTitle": "Échec du remboursement",
+    "refundFailedMessage": "Le remboursement n'a pas pu être signé. Vérifiez votre wallet et réessayez."
   },
   "brandApplication": {
     "toasts": {

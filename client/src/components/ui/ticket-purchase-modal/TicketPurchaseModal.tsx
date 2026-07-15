@@ -51,7 +51,17 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
     query: { enabled: !!address && isOpen },
   });
 
-  const { needsApproval, approve, approveStatus, buy, buyStatus, buyError } = useBuyTicket(ticketSaleAddress);
+  const { needsApproval, approve, approveStatus, approveError, buy, buyStatus, buyError } = useBuyTicket(
+    ticketSaleAddress,
+    {
+      onApproveFailed: (error) => {
+        toast({ title: t("approvalFailedTitle"), description: error.message || t("approvalFailedMessage"), variant: "error" });
+      },
+      onBuyFailed: (error) => {
+        toast({ title: t("purchaseFailedTitle"), description: error.message || t("purchaseFailedMessage"), variant: "error" });
+      },
+    },
+  );
 
   useEffect(() => {
     if (ticketTypes.length > 0 && !tokenId) {
@@ -198,6 +208,7 @@ export function TicketPurchaseModal({ isOpen, onClose, event }: TicketPurchaseMo
               {t("close")}
             </Button>
           </div>
+          {approveError && approveStatus === "failed" && <p className="text-sm text-destructive">{approveError.message}</p>}
           {buyError && buyStatus === "failed" && <p className="text-sm text-destructive">{buyError.message}</p>}
         </div>
       </DialogContent>

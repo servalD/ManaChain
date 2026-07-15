@@ -965,7 +965,11 @@
       "notAvailableYet": "Not Available Yet",
       "close": "Close",
       "ticketPurchasedTitle": "Ticket purchased",
-      "ticketPurchasedMessage": "You're going to {eventTitle}!"
+      "ticketPurchasedMessage": "You're going to {eventTitle}!",
+      "approvalFailedTitle": "Approval failed",
+      "approvalFailedMessage": "The USDC approval could not be signed. Check your wallet and try again.",
+      "purchaseFailedTitle": "Purchase failed",
+      "purchaseFailedMessage": "The purchase could not be signed. Check your wallet and try again."
     }
   },
   "investment": {
@@ -1005,7 +1009,13 @@
     "supportConfirmedMessage": "You now hold {symbol} from {brandName}.",
     "refundSubmittedTitle": "Refund submitted",
     "refundSubmittedMessage": "Your refund was confirmed on-chain — your balance will update shortly.",
-    "tokensFallback": "tokens"
+    "tokensFallback": "tokens",
+    "approvalFailedTitle": "Approval failed",
+    "approvalFailedMessage": "The USDC approval could not be signed. Check your wallet and try again.",
+    "purchaseFailedTitle": "Purchase failed",
+    "purchaseFailedMessage": "The purchase could not be signed. Check your wallet and try again.",
+    "refundFailedTitle": "Refund failed",
+    "refundFailedMessage": "The refund could not be signed. Check your wallet and try again."
   },
   "brandApplication": {
     "toasts": {
