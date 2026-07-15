@@ -46,3 +46,9 @@ export class EventNotReadyToPublishError extends ValidationDomainException {
     super('Deploy the ticket sale before publishing this event');
   }
 }
+
+export class EventCannotBeCancelledError extends ValidationDomainException {
+  constructor() {
+    super('This event cannot be cancelled');
+  }
+}

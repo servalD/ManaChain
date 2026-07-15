@@ -9,8 +9,10 @@ import { CreateEventUseCase } from './application/use-cases/create-event.use-cas
 import { ListEventsUseCase } from './application/use-cases/list-events.use-case';
 import { GetEventUseCase } from './application/use-cases/get-event.use-case';
 import { ListBrandEventsUseCase } from './application/use-cases/list-brand-events.use-case';
+import { ListAllEventsUseCase } from './application/use-cases/list-all-events.use-case';
 import { LinkEventContractsUseCase } from './application/use-cases/link-event-contracts.use-case';
 import { PublishEventUseCase } from './application/use-cases/publish-event.use-case';
+import { CancelEventUseCase } from './application/use-cases/cancel-event.use-case';
 import { ListEventTicketTypesUseCase } from './application/use-cases/list-event-ticket-types.use-case';
 import { ListMyTicketsUseCase } from './application/use-cases/list-my-tickets.use-case';
 import { EventsController } from './presentation/events.controller';
@@ -34,8 +36,10 @@ import { EventsController } from './presentation/events.controller';
     ListEventsUseCase,
     GetEventUseCase,
     ListBrandEventsUseCase,
+    ListAllEventsUseCase,
     LinkEventContractsUseCase,
     PublishEventUseCase,
+    CancelEventUseCase,
     ListEventTicketTypesUseCase,
     ListMyTicketsUseCase,
   ],

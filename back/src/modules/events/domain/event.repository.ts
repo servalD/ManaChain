@@ -42,6 +42,10 @@ export abstract class EventRepository {
     brandId: string,
     params: ListEventsParams,
   ): Promise<{ events: Event[]; total: number }>;
+  /** Tous statuts, toutes marques (modération admin). */
+  abstract listAll(
+    params: ListEventsParams,
+  ): Promise<{ events: Event[]; total: number }>;
   abstract create(params: CreateEventParams): Promise<Event>;
   /** Renseigne les adresses on-chain après déploiement (`link-event-contracts`). */
   abstract linkContracts(
@@ -54,4 +58,5 @@ export abstract class EventRepository {
     },
   ): Promise<Event>;
   abstract publish(id: string): Promise<Event>;
+  abstract cancel(id: string): Promise<Event>;
 }
