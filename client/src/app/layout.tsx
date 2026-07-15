@@ -21,6 +21,20 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Mana Chain - Community Engagement Platform",
   description: "Redefine the relationship between brands and communities. Create your community token, unite your audience, and generate revenue differently.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-512.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Mana Chain",
+  },
+};
+
+export const viewport = {
+  themeColor: "#7c3aed",
 };
 
 export default async function RootLayout({
