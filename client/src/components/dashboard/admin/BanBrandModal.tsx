@@ -85,6 +85,16 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
         await submitBan(selected);
       }
     },
+    // Sans ça, une signature refusée/absente (wallet non connecté...) laissait le
+    // modal bloqué en silence sur "confirmingBlacklist"/"confirmingCancelSale".
+    onFailed: (error) => {
+      toast({
+        title: t("toasts.txFailedTitle"),
+        description: error.message || t("toasts.txFailedMessage"),
+        variant: "error",
+      });
+      setStep("pick");
+    },
   });
 
   const reset = () => {

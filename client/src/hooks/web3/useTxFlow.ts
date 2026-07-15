@@ -19,15 +19,18 @@ interface UseTxFlowOptions<TAbi extends Abi> {
   address: Address | undefined;
   /** Appelé une fois la transaction minée. Invalidation de queries + polling API côté appelant. */
   onConfirmed?: (receipt: TransactionReceipt) => void | Promise<void>;
+  /** Appelé sur échec (signature refusée/absente, adresse manquante, tx revert on-chain) — sans ça, l'échec ne remonte nulle part. */
+  onFailed?: (error: Error) => void;
 }
 
 /**
  * Primitive d'écriture commune : writeContract -> waitForTransactionReceipt -> onConfirmed.
  * `status` est dérivé directement des états wagmi (pas de copie via setState dans un effet).
  */
-export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed }: UseTxFlowOptions<TAbi>) {
+export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed, onFailed }: UseTxFlowOptions<TAbi>) {
   const [writeError, setWriteError] = useState<Error | null>(null);
   const confirmedHashRef = useRef<Address | null>(null);
+  const failedHashRef = useRef<Address | null | "write-error">(null);
 
   const { writeContractAsync, data: hash, isPending: isSigning, reset: resetWrite } = useWriteContract();
 
@@ -43,6 +46,12 @@ export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed }: UseTx
     confirmedHashRef.current = receipt.transactionHash;
     void onConfirmed?.(receipt);
   }, [receipt, isReceiptSuccess, onConfirmed]);
+
+  useEffect(() => {
+    if (!isReceiptError || !hash || failedHashRef.current === hash) return;
+    failedHashRef.current = hash;
+    onFailed?.(receiptError instanceof Error ? receiptError : new Error("Transaction failed"));
+  }, [isReceiptError, receiptError, hash, onFailed]);
 
   const status: TxFlowStatus = isSigning
     ? "signing"
@@ -64,7 +73,9 @@ export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed }: UseTx
       args: WriteFunctionArgs<TAbi, TFunctionName>,
     ) => {
       if (!address) {
-        setWriteError(new Error("Contract address is not available yet"));
+        const error = new Error("Contract address is not available yet");
+        setWriteError(error);
+        onFailed?.(error);
         return;
       }
       setWriteError(null);
@@ -72,10 +83,12 @@ export function useTxFlow<TAbi extends Abi>({ abi, address, onConfirmed }: UseTx
       try {
         await writeContractAsync({ address, abi, functionName, args } as never);
       } catch (err) {
-        setWriteError(err instanceof Error ? err : new Error("Failed to sign transaction"));
+        const error = err instanceof Error ? err : new Error("Failed to sign transaction");
+        setWriteError(error);
+        onFailed?.(error);
       }
     },
-    [abi, address, writeContractAsync],
+    [abi, address, writeContractAsync, onFailed],
   );
 
   const reset = useCallback(() => {
