@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Search, Ban, MoreHorizontal } from "lucide-react";
+import { Search, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectItem } from "@/components/ui/select";
 import { useAdminUsersList } from "@/hooks/api/useAdminUsers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { BanUserModal } from "./BanUserModal";
+import type { UserResponse } from "@/api/generated/models";
 
 export function ActiveUsersTable() {
   const t = useTranslations("dashboard.admin.activeUsersTable");
@@ -23,10 +25,7 @@ export function ActiveUsersTable() {
   const users = data?.users ?? [];
   const total = data?.total ?? 0;
 
-  const handleBan = (userId: string) => {
-    // TODO: Implement ban functionality
-    console.log("Ban user:", userId);
-  };
+  const [banTarget, setBanTarget] = useState<UserResponse | null>(null);
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -156,23 +155,17 @@ export function ActiveUsersTable() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                          onClick={() => handleBan(user.id)}
-                        >
-                          <Ban className="h-3 w-3 mr-1" />
-                          {t("banAction")}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-xs"
-                        >
-                          <MoreHorizontal className="h-3 w-3 mr-1" />
-                          {t("detailsAction")}
-                        </Button>
+                        {user.role !== "ADMIN" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            onClick={() => setBanTarget(user)}
+                          >
+                            <Ban className="h-3 w-3 mr-1" />
+                            {t("banAction")}
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -182,6 +175,13 @@ export function ActiveUsersTable() {
           </table>
         </div>
       </div>
+
+      <BanUserModal
+        key={banTarget?.id ?? "none"}
+        isOpen={!!banTarget}
+        onClose={() => setBanTarget(null)}
+        initialUser={banTarget}
+      />
     </div>
   );
 }
