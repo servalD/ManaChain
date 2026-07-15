@@ -29,4 +29,6 @@ export abstract class UserBanRepository {
   abstract list(
     params: ListUserBansParams,
   ): Promise<{ bans: UserBan[]; total: number }>;
+  /** Sous-ensemble de `userIds` ayant un ban actif (permanent ou non expiré). */
+  abstract findActivelyBannedIds(userIds: string[]): Promise<string[]>;
 }

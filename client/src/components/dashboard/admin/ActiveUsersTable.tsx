@@ -77,7 +77,6 @@ export function ActiveUsersTable() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.user")}</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.id")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.role")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
@@ -86,13 +85,13 @@ export function ActiveUsersTable() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("loading")}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("empty")}
                   </td>
                 </tr>
@@ -135,11 +134,6 @@ export function ActiveUsersTable() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm text-muted-foreground font-mono">
-                        {user.id.slice(0, 8)}...
-                      </div>
-                    </td>
-                    <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                         {user.role}
                       </span>
@@ -155,16 +149,22 @@ export function ActiveUsersTable() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-end gap-2">
-                        {user.role !== "ADMIN" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                            onClick={() => setBanTarget(user)}
-                          >
-                            <Ban className="h-3 w-3 mr-1" />
-                            {t("banAction")}
-                          </Button>
+                        {user.banned ? (
+                          <span className="px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-400">
+                            {t("bannedFlag")}
+                          </span>
+                        ) : (
+                          user.role !== "ADMIN" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                              onClick={() => setBanTarget(user)}
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              {t("banAction")}
+                            </Button>
+                          )
                         )}
                       </div>
                     </td>

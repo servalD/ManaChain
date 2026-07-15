@@ -116,6 +116,10 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
       toast({ title: t("toasts.missingFieldsTitle"), description: t("toasts.missingFieldsMessage"), variant: "error" });
       return;
     }
+    if (endsAt && new Date(endsAt) < new Date(startsAt)) {
+      toast({ title: t("toasts.invalidDatesTitle"), description: t("toasts.invalidDatesMessage"), variant: "error" });
+      return;
+    }
     const created = await createEvent.mutateAsync({
       data: {
         title: title.trim(),
@@ -145,7 +149,7 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
         </div>
         <div>
           <label className="text-sm font-medium mb-2 block">{t("endsAtLabel")}</label>
-          <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} disabled={isBusy} />
+          <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} min={startsAt || undefined} disabled={isBusy} />
         </div>
       </div>
       <div>

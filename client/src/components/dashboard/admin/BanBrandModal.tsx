@@ -19,6 +19,8 @@ import type { BrandResponse } from "@/api/generated/models";
 interface BanBrandModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Pré-remplit la recherche (ex. clic direct depuis une ligne du tableau) — le propriétaire on-chain n'étant pas connu à l'avance, l'admin choisit quand même dans les résultats. */
+  initialSearch?: string;
 }
 
 interface BrandOption {
@@ -28,9 +30,9 @@ interface BrandOption {
 
 type Step = "pick" | "blacklist-pending" | "cancel-pending" | "submitting";
 
-export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
+export function BanBrandModal({ isOpen, onClose, initialSearch = "" }: BanBrandModalProps) {
   const t = useTranslations("dashboard.admin.banBrandModal");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [selected, setSelected] = useState<BrandOption | null>(null);
   const [reason, setReason] = useState("");
   const [isPermanent, setIsPermanent] = useState(true);
@@ -84,6 +86,16 @@ export function BanBrandModal({ isOpen, onClose }: BanBrandModalProps) {
         cancelHashRef.current = receipt.transactionHash;
         await submitBan(selected);
       }
+    },
+    // Sans ça, une signature refusée/absente (wallet non connecté...) laissait le
+    // modal bloqué en silence sur "confirmingBlacklist"/"confirmingCancelSale".
+    onFailed: (error) => {
+      toast({
+        title: t("toasts.txFailedTitle"),
+        description: error.message || t("toasts.txFailedMessage"),
+        variant: "error",
+      });
+      setStep("pick");
     },
   });
 

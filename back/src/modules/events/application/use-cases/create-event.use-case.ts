@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '../../domain/event';
 import { EventRepository } from '../../domain/event.repository';
-import { BrandRequiredError } from '../../domain/event.errors';
+import {
+  BrandRequiredError,
+  EventEndBeforeStartError,
+} from '../../domain/event.errors';
 import { BrandRepository } from '../../../brands/domain/brand.repository';
 
 export interface CreateEventInput {
@@ -31,6 +34,10 @@ export class CreateEventUseCase {
   async execute(ownerId: string, input: CreateEventInput): Promise<Event> {
     const brand = await this.brandRepository.findByOwnerId(ownerId);
     if (!brand) throw new BrandRequiredError();
+
+    if (input.endsAt && new Date(input.endsAt) < new Date(input.startsAt)) {
+      throw new EventEndBeforeStartError();
+    }
 
     return this.eventRepository.create({
       brandId: brand.id,

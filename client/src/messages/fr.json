@@ -263,7 +263,6 @@
         "detailsAction": "Détails",
         "columns": {
           "brand": "Marque",
-          "id": "ID",
           "country": "Pays",
           "created": "Créée le",
           "actions": "Actions"
@@ -277,9 +276,9 @@
         "empty": "Aucun utilisateur trouvé",
         "unverified": "Non vérifié",
         "banAction": "Bannir",
+        "bannedFlag": "Banni",
         "columns": {
           "user": "Utilisateur",
-          "id": "ID",
           "role": "Rôle",
           "created": "Créé le",
           "actions": "Actions"
@@ -320,8 +319,18 @@
           "expiryRequiredTitle": "Date d'expiration requise",
           "expiryRequiredMessage": "Définissez une date d'expiration pour un ban temporaire.",
           "noWalletTitle": "Aucun wallet lié",
-          "noWalletMessage": "Cette marque n'a pas d'adresse on-chain — impossible de la blacklister on-chain."
+          "noWalletMessage": "Cette marque n'a pas d'adresse on-chain — impossible de la blacklister on-chain.",
+          "txFailedTitle": "Échec de la transaction",
+          "txFailedMessage": "La transaction n'a pas pu être signée. Vérifie que ton wallet opérateur est connecté et réessaie."
         }
+      },
+      "brandDetailsModal": {
+        "address": "Adresse",
+        "website": "Site web",
+        "registrationNumber": "N° d'immatriculation",
+        "interests": "Centres d'intérêt",
+        "socials": "Réseaux sociaux",
+        "createdAt": "Créée le"
       },
       "banManagementTable": {
         "title": "Gestion des bans",
@@ -650,7 +659,9 @@
           "saveDraft": "Enregistrer le brouillon",
           "toasts": {
             "missingFieldsTitle": "Champs manquants",
-            "missingFieldsMessage": "Le titre, le type et la date de début sont requis."
+            "missingFieldsMessage": "Le titre, le type et la date de début sont requis.",
+            "invalidDatesTitle": "Dates invalides",
+            "invalidDatesMessage": "La date de fin doit être postérieure ou égale à la date de début."
           }
         },
         "deployModuleStep": {
@@ -985,6 +996,9 @@
     "enterAmountTitle": "Saisissez un montant",
     "enterAmountTokensMessage": "Combien de tokens souhaitez-vous ?",
     "enterAmountRefundMessage": "Combien de tokens souhaitez-vous vous faire rembourser ?",
+    "insufficientBalanceTitle": "Solde USDC insuffisant",
+    "insufficientBalanceMessage": "Vous n'avez pas assez d'USDC pour cet achat.",
+    "insufficientBalanceHint": "solde insuffisant",
     "amountTooHighTitle": "Montant trop élevé",
     "amountTooHighMessage": "Vous ne pouvez pas rembourser plus que ce que vous avez acheté à l'origine.",
     "supportConfirmedTitle": "Soutien confirmé",
@@ -1014,6 +1028,13 @@
       "profile": "Mon profil",
       "createBrand": "Créer votre marque",
       "wallet": "Portefeuille",
+      "faucet": {
+        "label": "Obtenir des USDC de test",
+        "requesting": "Demande d'USDC de test…",
+        "successTitle": "USDC de test reçus",
+        "successMessage": "{amount} USDC ajoutés à ton wallet.",
+        "errorTitle": "Échec du faucet"
+      },
       "logout": "Déconnexion"
     },
     "notificationBell": {

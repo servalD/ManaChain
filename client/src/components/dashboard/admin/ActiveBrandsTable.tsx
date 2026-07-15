@@ -9,6 +9,9 @@ import { Select, SelectItem } from "@/components/ui/select";
 import PinataService from "@/services/pinata.service";
 import { useAdminActiveBrands } from "@/hooks/api/useAdminUsers";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { BanBrandModal } from "./BanBrandModal";
+import { BrandDetailsModal } from "./BrandDetailsModal";
+import type { BrandResponse } from "@/api/generated/models";
 
 export function ActiveBrandsTable() {
   const t = useTranslations("dashboard.admin.activeBrandsTable");
@@ -24,10 +27,8 @@ export function ActiveBrandsTable() {
   const brands = data?.brands ?? [];
   const total = data?.total ?? 0;
 
-  const handleBan = (brandId: string) => {
-    // TODO: Implement ban functionality
-    console.log("Ban brand:", brandId);
-  };
+  const [banTarget, setBanTarget] = useState<BrandResponse | null>(null);
+  const [detailsTarget, setDetailsTarget] = useState<BrandResponse | null>(null);
 
   return (
     <div className="space-y-4 pt-8">
@@ -68,7 +69,6 @@ export function ActiveBrandsTable() {
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.brand")}</th>
-                <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.id")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.country")}</th>
                 <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("columns.created")}</th>
                 <th className="text-right p-4 text-sm font-semibold text-muted-foreground">{t("columns.actions")}</th>
@@ -77,13 +77,13 @@ export function ActiveBrandsTable() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("loading")}
                   </td>
                 </tr>
               ) : brands.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     {t("empty")}
                   </td>
                 </tr>
@@ -130,11 +130,6 @@ export function ActiveBrandsTable() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm text-muted-foreground font-mono">
-                        {brand.id.slice(0, 8)}...
-                      </div>
-                    </td>
-                    <td className="p-4">
                       <div className="text-sm text-muted-foreground">{brand.country}</div>
                     </td>
                     <td className="p-4">
@@ -152,7 +147,7 @@ export function ActiveBrandsTable() {
                           variant="ghost"
                           size="sm"
                           className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                          onClick={() => handleBan(brand.id)}
+                          onClick={() => setBanTarget(brand)}
                         >
                           <Ban className="h-3 w-3 mr-1" />
                           {t("banAction")}
@@ -161,6 +156,7 @@ export function ActiveBrandsTable() {
                           variant="ghost"
                           size="sm"
                           className="h-8 text-xs"
+                          onClick={() => setDetailsTarget(brand)}
                         >
                           <MoreHorizontal className="h-3 w-3 mr-1" />
                           {t("detailsAction")}
@@ -174,6 +170,14 @@ export function ActiveBrandsTable() {
           </table>
         </div>
       </div>
+
+      <BanBrandModal
+        key={banTarget?.id ?? "none"}
+        isOpen={!!banTarget}
+        onClose={() => setBanTarget(null)}
+        initialSearch={banTarget?.name}
+      />
+      <BrandDetailsModal brand={detailsTarget} onClose={() => setDetailsTarget(null)} />
     </div>
   );
 }

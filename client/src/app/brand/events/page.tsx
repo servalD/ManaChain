@@ -89,8 +89,9 @@ export default function BrandEventsPage() {
               </div>
             ) : (
               <div className="border border-border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
                     <tr className="border-b border-border bg-muted/30">
                       <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.title")}</th>
                       <th className="text-left p-4 text-sm font-semibold text-muted-foreground">{t("table.starts")}</th>
@@ -117,6 +118,7 @@ export default function BrandEventsPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </div>

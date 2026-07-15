@@ -153,7 +153,10 @@ export class UsersController {
     @Query() query: ListUsersQuery,
   ): Promise<PaginatedUsersResponse> {
     const { users, total } = await this.getAllUsers.execute(query);
-    return { users: users.map(toUserResponse), total };
+    return {
+      users: users.map((entry) => toUserResponse(entry.user, entry.banned)),
+      total,
+    };
   }
 
   /** Liste des bans utilisateurs — admin uniquement. */

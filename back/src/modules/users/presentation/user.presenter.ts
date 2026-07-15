@@ -51,6 +51,9 @@ export class UserResponse {
     description: 'Authentification à deux facteurs (TOTP) active.',
   })
   twoFactorEnabled: boolean;
+
+  @ApiProperty({ description: 'Ban actif (permanent ou non expiré).' })
+  banned: boolean;
 }
 
 export class ActivityPointResponse {
@@ -66,8 +69,13 @@ export class PaginatedUsersResponse {
   @ApiProperty() total: number;
 }
 
-/** Mappe un {@link User} de domaine vers la forme publique de l'API. */
-export const toUserResponse = (user: User): UserResponse => ({
+/**
+ * Mappe un {@link User} de domaine vers la forme publique de l'API. `banned`
+ * défaut à `false` : hors de la liste admin, l'appelant est toujours le
+ * titulaire du compte (`/me`), et l'auth guard bloque déjà les comptes bannis
+ * à la connexion — ce cas ne peut pas se produire ailleurs.
+ */
+export const toUserResponse = (user: User, banned = false): UserResponse => ({
   id: user.id,
   email: user.email,
   username: user.username,
@@ -82,6 +90,7 @@ export const toUserResponse = (user: User): UserResponse => ({
   passwordChanged: user.passwordChanged,
   createdAt: toIso(user.createdAt),
   twoFactorEnabled: user.twoFactorEnabled,
+  banned,
 });
 
 export class UserBanResponse {
