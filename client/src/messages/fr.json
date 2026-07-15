@@ -659,7 +659,9 @@
           "saveDraft": "Enregistrer le brouillon",
           "toasts": {
             "missingFieldsTitle": "Champs manquants",
-            "missingFieldsMessage": "Le titre, le type et la date de début sont requis."
+            "missingFieldsMessage": "Le titre, le type et la date de début sont requis.",
+            "invalidDatesTitle": "Dates invalides",
+            "invalidDatesMessage": "La date de fin doit être postérieure ou égale à la date de début."
           }
         },
         "deployModuleStep": {

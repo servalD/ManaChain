@@ -659,7 +659,9 @@
           "saveDraft": "Save draft",
           "toasts": {
             "missingFieldsTitle": "Missing fields",
-            "missingFieldsMessage": "Title, type and start date are required."
+            "missingFieldsMessage": "Title, type and start date are required.",
+            "invalidDatesTitle": "Invalid dates",
+            "invalidDatesMessage": "The end date must be on or after the start date."
           }
         },
         "deployModuleStep": {

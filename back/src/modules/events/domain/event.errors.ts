@@ -52,3 +52,9 @@ export class EventCannotBeCancelledError extends ValidationDomainException {
     super('This event cannot be cancelled');
   }
 }
+
+export class EventEndBeforeStartError extends ValidationDomainException {
+  constructor() {
+    super('End date must be on or after the start date');
+  }
+}
