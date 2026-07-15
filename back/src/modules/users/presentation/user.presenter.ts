@@ -75,10 +75,7 @@ export class PaginatedUsersResponse {
  * titulaire du compte (`/me`), et l'auth guard bloque déjà les comptes bannis
  * à la connexion — ce cas ne peut pas se produire ailleurs.
  */
-export const toUserResponse = (
-  user: User,
-  banned = false,
-): UserResponse => ({
+export const toUserResponse = (user: User, banned = false): UserResponse => ({
   id: user.id,
   email: user.email,
   username: user.username,
