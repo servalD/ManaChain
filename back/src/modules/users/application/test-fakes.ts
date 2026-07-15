@@ -74,6 +74,15 @@ export class InMemoryUserBanRepository extends UserBanRepository {
       total: all.length,
     });
   }
+
+  findActivelyBannedIds(userIds: string[]): Promise<string[]> {
+    const ids = new Set(userIds);
+    return Promise.resolve(
+      [...this.bans.values()]
+        .filter((b) => ids.has(b.userId) && b.isActive())
+        .map((b) => b.userId),
+    );
+  }
 }
 
 /** Fake {@link TwoFactorRecoveryCodeRepository} en mémoire pour les tests unitaires. */

@@ -80,6 +80,16 @@ export class TypeOrmUserBanRepository extends UserBanRepository {
     };
   }
 
+  async findActivelyBannedIds(userIds: string[]): Promise<string[]> {
+    if (userIds.length === 0) return [];
+    const rows = await this.db.manager.query<{ user_id: string }[]>(
+      `SELECT DISTINCT user_id FROM user_ban
+        WHERE user_id = ANY($1) AND (is_permanent = TRUE OR expires_at > NOW())`,
+      [userIds],
+    );
+    return rows.map((r) => r.user_id);
+  }
+
   private toDomain(row: UserBanRow): UserBan {
     return new UserBan(
       row.id,
