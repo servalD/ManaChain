@@ -23,7 +23,10 @@ export const metadata: Metadata = {
   description: "Redefine the relationship between brands and communities. Create your community token, unite your audience, and generate revenue differently.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icons/icon-192.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png" },
+    ],
     apple: "/icons/icon-512.png",
   },
   appleWebApp: {
