@@ -7,12 +7,18 @@ import { useTxFlow } from "./useTxFlow";
 import { ticketSaleAbi, mockUsdcAbi } from "@/lib/web3/generated";
 import { CONTRACT_ADDRESSES } from "@/lib/web3/addresses";
 
+interface UseBuyTicketCallbacks {
+  onApproveFailed?: (error: Error) => void;
+  onBuyFailed?: (error: Error) => void;
+}
+
 /**
  * Flux d'achat de billets : approve USDC (si prix > 0) -> buy(tokenId, quantity).
  * `cost` est en unités brutes on-chain (6 décimales USDC), tel que renvoyé par TicketSale.
  */
-export function useBuyTicket(ticketSaleAddress: Address | undefined) {
+export function useBuyTicket(ticketSaleAddress: Address | undefined, callbacks: UseBuyTicketCallbacks = {}) {
   const { address } = useAccount();
+  const { onApproveFailed, onBuyFailed } = callbacks;
 
   const { data: usdcAllowance, refetch: refetchAllowance } = useReadContract({
     address: CONTRACT_ADDRESSES.usdc,
@@ -28,6 +34,7 @@ export function useBuyTicket(ticketSaleAddress: Address | undefined) {
     onConfirmed: async () => {
       await refetchAllowance();
     },
+    onFailed: onApproveFailed,
   });
 
   const buyFlow = useTxFlow({
@@ -36,6 +43,7 @@ export function useBuyTicket(ticketSaleAddress: Address | undefined) {
     onConfirmed: async () => {
       await refetchAllowance();
     },
+    onFailed: onBuyFailed,
   });
 
   const approve = async (cost: bigint) => {

@@ -6,12 +6,22 @@ import type { Address } from "viem";
 import { useTxFlow } from "./useTxFlow";
 import { tokenSaleEscrowAbi, brandSupportTokenAbi } from "@/lib/web3/generated";
 
+interface UseClaimRefundCallbacks {
+  onApproveFailed?: (error: Error) => void;
+  onClaimFailed?: (error: Error) => void;
+}
+
 /**
  * Remboursement d'une vente annulée : approve support token -> escrow.claimRefund(amount).
  * `amount` est en unités brutes du support token (18 décimales), borné par `getBoughtOf`.
  */
-export function useClaimRefund(escrowAddress: Address | undefined, supportTokenAddress: Address | undefined) {
+export function useClaimRefund(
+  escrowAddress: Address | undefined,
+  supportTokenAddress: Address | undefined,
+  callbacks: UseClaimRefundCallbacks = {},
+) {
   const { address } = useAccount();
+  const { onApproveFailed, onClaimFailed } = callbacks;
 
   const { data: boughtOf, refetch: refetchBoughtOf } = useReadContract({
     address: escrowAddress,
@@ -35,6 +45,7 @@ export function useClaimRefund(escrowAddress: Address | undefined, supportTokenA
     onConfirmed: async () => {
       await refetchAllowance();
     },
+    onFailed: onApproveFailed,
   });
 
   const claimFlow = useTxFlow({
@@ -43,6 +54,7 @@ export function useClaimRefund(escrowAddress: Address | undefined, supportTokenA
     onConfirmed: async () => {
       await Promise.all([refetchBoughtOf(), refetchAllowance()]);
     },
+    onFailed: onClaimFailed,
   });
 
   const approve = async (amountRaw: bigint) => {

@@ -13,12 +13,22 @@ export { FAUCET_MINT_AMOUNT };
 const USDC_DECIMALS = 6;
 const SUPPORT_TOKEN_DECIMALS = 18;
 
+interface UseBuyTokensCallbacks {
+  onApproveFailed?: (error: Error) => void;
+  onBuyFailed?: (error: Error) => void;
+}
+
 /**
  * Flux d'achat : approve USDC (si besoin) -> buy. `pricePerToken` est le prix
  * brut on-chain (unités USDC, 6 décimales) tel que renvoyé par `token.sale`.
  */
-export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: string | undefined) {
+export function useBuyTokens(
+  escrowAddress: Address | undefined,
+  pricePerToken: string | undefined,
+  callbacks: UseBuyTokensCallbacks = {},
+) {
   const { address } = useAccount();
+  const { onApproveFailed, onBuyFailed } = callbacks;
 
   const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
     address: CONTRACT_ADDRESSES.usdc,
@@ -42,6 +52,7 @@ export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: 
     onConfirmed: async () => {
       await refetchAllowance();
     },
+    onFailed: onApproveFailed,
   });
 
   const buyFlow = useTxFlow({
@@ -50,6 +61,7 @@ export function useBuyTokens(escrowAddress: Address | undefined, pricePerToken: 
     onConfirmed: async () => {
       await Promise.all([refetchBalance(), refetchAllowance()]);
     },
+    onFailed: onBuyFailed,
   });
 
   const faucet = useUsdcFaucet({
