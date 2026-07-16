@@ -5,8 +5,9 @@ import { MediaReferenceChecker } from '../application/ports/media-reference.port
 /**
  * Contrôle SQL brut (pas d'ORM entity) — parcourt les tables connues pour
  * stocker une URL/hash IPFS : `brand_media`, `"user".avatar_url`,
- * `brand_application` (pas de user_id : rattachée par email de contact),
- * `event.cover_image_url`.
+ * `brand_application.logo_url` (pas de user_id : rattachée par email de
+ * contact), `event.cover_image_url`. Le justificatif d'immatriculation n'est
+ * plus sur IPFS depuis la migration 1750000000010 (stocké en base) : exclu.
  */
 @Injectable()
 export class TypeOrmMediaReferenceRepository extends MediaReferenceChecker {
@@ -32,8 +33,7 @@ export class TypeOrmMediaReferenceRepository extends MediaReferenceChecker {
          UNION
 
          SELECT 1 FROM brand_application ba
-         WHERE (ba.logo_url LIKE '%' || $1 || '%'
-                OR ba.registration_proof_url LIKE '%' || $1 || '%')
+         WHERE ba.logo_url LIKE '%' || $1 || '%'
            AND ba.contact_email != (SELECT email FROM "user" WHERE id = $2)
 
          UNION
