@@ -130,6 +130,10 @@ function LoginPageContent() {
         { data: { ticket } },
         {
           onSuccess: (result) => {
+            if (result.twoFactorRequired) {
+              setTwoFactorChallenge(result.challengeToken);
+              return;
+            }
             if (!result.user) return;
             toasterRef.current?.show({
               title: t("toasts.signedInTitle"),
@@ -144,6 +148,14 @@ function LoginPageContent() {
               : getRedirectPathByRole(result.user.role, result.user);
             clearPostAuthRedirect();
             router.replace(redirectPath);
+          },
+          onError: () => {
+            toasterRef.current?.show({
+              title: t("toasts.googleFailedTitle"),
+              message: t("toasts.googleFailedMessage"),
+              variant: "error",
+              duration: 5000,
+            });
           },
         }
       );
