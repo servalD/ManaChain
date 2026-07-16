@@ -61,10 +61,11 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
   _retried?: boolean;
 }
 
-// A 401 from these means "wrong credentials", not "session expired" — there is no
-// session to refresh, and redirecting away would kick the user off the login page
-// mid-attempt instead of just showing the error toast.
-const CREDENTIAL_CHECK_ENDPOINTS = ["/auth/login", "/auth/2fa/verify"];
+// A 401 from these means "wrong credentials" (or an invalid/expired OAuth ticket),
+// not "session expired" — there is no session to refresh, and redirecting away
+// would kick the user off the login page mid-attempt instead of just showing
+// the error toast.
+const CREDENTIAL_CHECK_ENDPOINTS = ["/auth/login", "/auth/2fa/verify", "/auth/oauth/exchange"];
 
 axiosInstance.interceptors.response.use(
   (response) => response,

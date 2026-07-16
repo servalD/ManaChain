@@ -145,6 +145,14 @@ function LoginPageContent() {
             clearPostAuthRedirect();
             router.replace(redirectPath);
           },
+          onError: () => {
+            toasterRef.current?.show({
+              title: t("toasts.googleFailedTitle"),
+              message: t("toasts.googleFailedMessage"),
+              variant: "error",
+              duration: 5000,
+            });
+          },
         }
       );
     }
