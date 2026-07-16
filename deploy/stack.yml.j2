@@ -167,6 +167,14 @@ services:
         - traefik.http.routers.client.entrypoints=websecure
         - traefik.http.routers.client.tls.certresolver=letsencrypt
         - traefik.http.services.client.loadbalancer.server.port=3000
+        # Le back capte tout /api (priorité 100) ; cette unique route Next
+        # propre au client vit aussi sous /api, d'où une exception plus
+        # prioritaire pour qu'elle atteigne bien le client et pas le back.
+        - traefik.http.routers.client-pinata-proxy.rule=(Host(`{{ domain_name }}`) || Host(`www.{{ domain_name }}`)) && Path(`/api/pinata/proxy`)
+        - traefik.http.routers.client-pinata-proxy.priority=200
+        - traefik.http.routers.client-pinata-proxy.entrypoints=websecure
+        - traefik.http.routers.client-pinata-proxy.tls.certresolver=letsencrypt
+        - traefik.http.routers.client-pinata-proxy.service=client
 
   prometheus:
     image: prom/prometheus:v3.5.0
