@@ -28,6 +28,7 @@
         registry_url: "{{ acr_login_server }}"
         username: "{{ acr_admin_username }}"
         password: "{{ acr_admin_password }}"
+      tags: [migrations]
 
     - name: Créer les secrets Swarm
       community.docker.docker_secret:
@@ -113,9 +114,13 @@
     # Le mot de passe passe par l'environnement (`-e VAR` sans valeur = héritée
     # du process docker CLI) : jamais dans la ligne de commande ni dans les
     # logs — ce qui permet de NE PAS no_log la tâche et de voir les erreurs.
+    # `docker run image:tag` réutilise le cache local même si le tag a bougé
+    # côté registre (contrairement à `docker stack deploy`/`service update`,
+    # qui résolvent toujours le digest via le registre) — d'où le --pull
+    # always, sinon on migre avec une image potentiellement obsolète.
     - name: Jouer les migrations TypeORM (one-shot, avant la bascule)
       ansible.builtin.command: >-
-        docker run --rm
+        docker run --rm --pull always
         -e DATABASE_HOST={{ database_host }}
         -e DATABASE_PORT=5432
         -e DATABASE_NAME={{ database_name }}
@@ -128,6 +133,7 @@
         DATABASE_PASSWORD: "{{ database_password }}"
       register: migrations
       changed_when: "'No migrations are pending' not in migrations.stdout"
+      tags: [migrations]
 
     - name: Déployer la stack Swarm
       community.docker.docker_stack:
