@@ -130,6 +130,10 @@ function LoginPageContent() {
         { data: { ticket } },
         {
           onSuccess: (result) => {
+            if (result.twoFactorRequired) {
+              setTwoFactorChallenge(result.challengeToken);
+              return;
+            }
             if (!result.user) return;
             toasterRef.current?.show({
               title: t("toasts.signedInTitle"),
