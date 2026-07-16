@@ -656,6 +656,8 @@
           "startsAtLabel": "Starts at",
           "endsAtLabel": "Ends at (optional)",
           "descriptionLabel": "Description (optional)",
+          "coverImageLabel": "Cover image (optional)",
+          "coverImageDescription": "Shown on the event's page (PNG, JPEG or WebP).",
           "saveDraft": "Save draft",
           "toasts": {
             "missingFieldsTitle": "Missing fields",

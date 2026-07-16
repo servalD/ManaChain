@@ -656,6 +656,8 @@
           "startsAtLabel": "Début",
           "endsAtLabel": "Fin (optionnel)",
           "descriptionLabel": "Description (optionnel)",
+          "coverImageLabel": "Image de couverture (optionnel)",
+          "coverImageDescription": "Visuel affiché sur la page de l'événement (PNG, JPEG ou WebP).",
           "saveDraft": "Enregistrer le brouillon",
           "toasts": {
             "missingFieldsTitle": "Champs manquants",
