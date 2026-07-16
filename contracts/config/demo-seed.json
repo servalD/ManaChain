@@ -8,7 +8,7 @@
     "bootstrapPassword": "Demo-Admin-Pass1!",
     "bootstrapAgeRange": "25-34"
   },
-  "brandCount": 2,
+  "brandCount": 6,
   "brands": [
     {
       "privateKeyEnv": "PK_BRAND_1",
@@ -103,6 +103,199 @@
           "ticketTypeCount": 1,
           "ticketTypes": [
             { "tokenId": 0, "supply": 50, "price": "10000000" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_3",
+      "application": {
+        "brandName": "Urban Food",
+        "description": "Street food et produits locaux.",
+        "interestLabels": ["Food & Beverage"],
+        "contactEmail": "serval7391+brand3@gmail.com",
+        "contactFirstName": "Camille",
+        "contactLastName": "Lefevre",
+        "contactPhone": "+33600000003",
+        "websiteUrl": "https://urbanfood.demo",
+        "businessRegistrationNumber": "URBANFOOD-DEMO-0003",
+        "country": "France",
+        "headquartersStreet": "3 rue de la Gastronomie",
+        "headquartersCity": "Lyon",
+        "headquartersZipCode": "69001"
+      },
+      "logoImagePath": "demo/assets/brand3-logo.png",
+      "mediaImagePaths": ["demo/assets/brand3-1.png"],
+      "nftName": "Urban Food Genesis",
+      "nftSymbol": "UFG",
+      "tokenName": "Urban Food Support Token",
+      "tokenSymbol": "UFT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand3",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "1500000",
+        "totalForSale": "400000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Urban Food — Marché Gourmand",
+          "imagePath": "demo/assets/brand3-event1.png",
+          "uri": "https://api.example.com/event/urbanfood-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": true,
+          "ticketTypeCount": 1,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 200, "price": "0" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_4",
+      "application": {
+        "brandName": "Art Collective",
+        "description": "Collectif d'artistes émergents.",
+        "interestLabels": ["Art"],
+        "contactEmail": "serval7391+brand4@gmail.com",
+        "contactFirstName": "Elise",
+        "contactLastName": "Roux",
+        "contactPhone": "+33600000004",
+        "websiteUrl": "https://artcollective.demo",
+        "businessRegistrationNumber": "ARTCOLLECTIVE-DEMO-0004",
+        "country": "France",
+        "headquartersStreet": "4 rue des Beaux-Arts",
+        "headquartersCity": "Marseille",
+        "headquartersZipCode": "13001"
+      },
+      "logoImagePath": "demo/assets/brand4-logo.png",
+      "mediaImagePaths": ["demo/assets/brand4-1.png"],
+      "nftName": "Art Collective Genesis",
+      "nftSymbol": "ACG",
+      "tokenName": "Art Collective Support Token",
+      "tokenSymbol": "ACT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand4",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "3000000",
+        "totalForSale": "200000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Art Collective — Vernissage",
+          "imagePath": "demo/assets/brand4-event1.png",
+          "uri": "https://api.example.com/event/artcollective-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": false,
+          "ticketTypeCount": 1,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 80, "price": "20000000" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_5",
+      "application": {
+        "brandName": "Fit Zone",
+        "description": "Coaching sportif et équipements fitness.",
+        "interestLabels": ["Sports", "Health & Wellness"],
+        "contactEmail": "serval7391+brand5@gmail.com",
+        "contactFirstName": "Fabien",
+        "contactLastName": "Moreau",
+        "contactPhone": "+33600000005",
+        "websiteUrl": "https://fitzone.demo",
+        "businessRegistrationNumber": "FITZONE-DEMO-0005",
+        "country": "France",
+        "headquartersStreet": "5 rue du Stade",
+        "headquartersCity": "Toulouse",
+        "headquartersZipCode": "31000"
+      },
+      "logoImagePath": "demo/assets/brand5-logo.png",
+      "mediaImagePaths": ["demo/assets/brand5-1.png"],
+      "nftName": "Fit Zone Genesis",
+      "nftSymbol": "FZG",
+      "tokenName": "Fit Zone Support Token",
+      "tokenSymbol": "FZT",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand5",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "1000000",
+        "totalForSale": "600000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Fit Zone — Bootcamp Open Day",
+          "imagePath": "demo/assets/brand5-event1.png",
+          "uri": "https://api.example.com/event/fitzone-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": false,
+          "ticketTypeCount": 2,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 60, "price": "8000000" },
+            { "tokenId": 1, "supply": 10, "price": "25000000" }
+          ]
+        }
+      ]
+    },
+    {
+      "privateKeyEnv": "PK_BRAND_6",
+      "application": {
+        "brandName": "Green Energy",
+        "description": "Solutions d'énergie renouvelable pour particuliers.",
+        "interestLabels": ["Environment"],
+        "contactEmail": "serval7391+brand6@gmail.com",
+        "contactFirstName": "Gabrielle",
+        "contactLastName": "Simon",
+        "contactPhone": "+33600000006",
+        "websiteUrl": "https://greenenergy.demo",
+        "businessRegistrationNumber": "GREENENERGY-DEMO-0006",
+        "country": "France",
+        "headquartersStreet": "6 rue de l'Écologie",
+        "headquartersCity": "Nantes",
+        "headquartersZipCode": "44000"
+      },
+      "logoImagePath": "demo/assets/brand6-logo.png",
+      "mediaImagePaths": ["demo/assets/brand6-1.png"],
+      "nftName": "Green Energy Genesis",
+      "nftSymbol": "GEG",
+      "tokenName": "Green Energy Support Token",
+      "tokenSymbol": "GET",
+      "tokenImageUri": "",
+      "genesisUri": "ipfs://placeholder-genesis-brand6",
+      "totalSupplyCap": "0",
+      "tokenSale": {
+        "pricePerToken": "2500000",
+        "totalForSale": "350000000000000000000",
+        "startTime": 1783890753,
+        "endTime": 1783990753
+      },
+      "eventCount": 1,
+      "events": [
+        {
+          "title": "Green Energy — Forum Transition",
+          "imagePath": "demo/assets/brand6-event1.png",
+          "uri": "https://api.example.com/event/greenenergy-1/{id}.json",
+          "startTime": 1783890753,
+          "endTime": 1783990753,
+          "freeEvent": true,
+          "ticketTypeCount": 1,
+          "ticketTypes": [
+            { "tokenId": 0, "supply": 150, "price": "0" }
           ]
         }
       ]
