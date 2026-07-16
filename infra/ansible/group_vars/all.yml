@@ -25,12 +25,12 @@ stack_dir: /opt/manachain
 # adresses de contrats publiques on-chain.
 chain_rpc_url: https://api.avax-test.network/ext/bc/C/rpc
 chain_id: 43113
-chain_sync_start_block: 56960203 # bloc de déploiement de ManaAdmin
-mana_admin_address: "0x487c5551c861082DF3f96d5EE5f5400631B5d4b7"
-brand_factory_address: "0x8D66194C16B3e2Af4db9694fed2028Bd2a1De054"
-sale_factory_address: "0xf21Bb292975E7ADa0C87f3e85b8104feC45F67a7"
-event_factory_address: "0x4a42176891eccaf8692F8F07c7Eee1C3847a6db1"
-usdc_address: "0x9Bb08F460F07Bd67920ea867b34F86e454d848e3"
+chain_sync_start_block: 57024680 # bloc de déploiement de ManaAdmin
+mana_admin_address: "0x33A1814161cEa26621fF0d9d8Ad8D64Ffb2E891f"
+brand_factory_address: "0x34f2295aEE40EFA5df0eE6044Eaa29b0629B9f85"
+sale_factory_address: "0xeF733B53741f76852B64f32E57F614B7048fD9c2"
+event_factory_address: "0x7802Fc772C970BF9cca03969A823cffA8b154783"
+usdc_address: "0x0AB5bD8d85EA31080713d3C5CEab4FA02f0361A0"
 
 # Monitoring (Prometheus + Grafana + Sentry).
 telegram_chat_id: "8821560616"

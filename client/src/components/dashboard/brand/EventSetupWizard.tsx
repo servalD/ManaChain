@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { decodeEventLog, type Address } from "viem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FileUpload } from "@/components/brand-application/FileUpload";
 import { toast } from "@/lib/toast";
 import PinataService from "@/services/pinata.service";
 import { useTxFlow } from "@/hooks/web3/useTxFlow";
@@ -107,6 +108,7 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [description, setDescription] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const createEvent = useCreateEvent();
 
   const isBusy = createEvent.isPending;
@@ -127,6 +129,7 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
         description: description.trim() || undefined,
         startsAt: new Date(startsAt).toISOString(),
         endsAt: endsAt ? new Date(endsAt).toISOString() : undefined,
+        coverImageUrl: coverImageUrl || undefined,
       },
     });
     onCreated(created);
@@ -162,6 +165,13 @@ function DraftStep({ onCreated }: { onCreated: (e: EventResponse) => void }) {
           className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-none"
         />
       </div>
+      <FileUpload
+        value={coverImageUrl}
+        onChange={setCoverImageUrl}
+        accept=".png,.jpeg,.jpg,.webp,image/png,image/jpeg,image/webp"
+        label={t("coverImageLabel")}
+        description={t("coverImageDescription")}
+      />
       <Button onClick={handleCreate} disabled={isBusy} className="w-full">
         {isBusy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
         {t("saveDraft")}
